@@ -31,8 +31,7 @@ où :
 - `θs = 2πs/12` ;
 - `as` est la probabilité ou l'intensité de frappe sur cette subdivision ;
 - `A = Σs as` normalise le motif ;
-- `k` n'est plus présenté comme un nombre abstrait, mais comme une couche de
-  structure rythmique.
+- `k` indique le nombre d'oscillations de l'onde complexe dans le cycle.
 
 Équation affichée :
 
@@ -70,18 +69,18 @@ Chaque `ck` est affiché comme :
 
 - amplitude `|ck|` ;
 - phase `arg(ck)` ;
-- nom musical de la couche.
+- nom mathématique de l'onde.
 
-Les noms affichés doivent être musicaux plutôt que techniques :
+Les noms affichés restent techniques pour éviter les métaphores ambiguës :
 
 | Coefficient | Lecture intuitive |
 |---|---|
-| `c1` | gravité du cycle |
-| `c2` | balancement en deux pôles |
-| `c3` | triangle / trois appuis |
-| `c4` | carré / quatre appuis |
-| `c5` | asymétrie fine |
-| `c6` | alternance rapide |
+| `c1` | 1 oscillation par cycle |
+| `c2` | 2 oscillations par cycle |
+| `c3` | 3 oscillations par cycle |
+| `c4` | 4 oscillations par cycle |
+| `c5` | 5 oscillations par cycle |
+| `c6` | alternance maximale sur 12 subdivisions |
 
 ### 3. Carte vectorielle
 
@@ -102,7 +101,7 @@ hors de cette version.
 
 ## Pourquoi c'est plus clair
 
-L'utilisateur ne lit plus un `n` abstrait. Il lit des couches visibles :
+L'utilisateur ne lit plus un `n` abstrait. Il lit des ondes visibles :
 
 - quand `c3` est fort, le cercle montre trois pôles ;
 - quand `c6` est fort, l'alternance est plus serrée ;
@@ -129,26 +128,28 @@ indépendants :
 - `c6` est le coefficient de Nyquist, l'alternance maximale possible sur une
   grille de 12.
 
-Donc les couches indépendantes non triviales sont `c1..c6`. Afficher `c7..c11`
+Donc les ondes indépendantes non triviales sont `c1..c6`. Afficher `c7..c11`
 redonnerait la même information en miroir.
 
 Important : `c1..c6` ne sont pas les six premières subdivisions du rythme. Ce
-sont six couches de forme. Chaque couche regarde les 12 subdivisions à la fois :
+sont six ondes de forme. Chaque onde regarde les 12 subdivisions à la fois :
 elle mesure une manière de se répartir dans le cycle.
 
 ## Analyse des coefficients
 
 Pour chaque voix D1/D2 :
 
-- l'amplitude `|ck|` mesure la force de la couche `k` ;
-- la phase `arg(ck)` mesure où cette couche est placée dans le cycle ;
-- la combinaison des six couches reconstruit la courbe du rythme ;
+- l'amplitude `|ck|` mesure la force de l'onde `k` ;
+- la phase `arg(ck)` mesure où cette onde est placée dans le cycle ;
+- la combinaison des six ondes reconstruit la courbe du rythme ;
 - comparer deux rythmes revient à comparer leurs vecteurs de coefficients.
 
 La carte des signatures projette ces vecteurs dans un plan :
 
-- axe x = composante principale 1, le contraste dominant entre signatures ;
-- axe y = composante principale 2, le contraste secondaire ;
+- axe x = composante principale 1, première direction qui résume les distances
+  entre signatures ;
+- axe y = composante principale 2, deuxième direction qui résume les distances
+  restantes ;
 - ce ne sont pas des axes musicaux fixes, mais des axes statistiques calculés
   à partir des rythmes présents dans la page.
 

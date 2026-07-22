@@ -134,12 +134,12 @@ def build_data():
         "rhythms": rhythms,
         "map": _pca_map(rhythms),
         "coefNames": {
-            "1": "gravité du cycle",
-            "2": "balancement en deux pôles",
-            "3": "trois appuis",
-            "4": "quatre appuis",
-            "5": "asymétrie fine",
-            "6": "alternance rapide",
+            "1": "1 oscillation par cycle",
+            "2": "2 oscillations par cycle",
+            "3": "3 oscillations par cycle",
+            "4": "4 oscillations par cycle",
+            "5": "5 oscillations par cycle",
+            "6": "alternance maximale",
         },
     }
 
@@ -211,7 +211,7 @@ canvas{display:block;width:100%;height:auto}
 .cardTop{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
 .cardTop b{font-family:Georgia,Times,serif;font-size:1.15rem}.cardTop span{color:var(--muted);font-size:.78rem}
 .miniEq{font-size:.78rem;max-height:155px;overflow:auto;border-top:1px solid var(--line2);padding-top:8px}
-.researchNote{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px}
+.researchNote{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:12px}
 .researchNote div{border-left:3px solid var(--accent);padding:4px 0 4px 12px;color:var(--muted);font-size:.86rem}
 .foot{color:var(--muted);font-size:.82rem;margin:18px 2px 0}
 @media(max-width:980px){header,.layout,.researchNote{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.metaGrid{grid-template-columns:1fr 1fr}}
@@ -224,7 +224,8 @@ canvas{display:block;width:100%;height:auto}
   <div class="abstract">
     <b>Objet.</b> Trois rythmes, trois équations complexes. Chaque signature est
     calculée uniquement sur les prises où D1 et D2 sont tous les deux présents,
-    pour comparer les deux voix sur la même base.
+    pour comparer les deux voix sur la même base. Les coefficients sont des
+    projections du motif sur les racines complexes du cycle.
   </div>
 </header>
 
@@ -248,7 +249,7 @@ canvas{display:block;width:100%;height:auto}
     <p class="caption">Axes : abscisse = subdivision Polak du cycle, ordonnée = probabilité moyenne de frappe. Les points sont observés ; les courbes viennent de l'équation complexe.</p>
     <h3>Espace des signatures</h3>
     <canvas id="map" width="620" height="250"></canvas>
-    <p class="caption">Axes : x = composante principale 1, y = composante principale 2. Chaque point projette la signature complexe complète D1+D2 ; c'est une carte descriptive, pas une vérité absolue.</p>
+    <p class="caption">Axes : x = PC1, y = PC2. Ce sont deux directions calculées automatiquement pour résumer les distances entre signatures. À lire surtout comme une carte : points proches = signatures proches.</p>
   </article>
 
   <aside class="panel">
@@ -259,7 +260,8 @@ canvas{display:block;width:100%;height:auto}
     <div id="coefTable"></div>
     <div class="researchNote">
       <div><b>D1/D2 comparables.</b><br>La figure utilise les mêmes prises pour D1 et D2 : uniquement les prises appariées où les deux voix sont présentes.</div>
-      <div><b>Pourquoi six coefficients ?</b><br>Sur 12 subdivisions réelles, c7..c11 répètent l'information de c1..c5 en miroir conjugué. On garde donc c1..c6.</div>
+      <div><b>Six coefficients ≠ six temps.</b><br>Chaque coefficient regarde les 12 subdivisions. Il mesure une onde complète autour du cercle, pas une subdivision isolée.</div>
+      <div><b>Calcul complexe.</b><br>On pose \(z_s=e^{2\pi i s/12}\). Le coefficient \(c_k\) est la somme pondérée des frappes après rotation par \(z_s^{-k}\).</div>
       <div><b>Notation.</b><br><b>Rythme</b> désigne l'objet complet ; <b>D1</b> et <b>D2</b> sont les deux courbes/voix qui composent ce rythme.</div>
     </div>
   </aside>
@@ -273,6 +275,7 @@ canvas{display:block;width:100%;height:auto}
 const DATA=__DATA__;
 const TAU=Math.PI*2;
 const state={piece:DATA.pieces[0]};
+const playback={active:false,startedMs:0,durationMs:0,step:.155,raf:null};
 
 function rhythm(piece=state.piece){return DATA.rhythms.find(r=>r.piece===piece) || DATA.rhythms[0];}
 function css(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
@@ -294,20 +297,38 @@ function curveValue(it,t){
   y += c6.re*Math.cos(6*theta)-c6.im*Math.sin(6*theta);
   return Math.max(0,y/N*(it.density||1));
 }
+function playheadPosition(){
+  if(!playback.active)return null;
+  const elapsed=performance.now()-playback.startedMs;
+  if(elapsed<0)return 0;
+  if(elapsed>playback.durationMs){
+    playback.active=false;
+    document.getElementById("playBtn").textContent="▶ Écouter le rythme";
+    return null;
+  }
+  return (elapsed/1000/playback.step)%12;
+}
 
 function latexForRhythm(r){
   const d1=r.voices.D1, d2=r.voices.D2;
   return String.raw`
 \[
 \begin{aligned}
+\text{points du cercle:}\quad
+z_s &= e^{2\pi i s/12}\\
+\text{motif normalisé:}\quad
+x_{v,s} &= \frac{\operatorname{D}_{v}(s)}{\rho_v},
+\qquad \rho_v=\sum_{s=0}^{11}\operatorname{D}_{v}(s)\\
+\text{coefficients:}\quad
+c_{v,k} &= \sum_{s=0}^{11}x_{v,s}\,z_s^{-k},
+\qquad k=0,\ldots,6\\
 \operatorname{Rythme}_{\mathrm{${r.piece}}}(s)
   &= \begin{bmatrix}\operatorname{D1}_{\mathrm{${r.piece}}}(s)\\\operatorname{D2}_{\mathrm{${r.piece}}}(s)\end{bmatrix},
   \qquad s\in\{0,\ldots,11\}\\
 \operatorname{D}_{v,\mathrm{${r.piece}}}(s)
   &= \frac{\rho_v}{12}\left[
-      1+2\sum_{k=1}^{5}|c_{v,k}|
-      \cos\!\left(\frac{2\pi ks}{12}+\phi_{v,k}\right)
-      + c_{v,6}\cos(\pi s)
+      1+2\,\Re\!\left(\sum_{k=1}^{5}c_{v,k}z_s^k\right)
+      + c_{v,6}(-1)^s
     \right]\\
 \mathbf{c}_{D1}
   &= ${texVector(d1)}\\
@@ -385,6 +406,20 @@ function drawCircle(){
     g.fillText(voice,rad+18,0);
   });
 
+  const p=playheadPosition();
+  if(p!==null){
+    const a=p/12*TAU-Math.PI/2, ca=Math.cos(a), sa=Math.sin(a);
+    g.globalAlpha=1;
+    g.strokeStyle=css("--ink");
+    g.lineWidth=2.8;
+    g.beginPath();g.moveTo((inner-42)*ca,(inner-42)*sa);g.lineTo((outer+28)*ca,(outer+28)*sa);g.stroke();
+    g.fillStyle=css("--ink");
+    g.beginPath();g.arc((outer+28)*ca,(outer+28)*sa,5.2,0,TAU);g.fill();
+    g.font="700 12px Inter, system-ui, sans-serif";
+    g.textAlign="center";g.textBaseline="middle";
+    g.fillText("lecture",0,0);
+  }
+
   g.restore();
   document.getElementById("circleCaption").innerHTML =
     `<b>${r.piece}</b> — prises appariées D1/D2 : ${r.takes.join(", ")}. `+
@@ -436,6 +471,17 @@ function drawCurve(){
       g.strokeStyle=css("--paper");g.lineWidth=1.4;g.stroke();
     });
   });
+
+  const p=playheadPosition();
+  if(p!==null){
+    const x=xOf(p);
+    g.globalAlpha=1;
+    g.strokeStyle=css("--ink");
+    g.lineWidth=2;
+    g.beginPath();g.moveTo(x,top);g.lineTo(x,H-bottom);g.stroke();
+    g.fillStyle=css("--ink");
+    g.beginPath();g.arc(x,top+7,4.5,0,TAU);g.fill();
+  }
   g.globalAlpha=1;
 }
 
@@ -493,7 +539,7 @@ function renderCoefTable(){
       <td>${b.mag.toFixed(3)}</td><td>${phaseDeg(b.phase).toFixed(0)}°</td></tr>`);
   }
   document.getElementById("coefTable").innerHTML=`<table class="coefTable">
-    <thead><tr><th>couche</th><th>|D1|</th><th>arg D1</th><th>|D2|</th><th>arg D2</th></tr></thead>
+    <thead><tr><th>onde</th><th>|D1|</th><th>arg D1</th><th>|D2|</th><th>arg D2</th></tr></thead>
     <tbody>${rows.join("")}</tbody></table>`;
 }
 
@@ -528,9 +574,14 @@ async function playRhythm(){
   if(!AudioCtx){alert("Audio Web non disponible dans ce navigateur.");return;}
   const ctx=new AudioCtx();
   await ctx.resume();
-  const r=rhythm(), step=.155, start=ctx.currentTime+.08;
+  const r=rhythm(), step=playback.step, start=ctx.currentTime+.08, cycles=2;
+  if(playback.raf)cancelAnimationFrame(playback.raf);
+  playback.active=true;
+  playback.startedMs=performance.now()+80;
+  playback.durationMs=cycles*12*step*1000;
+  document.getElementById("playBtn").textContent="■ Lecture en cours";
   const mx=Math.max(...r.voices.D1.motif,...r.voices.D2.motif,0.001);
-  for(let cycle=0;cycle<2;cycle++){
+  for(let cycle=0;cycle<cycles;cycle++){
     ["D1","D2"].forEach(voice=>{
       r.voices[voice].motif.forEach((v,s)=>{
         if(v<0.04)return;
@@ -538,8 +589,17 @@ async function playRhythm(){
       });
     });
   }
+  animatePlayback();
+  setTimeout(()=>ctx.close?.(), playback.durationMs+700);
 }
 document.getElementById("playBtn").onclick=playRhythm;
+
+function animatePlayback(){
+  drawCircle();
+  drawCurve();
+  if(playback.active) playback.raf=requestAnimationFrame(animatePlayback);
+  else playback.raf=null;
+}
 
 function render(){renderTabs();drawCircle();drawCurve();drawMap();renderEquation();renderCoefTable();renderCards();queueMath();}
 render();
