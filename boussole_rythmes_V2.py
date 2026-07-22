@@ -181,6 +181,9 @@ h1{font-family:Georgia,Times,serif;font-size:clamp(2rem,4vw,4rem);line-height:.9
 .tabs{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0}
 .tab{appearance:none;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:999px;padding:9px 14px;cursor:pointer;font-weight:800;box-shadow:0 4px 14px rgba(0,0,0,.04)}
 .tab.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.actionbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:-6px 0 18px}
+.play{appearance:none;border:0;background:var(--accent);color:white;border-radius:999px;padding:10px 15px;cursor:pointer;font-weight:900;box-shadow:0 8px 22px rgba(140,92,46,.22)}
+.actionbar span{color:var(--muted);font-size:.86rem}
 .layout{display:grid;grid-template-columns:minmax(440px,.9fr) minmax(500px,1.1fr);gap:18px;align-items:start}
 .panel{background:var(--paper);border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow);padding:18px}
 .panel h2{font-family:Georgia,Times,serif;font-size:1.25rem;margin:.1rem 0 .85rem;letter-spacing:-.02em}
@@ -208,7 +211,7 @@ canvas{display:block;width:100%;height:auto}
 .cardTop{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
 .cardTop b{font-family:Georgia,Times,serif;font-size:1.15rem}.cardTop span{color:var(--muted);font-size:.78rem}
 .miniEq{font-size:.78rem;max-height:155px;overflow:auto;border-top:1px solid var(--line2);padding-top:8px}
-.researchNote{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+.researchNote{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px}
 .researchNote div{border-left:3px solid var(--accent);padding:4px 0 4px 12px;color:var(--muted);font-size:.86rem}
 .foot{color:var(--muted);font-size:.82rem;margin:18px 2px 0}
 @media(max-width:980px){header,.layout,.researchNote{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.metaGrid{grid-template-columns:1fr 1fr}}
@@ -226,6 +229,10 @@ canvas{display:block;width:100%;height:auto}
 </header>
 
 <nav class="tabs" id="tabs"></nav>
+<div class="actionbar">
+  <button class="play" id="playBtn">▶ Écouter le rythme</button>
+  <span>Synthèse courte : D1 grave, D2 plus aigu, deux cycles.</span>
+</div>
 
 <section class="layout">
   <article class="panel">
@@ -236,9 +243,12 @@ canvas{display:block;width:100%;height:auto}
       <span class="swatch d2"><i></i>D2 — anneau intérieur</span>
     </div>
     <p class="caption" id="circleCaption"></p>
+    <h3>Courbe du modèle</h3>
+    <canvas id="curve" width="620" height="260"></canvas>
+    <p class="caption">Axes : abscisse = subdivision Polak du cycle, ordonnée = probabilité moyenne de frappe. Les points sont observés ; les courbes viennent de l'équation complexe.</p>
     <h3>Espace des signatures</h3>
     <canvas id="map" width="620" height="250"></canvas>
-    <p class="caption">Chaque point résume le vecteur complexe complet D1+D2. Cette carte est descriptive : elle ne modifie aucun coefficient.</p>
+    <p class="caption">Axes : x = composante principale 1, y = composante principale 2. Chaque point projette la signature complexe complète D1+D2 ; c'est une carte descriptive, pas une vérité absolue.</p>
   </article>
 
   <aside class="panel">
@@ -250,6 +260,7 @@ canvas{display:block;width:100%;height:auto}
     <div class="researchNote">
       <div><b>D1/D2 comparables.</b><br>La figure utilise les mêmes prises pour D1 et D2 : uniquement les prises appariées où les deux voix sont présentes.</div>
       <div><b>Pourquoi six coefficients ?</b><br>Sur 12 subdivisions réelles, c7..c11 répètent l'information de c1..c5 en miroir conjugué. On garde donc c1..c6.</div>
+      <div><b>Notation.</b><br><b>Rythme</b> désigne l'objet complet ; <b>D1</b> et <b>D2</b> sont les deux courbes/voix qui composent ce rythme.</div>
     </div>
   </aside>
 </section>
@@ -272,16 +283,27 @@ function texVector(it){
   return String.raw`\left(${it.coeffs.slice(1).map(c=>`${c.mag.toFixed(2)}e^{${phaseTex(c.phase)}i}`).join(String.raw`,\; `)}\right)`;
 }
 function color(voice){return voice==="D1"?css("--d1"):css("--d2");}
+function curveValue(it,t){
+  const C=it.coeffs, theta=TAU*t/12, N=12;
+  let y=C[0].re;
+  for(let k=1;k<=5;k++){
+    const c=C[k];
+    y += 2*(c.re*Math.cos(k*theta)-c.im*Math.sin(k*theta));
+  }
+  const c6=C[6];
+  y += c6.re*Math.cos(6*theta)-c6.im*Math.sin(6*theta);
+  return Math.max(0,y/N*(it.density||1));
+}
 
 function latexForRhythm(r){
   const d1=r.voices.D1, d2=r.voices.D2;
   return String.raw`
 \[
 \begin{aligned}
-\mathcal{R}_{\mathrm{${r.piece}}}(s)
-  &= \begin{bmatrix}D_{1,\mathrm{${r.piece}}}(s)\\D_{2,\mathrm{${r.piece}}}(s)\end{bmatrix},
+\operatorname{Rythme}_{\mathrm{${r.piece}}}(s)
+  &= \begin{bmatrix}\operatorname{D1}_{\mathrm{${r.piece}}}(s)\\\operatorname{D2}_{\mathrm{${r.piece}}}(s)\end{bmatrix},
   \qquad s\in\{0,\ldots,11\}\\
-D_{v,\mathrm{${r.piece}}}(s)
+\operatorname{D}_{v,\mathrm{${r.piece}}}(s)
   &= \frac{\rho_v}{12}\left[
       1+2\sum_{k=1}^{5}|c_{v,k}|
       \cos\!\left(\frac{2\pi ks}{12}+\phi_{v,k}\right)
@@ -369,11 +391,62 @@ function drawCircle(){
     `Densités moyennes : D1 ${r.voices.D1.density.toFixed(2)}, D2 ${r.voices.D2.density.toFixed(2)} frappes/cycle.`;
 }
 
+function drawCurve(){
+  const r=rhythm(), cv=document.getElementById("curve"), g=cv.getContext("2d");
+  const W=cv.width,H=cv.height,left=50,right=20,top=18,bottom=42,span=W-left-right;
+  g.clearRect(0,0,W,H);
+  const samples=[];
+  ["D1","D2"].forEach(voice=>{
+    const it=r.voices[voice];
+    for(let i=0;i<=180;i++) samples.push(curveValue(it,i/180*11));
+    samples.push(...it.motif);
+  });
+  const ymax=Math.max(...samples,0.05)*1.14;
+  const xOf=t=>left+(t/11)*span;
+  const yOf=v=>H-bottom-(v/ymax)*(H-top-bottom);
+
+  g.strokeStyle=css("--line");g.lineWidth=1;
+  g.beginPath();g.moveTo(left,top);g.lineTo(left,H-bottom);g.lineTo(W-right,H-bottom);g.stroke();
+  g.fillStyle=css("--muted");g.font="11px Inter, system-ui";g.textAlign="center";g.textBaseline="top";
+  for(let s=0;s<12;s++){
+    const x=xOf(s);
+    g.globalAlpha=.45;g.strokeStyle=css("--line2");g.beginPath();g.moveTo(x,top);g.lineTo(x,H-bottom);g.stroke();
+    g.globalAlpha=1;g.fillStyle=css("--muted");g.fillText(String(s+1),x,H-bottom+10);
+  }
+  g.save();
+  g.translate(13,H/2);g.rotate(-Math.PI/2);
+  g.textAlign="center";g.textBaseline="middle";g.fillStyle=css("--muted");
+  g.fillText("probabilité de frappe",0,0);
+  g.restore();
+  g.textAlign="center";g.textBaseline="bottom";g.fillStyle=css("--muted");
+  g.fillText("subdivision du cycle (1–12)",left+span/2,H-5);
+
+  ["D1","D2"].forEach(voice=>{
+    const it=r.voices[voice], col=color(voice);
+    g.strokeStyle=col;g.lineWidth=2.6;g.globalAlpha=.92;
+    g.beginPath();
+    for(let i=0;i<=180;i++){
+      const t=i/180*11, x=xOf(t), y=yOf(curveValue(it,t));
+      if(i===0)g.moveTo(x,y);else g.lineTo(x,y);
+    }
+    g.stroke();
+    it.motif.forEach((v,s)=>{
+      g.globalAlpha=.95;g.fillStyle=col;
+      g.beginPath();g.arc(xOf(s),yOf(v),5.2,0,TAU);g.fill();
+      g.strokeStyle=css("--paper");g.lineWidth=1.4;g.stroke();
+    });
+  });
+  g.globalAlpha=1;
+}
+
 function drawMap(){
   const cv=document.getElementById("map"),g=cv.getContext("2d"),W=cv.width,H=cv.height,pad=36;
   g.clearRect(0,0,W,H);
   g.strokeStyle=css("--line");g.lineWidth=1;
   g.beginPath();g.moveTo(pad,H/2);g.lineTo(W-pad,H/2);g.moveTo(W/2,pad);g.lineTo(W/2,H-pad);g.stroke();
+  g.fillStyle=css("--muted");g.font="11px Inter, system-ui";g.textAlign="right";g.textBaseline="top";
+  g.fillText("axe x : PC1",W-pad,H/2+6);
+  g.save();g.translate(W/2+8,pad);g.rotate(-Math.PI/2);g.textAlign="right";g.fillText("axe y : PC2",0,0);g.restore();
   DATA.map.forEach(pt=>{
     const selected=pt.piece===state.piece;
     const x=W/2+pt.x*(W/2-pad*1.6), y=H/2-pt.y*(H/2-pad*1.4);
@@ -437,7 +510,38 @@ function renderCards(){
   });
 }
 
-function render(){renderTabs();drawCircle();drawMap();renderEquation();renderCoefTable();renderCards();queueMath();}
+function hit(ctx,time,voice,amp){
+  const osc=ctx.createOscillator(), gain=ctx.createGain(), filter=ctx.createBiquadFilter();
+  osc.type=voice==="D1"?"triangle":"sine";
+  osc.frequency.setValueAtTime(voice==="D1"?118:235,time);
+  osc.frequency.exponentialRampToValueAtTime(voice==="D1"?74:155,time+.12);
+  filter.type="lowpass";filter.frequency.setValueAtTime(voice==="D1"?520:900,time);
+  gain.gain.setValueAtTime(0.0001,time);
+  gain.gain.exponentialRampToValueAtTime(Math.max(0.025,amp)*0.28,time+.006);
+  gain.gain.exponentialRampToValueAtTime(0.0001,time+.18);
+  osc.connect(filter);filter.connect(gain);gain.connect(ctx.destination);
+  osc.start(time);osc.stop(time+.2);
+}
+
+async function playRhythm(){
+  const AudioCtx=window.AudioContext||window.webkitAudioContext;
+  if(!AudioCtx){alert("Audio Web non disponible dans ce navigateur.");return;}
+  const ctx=new AudioCtx();
+  await ctx.resume();
+  const r=rhythm(), step=.155, start=ctx.currentTime+.08;
+  const mx=Math.max(...r.voices.D1.motif,...r.voices.D2.motif,0.001);
+  for(let cycle=0;cycle<2;cycle++){
+    ["D1","D2"].forEach(voice=>{
+      r.voices[voice].motif.forEach((v,s)=>{
+        if(v<0.04)return;
+        hit(ctx,start+(cycle*12+s)*step,voice,v/mx);
+      });
+    });
+  }
+}
+document.getElementById("playBtn").onclick=playRhythm;
+
+function render(){renderTabs();drawCircle();drawCurve();drawMap();renderEquation();renderCoefTable();renderCards();queueMath();}
 render();
 </script></body></html>"""
 

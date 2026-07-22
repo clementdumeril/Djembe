@@ -16,7 +16,8 @@ Le projet est un prototype de recherche avancé :
 - analyse de motif, densité, tempo et micro-timing ;
 - visualisations HTML autonomes avec audio embarqué ;
 - caractérisation géométrique/Fourier des rythmes ;
-- boussole des rythmes avec trois équations LaTeX D1/D2 comparables.
+- boussole des rythmes avec trois équations LaTeX D1/D2 comparables, courbes
+  de modèle et écoute synthétique.
 
 Les données brutes et sorties générées ne sont pas versionnées dans Git : elles
 sont lourdes, régénérables, et liées à la licence du corpus.

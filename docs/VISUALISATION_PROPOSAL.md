@@ -131,3 +131,35 @@ indépendants :
 
 Donc les couches indépendantes non triviales sont `c1..c6`. Afficher `c7..c11`
 redonnerait la même information en miroir.
+
+Important : `c1..c6` ne sont pas les six premières subdivisions du rythme. Ce
+sont six couches de forme. Chaque couche regarde les 12 subdivisions à la fois :
+elle mesure une manière de se répartir dans le cycle.
+
+## Analyse des coefficients
+
+Pour chaque voix D1/D2 :
+
+- l'amplitude `|ck|` mesure la force de la couche `k` ;
+- la phase `arg(ck)` mesure où cette couche est placée dans le cycle ;
+- la combinaison des six couches reconstruit la courbe du rythme ;
+- comparer deux rythmes revient à comparer leurs vecteurs de coefficients.
+
+La carte des signatures projette ces vecteurs dans un plan :
+
+- axe x = composante principale 1, le contraste dominant entre signatures ;
+- axe y = composante principale 2, le contraste secondaire ;
+- ce ne sont pas des axes musicaux fixes, mais des axes statistiques calculés
+  à partir des rythmes présents dans la page.
+
+## Forme courbe
+
+La page affiche aussi une courbe par voix :
+
+```text
+x = subdivision Polak du cycle, de 1 à 12
+y = probabilité moyenne de frappe
+```
+
+Les points sont les observations. La courbe est le modèle reconstruit à partir
+des coefficients complexes.
