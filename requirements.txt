@@ -1,0 +1,10 @@
+numpy>=2.2
+pandas>=2.3
+librosa>=0.11
+soundfile>=0.13
+scipy>=1.15
+matplotlib>=3.10
+scikit-learn>=1.7
+umap-learn>=0.5
+ipython>=8
+jupyter>=1

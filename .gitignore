@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.ipynb_checkpoints/
+.pytest_cache/
+
+# Local environments and secrets
+.env
+.venv/
+venv/
+env/
+anaconda_projects/
+
+# IDE / assistant local state
+.idea/
+.claude/
+
+# Raw corpus and generated artifacts
+corpus/
+output/
+
+# Heavy or derived archive assets
+archive/youtube/
+archive/**/*.wav
+archive/**/*.html
+archive/**/*.csv
+
+# OS files
+.DS_Store
+Thumbs.db
