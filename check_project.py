@@ -46,7 +46,7 @@ def check_source_files() -> None:
         "utils_V2.py",
         "dunun_viz_V2.py",
         "atome_vivant_V2.py",
-        "explain_fourier_V2.py",
+        "boussole_complexe_V2.py",
     ]:
         if not (ROOT / name).exists():
             _fail(f"missing {name}")

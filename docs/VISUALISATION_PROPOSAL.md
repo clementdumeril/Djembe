@@ -114,4 +114,18 @@ Le vocabulaire devient :
 un rythme = une forme sur le cercle = un vecteur complexe = une équation réglable
 ```
 
-Nom de travail : **Boussole complexe des dununs**.
+Nom retenu : **Boussole complexe des dununs**.
+
+## Pourquoi seulement six coefficients ?
+
+Le cycle est discrétisé en 12 subdivisions. Pour un signal réel sur 12 points,
+la transformée de Fourier contient 12 coefficients, mais ils ne sont pas tous
+indépendants :
+
+- `c0` porte la moyenne, c'est-à-dire la densité globale du motif ;
+- `c1..c5` ont chacun un miroir conjugué : `c11..c7` ;
+- `c6` est le coefficient de Nyquist, l'alternance maximale possible sur une
+  grille de 12.
+
+Donc les couches indépendantes non triviales sont `c1..c6`. Afficher `c7..c11`
+redonnerait la même information en miroir.

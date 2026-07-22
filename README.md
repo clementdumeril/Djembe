@@ -15,7 +15,8 @@ Le projet est un prototype de recherche avancé :
 - alignement sur le cycle métrique ;
 - analyse de motif, densité, tempo et micro-timing ;
 - visualisations HTML autonomes avec audio embarqué ;
-- caractérisation géométrique/Fourier des rythmes.
+- caractérisation géométrique/Fourier des rythmes ;
+- boussole complexe interactive avec coefficients manipulables.
 
 Les données brutes et sorties générées ne sont pas versionnées dans Git : elles
 sont lourdes, régénérables, et liées à la licence du corpus.
@@ -43,14 +44,14 @@ Lancer les notebooks depuis la racine du projet, dans cet ordre :
 | `05_dunun_microtiming_V2.ipynb` | analyse précision, swing et asynchronie D1/D2 sur prises appariées |
 | `06_dunun_microtiming_avance_V2.ipynb` | distributions complètes et lien micro-timing/intensité |
 | `07_atome_vivant_V2.ipynb` | visualisation polaire animée du micro-timing |
-| `08_dunun_fourier_V2.ipynb` | empreinte de Fourier et distances entre rythmes |
+| `08_dunun_fourier_V2.ipynb` | empreinte de Fourier, équation complexe et distances entre rythmes |
 
 Scripts principaux :
 
 - `utils_V2.py` : téléchargement, chargement, extraction, couverture D1/D2 ;
 - `dunun_viz_V2.py` : visualisation dynamique ;
 - `atome_vivant_V2.py` : atome polaire ;
-- `explain_fourier_V2.py` : explication interactive de Fourier.
+- `boussole_complexe_V2.py` : cercle D1/D2 + équation complexe manipulable.
 
 ## Point méthodologique important : D2
 
@@ -84,6 +85,7 @@ Voir aussi [`docs/D2_COVERAGE.md`](docs/D2_COVERAGE.md).
 ```bash
 python check_project.py
 python prepare_git.py
+python boussole_complexe_V2.py
 ```
 
 ## Résultats déjà observés
@@ -104,7 +106,7 @@ DJEMBE_LLM/
 ├── utils_V2.py
 ├── dunun_viz_V2.py
 ├── atome_vivant_V2.py
-├── explain_fourier_V2.py
+├── boussole_complexe_V2.py
 ├── check_project.py
 ├── prepare_git.py
 ├── qc_d2_coverage.py
