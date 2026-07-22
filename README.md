@@ -16,7 +16,7 @@ Le projet est un prototype de recherche avancé :
 - analyse de motif, densité, tempo et micro-timing ;
 - visualisations HTML autonomes avec audio embarqué ;
 - caractérisation géométrique/Fourier des rythmes ;
-- boussole des rythmes avec équations complexes comparables.
+- boussole des rythmes avec trois équations LaTeX D1/D2 comparables.
 
 Les données brutes et sorties générées ne sont pas versionnées dans Git : elles
 sont lourdes, régénérables, et liées à la licence du corpus.
@@ -51,7 +51,7 @@ Scripts principaux :
 - `utils_V2.py` : téléchargement, chargement, extraction, couverture D1/D2 ;
 - `dunun_viz_V2.py` : visualisation dynamique ;
 - `atome_vivant_V2.py` : atome polaire ;
-- `boussole_rythmes_V2.py` : cercle D1/D2 + équations complexes des rythmes.
+- `boussole_rythmes_V2.py` : cercle D1/D2 + équations complexes LaTeX sur prises appariées.
 
 ## Point méthodologique important : D2
 

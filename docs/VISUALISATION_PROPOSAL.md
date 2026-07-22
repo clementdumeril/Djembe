@@ -5,16 +5,18 @@ les flèches et le paramètre `n`, par une interface plus musicale :
 
 - un cercle lisible à 12 subdivisions ;
 - deux anneaux D1/D2 quand D2 existe ;
-- une équation complexe attachée au rythme ;
+- une équation complexe LaTeX attachée à chaque rythme ;
 - les coefficients affichés comme empreinte, sans modification dans un premier temps ;
 - une carte vectorielle où chaque rythme devient un point.
 
 ## Idée centrale
 
-Chaque rythme est représenté par un vecteur complexe de coefficients :
+Chaque rythme est représenté par un couple de fonctions D1/D2 et un vecteur
+complexe de coefficients :
 
 ```text
-R = (c1, c2, c3, c4, c5, c6)
+R_piece(s) = [D1_piece(s), D2_piece(s)]
+c_voice = (c1, c2, c3, c4, c5, c6)
 ```
 
 avec :
@@ -32,14 +34,15 @@ où :
 - `k` n'est plus présenté comme un nombre abstrait, mais comme une couche de
   structure rythmique.
 
-Reconstruction affichée :
+Équation affichée :
 
 ```text
-R̂(θ) = c0 + 2 · Re(Σk=1..5 ck · exp(i · k · θ)) + c6 · exp(i · 6θ)
+D_voice(s) = ρvoice/12 · [1 + 2 · Σk=1..5 |ck| · cos(2πks/12 + φk)
+              + c6 · cos(πs)]
 ```
 
 Les coefficients sont lus tels quels. Dans cette première version, on ne change
-pas les valeurs : l'interface sert à comparer les équations des rythmes.
+pas les valeurs : l'interface sert à comparer les équations des trois rythmes.
 
 ## Interface proposée
 
@@ -50,11 +53,10 @@ Au centre :
 - 12 positions fixes ;
 - un anneau D1 ;
 - un anneau D2 si la prise est appariée ;
-- les frappes réelles en points pleins ;
-- la reconstruction mathématique en halo ou courbe douce.
+- les frappes observées en points pleins sur deux anneaux lisibles.
 
-La reconstruction est affichée telle quelle : on lit l'équation du rythme, sans
-modifier les coefficients.
+Le cercle sert à lire les prises D1/D2 ; l'équation LaTeX porte la partie
+mathématique.
 
 ### 2. Console d'équation
 
@@ -88,8 +90,7 @@ En bas :
 - chaque rythme devient un point dans l'espace des coefficients ;
 - distance = différence de motif ;
 - clic sur Manjanin/Maraka/Woloso pour charger son équation ;
-- D1 et D2 peuvent être affichés séparément, mais D2 seulement sur les prises
-  appariées.
+- D1 et D2 sont calculés sur les mêmes prises appariées.
 
 ### 4. Mode retenu
 

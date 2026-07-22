@@ -1,13 +1,14 @@
 """Génère output/boussole_rythmes.html.
 
-La Boussole des rythmes affiche chaque rythme comme :
+La Boussole des rythmes présente trois équations complexes, une par rythme.
+Chaque équation combine les deux voix de dunun disponibles sur les prises
+appariées D1/D2 :
 
-- une forme sur un cercle à 12 subdivisions ;
-- une équation complexe fixe ;
-- un vecteur de coefficients c1..c6.
+    R_piece(s) = [D1_piece(s), D2_piece(s)]
 
 Les coefficients ne sont pas modifiables dans cette version. L'objectif est de
-comparer les équations des rythmes, pas de composer de nouveaux motifs.
+lire et comparer les signatures complexes des rythmes, avec un rendu HTML plus
+proche d'une figure de recherche.
 
 Pourquoi 6 coefficients ? Pour 12 subdivisions réelles, c7..c11 sont les
 miroirs conjugués de c5..c1. Les couches indépendantes non triviales sont donc
@@ -24,28 +25,26 @@ import utils_V2 as u
 
 
 COLORS = {
-    "Manjanin": "#4a8cff",
-    "Maraka": "#e0952e",
-    "Woloso": "#2fbf6e",
-    "D1": "#4a8cff",
-    "D2": "#2fbf6e",
+    "Manjanin": "#355C9A",
+    "Maraka": "#B46A2A",
+    "Woloso": "#2E7D62",
+    "D1": "#214E8A",
+    "D2": "#B46A2A",
 }
 
 
-def _profiles(piece: str, code: str):
-    tracks = u.list_dunun()
-    if code == "D2":
-        paired = u.paired_dunun_takes()
-        takes = paired.loc[paired["piece"] == piece, "take"].astype(int).tolist()
-    else:
-        takes = tracks.loc[(tracks["piece"] == piece) & (tracks["code"] == code), "take"].astype(int).tolist()
+def _paired_takes(piece: str) -> list[int]:
+    paired = u.paired_dunun_takes()
+    return paired.loc[paired["piece"] == piece, "take"].astype(int).tolist()
 
+
+def _profile_from_takes(piece: str, code: str, takes: list[int]):
     vals = []
     used = []
     for take in sorted(set(takes)):
-        pr = u.subdivision_profile(piece, int(take), code)
-        if pr is not None:
-            vals.append(pr.values.astype(float))
+        profile = u.subdivision_profile(piece, int(take), code)
+        if profile is not None:
+            vals.append(profile.values.astype(float))
             used.append(int(take))
 
     if not vals:
@@ -55,8 +54,8 @@ def _profiles(piece: str, code: str):
 
 def _coefficients(motif: np.ndarray):
     """Coefficients Ck = Σ x_s exp(-i k θ_s), k=0..6, x normalisé."""
-    total = float(motif.sum())
-    x = motif / total if total > 0 else motif.copy()
+    density = float(motif.sum())
+    x = motif / density if density > 0 else motif.copy()
     coeffs = []
     for k in range(7):
         z = sum(x[s] * np.exp(-2j * np.pi * k * s / 12) for s in range(12))
@@ -67,17 +66,22 @@ def _coefficients(motif: np.ndarray):
             "mag": round(float(abs(z)), 8),
             "phase": round(float(np.angle(z)), 8),
         })
-    return coeffs, total
+    return coeffs, density
 
 
-def _pca_map(items):
+def _pca_map(rhythms):
     vectors = []
-    for it in items:
-        c = it["coeffs"]
-        vectors.append([v for k in range(1, 7) for v in (c[k]["re"], c[k]["im"])])
+    for rhythm in rhythms:
+        row = []
+        for voice in ("D1", "D2"):
+            coeffs = rhythm["voices"][voice]["coeffs"]
+            row.extend(v for k in range(1, 7) for v in (coeffs[k]["re"], coeffs[k]["im"]))
+        vectors.append(row)
+
     X = np.asarray(vectors, dtype=float)
     if len(X) == 0:
         return []
+
     X = X - X.mean(axis=0, keepdims=True)
     if len(X) == 1 or np.allclose(X, 0):
         xy = np.zeros((len(X), 2))
@@ -86,42 +90,49 @@ def _pca_map(items):
         xy = X @ vt[:2].T
         if xy.shape[1] == 1:
             xy = np.c_[xy[:, 0], np.zeros(len(xy))]
+
     scale = float(np.max(np.abs(xy))) or 1.0
     xy = xy / scale
-    return [{"piece": it["piece"], "voice": it["voice"], "x": round(float(x), 4), "y": round(float(y), 4)}
-            for it, (x, y) in zip(items, xy)]
+    return [
+        {"piece": rhythm["piece"], "x": round(float(x), 4), "y": round(float(y), 4)}
+        for rhythm, (x, y) in zip(rhythms, xy)
+    ]
 
 
 def build_data():
-    motifs = {}
-    items = []
-    paired = u.paired_dunun_takes()
+    rhythms = []
 
     for piece in u.PIECES:
-        motifs[piece] = {}
+        takes = _paired_takes(piece)
+        if not takes:
+            continue
+
+        voices = {}
         for code in ("D1", "D2"):
-            motif, takes = _profiles(piece, code)
-            if not takes:
+            motif, used = _profile_from_takes(piece, code, takes)
+            if not used:
                 continue
-            coeffs, total = _coefficients(motif)
-            info = {
-                "piece": piece,
+            coeffs, density = _coefficients(motif)
+            voices[code] = {
                 "voice": code,
                 "motif": [round(float(x), 4) for x in motif],
-                "takes": takes,
-                "total": round(total, 6),
+                "takes": used,
+                "density": round(density, 6),
                 "coeffs": coeffs,
-                "partial": code == "D2",
-                "pairedTakes": paired.loc[paired["piece"] == piece, "take"].astype(int).tolist(),
             }
-            motifs[piece][code] = info
-            items.append(info)
+
+        if {"D1", "D2"}.issubset(voices):
+            rhythms.append({
+                "piece": piece,
+                "takes": sorted(set(voices["D1"]["takes"]) & set(voices["D2"]["takes"])),
+                "voices": voices,
+            })
 
     return {
-        "pieces": u.PIECES,
+        "pieces": [r["piece"] for r in rhythms],
         "colors": COLORS,
-        "motifs": motifs,
-        "map": _pca_map(items),
+        "rhythms": rhythms,
+        "map": _pca_map(rhythms),
         "coefNames": {
             "1": "gravité du cycle",
             "2": "balancement en deux pôles",
@@ -134,185 +145,299 @@ def build_data():
 
 
 HTML = r"""<!doctype html><html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Boussole des rythmes</title>
+<script>
+window.MathJax = {
+  tex: {
+    inlineMath: [["\\(", "\\)"]],
+    displayMath: [["\\[", "\\]"]],
+    processEscapes: true
+  },
+  svg: {fontCache: "global"}
+};
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
 <style>
-:root{--bg:#f4f1ec;--card:#fffaf2;--ink:#211d17;--muted:#70675b;--line:#ded5c8;--accent:#b0742a;--blue:#4a8cff;--green:#2fbf6e;--orange:#e0952e}
-@media(prefers-color-scheme:dark){:root{--bg:#101116;--card:#181a22;--ink:#f3ecdf;--muted:#a79d8f;--line:#2c303c;--accent:#e0a94a}}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,sans-serif;line-height:1.45}
-.wrap{max-width:1260px;margin:0 auto;padding:24px 18px 34px}
-h1{margin:.1em 0 .25em;font-size:1.6rem}.sub{max-width:94ch;color:var(--muted);font-size:.95rem;margin:0 0 16px}
-.grid{display:grid;grid-template-columns:minmax(390px,1.08fr) minmax(390px,.92fr);gap:16px;align-items:start}
-.panel{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:0 8px 30px rgba(0,0,0,.08)}
-.panel h2,.panel h3{margin:.1em 0 .7em;font-size:1rem}.controls{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 14px;align-items:center}
-.pill{border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:999px;padding:7px 12px;cursor:pointer;font-weight:700;font-size:.84rem}
-.pill.on{background:var(--accent);border-color:var(--accent);color:white}.pill.soft.on{background:#293142;color:#fff;border-color:#293142}
-label.check{display:flex;align-items:center;gap:7px;color:var(--muted);font-size:.85rem;font-weight:650}
-canvas{display:block;width:100%;height:auto}.caption{font-size:.82rem;color:var(--muted);margin-top:8px}
-.equation{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;background:rgba(127,127,127,.08);border:1px solid var(--line);border-radius:12px;padding:12px;font-size:.84rem;overflow:auto}
-.why{font-size:.86rem;color:var(--muted);border-left:4px solid var(--accent);padding-left:12px;margin:12px 0}
-.cards{display:grid;gap:10px;margin-top:12px}.eqCard{border:1px solid var(--line);border-radius:14px;padding:11px;background:rgba(127,127,127,.035);cursor:pointer}
-.eqCard.on{border-color:var(--accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 18%,transparent)}
-.eqTop{display:flex;align-items:baseline;justify-content:space-between;gap:10px}.eqTop b{font-size:.94rem}.eqTop span{font-size:.78rem;color:var(--muted)}
-.coefGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:9px}.coef{border:1px solid var(--line);border-radius:10px;padding:7px;background:rgba(255,255,255,.05)}
-.coef b{font-size:.78rem}.coef small{display:block;color:var(--muted);font-size:.72rem}.meter{height:6px;border-radius:999px;background:rgba(127,127,127,.14);overflow:hidden;margin-top:6px}.meter i{display:block;height:100%;background:var(--accent)}
-.mapWrap{margin-top:16px}.foot{color:var(--muted);font-size:.82rem;margin-top:12px}
-@media(max-width:900px){.grid{grid-template-columns:1fr}.coefGrid{grid-template-columns:repeat(2,1fr)}}
-</style></head><body><div class="wrap">
-<h1>🧭 Boussole des rythmes</h1>
-<p class="sub">Chaque rythme est une forme sur le cercle et une équation complexe fixe. On compare les empreintes <b>c1..c6</b> des rythmes et des voix D1/D2, sans modifier les coefficients.</p>
-
-<div class="grid">
- <section class="panel">
-  <h2>Cercle du rythme</h2>
-  <div class="controls" id="pieceControls"></div>
-  <div class="controls" id="voiceControls"></div>
-  <canvas id="circle" width="620" height="620"></canvas>
-  <div class="caption" id="circleCaption"></div>
-  <div class="mapWrap">
-    <h3>Carte vectorielle des rythmes</h3>
-    <canvas id="map" width="620" height="260"></canvas>
-    <div class="caption">Chaque point = un vecteur complexe (Re/Im de c1..c6). Clique un point pour charger son équation.</div>
+:root{
+  --bg:#f6f4ee;--paper:#fffdf8;--ink:#1b1b18;--muted:#6f6a60;
+  --line:#d8d0c3;--line2:#ebe5da;--accent:#8c5c2e;
+  --d1:#214e8a;--d2:#b46a2a;--shadow:0 18px 55px rgba(40,32,20,.11)
+}
+@media(prefers-color-scheme:dark){
+  :root{--bg:#111216;--paper:#191b21;--ink:#f2eadc;--muted:#aaa196;--line:#30333c;--line2:#242730;--accent:#d2a15d;--shadow:0 20px 60px rgba(0,0,0,.35)}
+}
+*{box-sizing:border-box}
+body{margin:0;background:
+  radial-gradient(circle at 10% -5%,rgba(180,106,42,.14),transparent 32rem),
+  linear-gradient(180deg,var(--bg),color-mix(in srgb,var(--bg) 86%,#fff 14%));
+  color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif;line-height:1.45}
+.page{max-width:1320px;margin:0 auto;padding:32px 22px 42px}
+header{display:grid;grid-template-columns:1.05fr .95fr;gap:22px;align-items:end;margin-bottom:18px}
+.kicker{font-size:.74rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:800;margin:0 0 8px}
+h1{font-family:Georgia,Times,serif;font-size:clamp(2rem,4vw,4rem);line-height:.95;margin:0;color:var(--ink);letter-spacing:-.045em}
+.abstract{background:rgba(255,255,255,.36);border:1px solid var(--line);border-radius:18px;padding:14px 16px;color:var(--muted);font-size:.94rem}
+.abstract b{color:var(--ink)}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0}
+.tab{appearance:none;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:999px;padding:9px 14px;cursor:pointer;font-weight:800;box-shadow:0 4px 14px rgba(0,0,0,.04)}
+.tab.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.layout{display:grid;grid-template-columns:minmax(440px,.9fr) minmax(500px,1.1fr);gap:18px;align-items:start}
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow);padding:18px}
+.panel h2{font-family:Georgia,Times,serif;font-size:1.25rem;margin:.1rem 0 .85rem;letter-spacing:-.02em}
+.panel h3{font-size:.82rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin:1rem 0 .55rem}
+canvas{display:block;width:100%;height:auto}
+.caption,.note{font-size:.85rem;color:var(--muted)}
+.caption b,.note b{color:var(--ink)}
+.legend{display:flex;gap:12px;flex-wrap:wrap;margin:10px 0 2px;color:var(--muted);font-size:.82rem}
+.swatch{display:inline-flex;align-items:center;gap:7px}.swatch i{width:13px;height:13px;border-radius:99px;display:inline-block;border:2px solid currentColor}
+.d1{color:var(--d1)}.d2{color:var(--d2)}
+.equationBox{border:1px solid var(--line);background:linear-gradient(180deg,rgba(255,255,255,.54),rgba(255,255,255,.2));border-radius:18px;padding:16px;overflow:auto}
+.math{font-size:.98rem}
+.metaGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}
+.metric{border:1px solid var(--line2);background:rgba(127,127,127,.045);border-radius:14px;padding:10px}
+.metric span{display:block;color:var(--muted);font-size:.74rem;text-transform:uppercase;letter-spacing:.09em}
+.metric b{font-size:1rem}
+.coefTable{width:100%;border-collapse:separate;border-spacing:0;margin-top:10px;font-size:.84rem;overflow:hidden;border:1px solid var(--line);border-radius:14px}
+.coefTable th,.coefTable td{padding:8px 9px;border-bottom:1px solid var(--line2);text-align:right;white-space:nowrap}
+.coefTable th:first-child,.coefTable td:first-child{text-align:left}
+.coefTable tr:last-child td{border-bottom:0}
+.coefTable th{color:var(--muted);font-weight:800;background:rgba(127,127,127,.045)}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:14px;box-shadow:0 10px 30px rgba(40,32,20,.07);cursor:pointer}
+.card.on{border-color:var(--accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 18%,transparent),0 10px 30px rgba(40,32,20,.08)}
+.cardTop{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+.cardTop b{font-family:Georgia,Times,serif;font-size:1.15rem}.cardTop span{color:var(--muted);font-size:.78rem}
+.miniEq{font-size:.78rem;max-height:155px;overflow:auto;border-top:1px solid var(--line2);padding-top:8px}
+.researchNote{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+.researchNote div{border-left:3px solid var(--accent);padding:4px 0 4px 12px;color:var(--muted);font-size:.86rem}
+.foot{color:var(--muted);font-size:.82rem;margin:18px 2px 0}
+@media(max-width:980px){header,.layout,.researchNote{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.metaGrid{grid-template-columns:1fr 1fr}}
+</style></head><body><main class="page">
+<header>
+  <div>
+    <p class="kicker">Complex rhythm signatures · dunun D1/D2</p>
+    <h1>Boussole des rythmes</h1>
   </div>
- </section>
+  <div class="abstract">
+    <b>Objet.</b> Trois rythmes, trois équations complexes. Chaque signature est
+    calculée uniquement sur les prises où D1 et D2 sont tous les deux présents,
+    pour comparer les deux voix sur la même base.
+  </div>
+</header>
 
- <aside class="panel">
-  <h2>Équation du rythme sélectionné</h2>
-  <div class="equation" id="equation"></div>
-  <div class="why"><b>Pourquoi 6 coefficients ?</b> Le motif a 12 subdivisions et il est réel. En Fourier discret, c7..c11 sont les miroirs conjugués de c5..c1. Les couches indépendantes sont donc c1..c6, plus c0 qui porte la densité moyenne.</div>
-  <h3>Équations disponibles</h3>
-  <div class="cards" id="equationCards"></div>
- </aside>
-</div>
+<nav class="tabs" id="tabs"></nav>
 
-<p class="foot">Lecture : les points pleins sont le motif observé. Les traits translucides montrent le motif reconstruit par son équation complexe fixe. D2 est partiel : il n'est calculé que sur les prises appariées D1/D2.</p>
-</div>
+<section class="layout">
+  <article class="panel">
+    <h2>Cercle métrique à 12 subdivisions</h2>
+    <canvas id="circle" width="620" height="620"></canvas>
+    <div class="legend">
+      <span class="swatch d1"><i></i>D1 — anneau extérieur</span>
+      <span class="swatch d2"><i></i>D2 — anneau intérieur</span>
+    </div>
+    <p class="caption" id="circleCaption"></p>
+    <h3>Espace des signatures</h3>
+    <canvas id="map" width="620" height="250"></canvas>
+    <p class="caption">Chaque point résume le vecteur complexe complet D1+D2. Cette carte est descriptive : elle ne modifie aucun coefficient.</p>
+  </article>
+
+  <aside class="panel">
+    <h2>Équation complexe</h2>
+    <div class="equationBox"><div class="math" id="mainEquation"></div></div>
+    <div class="metaGrid" id="metrics"></div>
+    <h3>Table des coefficients</h3>
+    <div id="coefTable"></div>
+    <div class="researchNote">
+      <div><b>D1/D2 comparables.</b><br>La figure utilise les mêmes prises pour D1 et D2 : uniquement les prises appariées où les deux voix sont présentes.</div>
+      <div><b>Pourquoi six coefficients ?</b><br>Sur 12 subdivisions réelles, c7..c11 répètent l'information de c1..c5 en miroir conjugué. On garde donc c1..c6.</div>
+    </div>
+  </aside>
+</section>
+
+<section class="cards" id="cards"></section>
+<p class="foot">Les ronds indiquent les probabilités de frappe par subdivision. La figure reste volontairement minimale : deux anneaux, trois rythmes, trois équations.</p>
+</main>
 
 <script>
 const DATA=__DATA__;
 const TAU=Math.PI*2;
-const state={piece:DATA.pieces[0],voice:"D1",showBoth:true};
+const state={piece:DATA.pieces[0]};
 
-function item(piece=state.piece,voice=state.voice){return DATA.motifs[piece]?.[voice] || DATA.motifs[piece]?.D1;}
+function rhythm(piece=state.piece){return DATA.rhythms.find(r=>r.piece===piece) || DATA.rhythms[0];}
 function css(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
-function colorFor(piece,voice){return voice==="D2"?DATA.colors.D2:DATA.colors[piece]||DATA.colors.D1;}
-function fmtPhase(rad){let d=rad*180/Math.PI;while(d>180)d-=360;while(d<=-180)d+=360;return d.toFixed(0)+"°";}
+function phaseDeg(rad){let d=rad*180/Math.PI;while(d>180)d-=360;while(d<=-180)d+=360;return d;}
+function signed(x,digits=2){return (x>=0?"+":"") + x.toFixed(digits);}
+function phaseTex(rad){return signed(rad,2);}
+function texVector(it){
+  return String.raw`\left(${it.coeffs.slice(1).map(c=>`${c.mag.toFixed(2)}e^{${phaseTex(c.phase)}i}`).join(String.raw`,\; `)}\right)`;
+}
+function color(voice){return voice==="D1"?css("--d1"):css("--d2");}
 
-function reconstruct(it){
-  const out=[], N=12, total=it.total||1, C=it.coeffs;
-  for(let s=0;s<N;s++){
-    const th=TAU*s/N;
-    let y=C[0].re;
-    for(let k=1;k<=5;k++){
-      const c=C[k];
-      y += 2*(c.re*Math.cos(k*th)-c.im*Math.sin(k*th));
-    }
-    const c6=C[6];
-    y += c6.re*Math.cos(6*th)-c6.im*Math.sin(6*th);
-    out.push(Math.max(0,y/N*total));
+function latexForRhythm(r){
+  const d1=r.voices.D1, d2=r.voices.D2;
+  return String.raw`
+\[
+\begin{aligned}
+\mathcal{R}_{\mathrm{${r.piece}}}(s)
+  &= \begin{bmatrix}D_{1,\mathrm{${r.piece}}}(s)\\D_{2,\mathrm{${r.piece}}}(s)\end{bmatrix},
+  \qquad s\in\{0,\ldots,11\}\\
+D_{v,\mathrm{${r.piece}}}(s)
+  &= \frac{\rho_v}{12}\left[
+      1+2\sum_{k=1}^{5}|c_{v,k}|
+      \cos\!\left(\frac{2\pi ks}{12}+\phi_{v,k}\right)
+      + c_{v,6}\cos(\pi s)
+    \right]\\
+\mathbf{c}_{D1}
+  &= ${texVector(d1)}\\
+\mathbf{c}_{D2}
+  &= ${texVector(d2)}
+\end{aligned}
+\]`;
+}
+
+function queueMath(){
+  if(window.MathJax?.typesetPromise){
+    MathJax.typesetClear?.();
+    MathJax.typesetPromise().catch(()=>{});
+  }else{
+    setTimeout(queueMath,120);
   }
-  return out;
+}
+
+function renderTabs(){
+  const nav=document.getElementById("tabs");
+  nav.innerHTML="";
+  DATA.rhythms.forEach(r=>{
+    const b=document.createElement("button");
+    b.className="tab"+(r.piece===state.piece?" on":"");
+    b.textContent=r.piece;
+    b.onclick=()=>{state.piece=r.piece;render();};
+    nav.appendChild(b);
+  });
 }
 
 function drawCircle(){
-  const cv=document.getElementById("circle"), g=cv.getContext("2d"), W=cv.width, cx=W/2, cy=W/2;
+  const r=rhythm(), cv=document.getElementById("circle"), g=cv.getContext("2d");
+  const W=cv.width, cx=W/2, cy=W/2, outer=218, inner=146;
   g.clearRect(0,0,W,W);
-  const voices=state.showBoth?["D1","D2"].filter(v=>DATA.motifs[state.piece]?.[v]):[state.voice];
-  const radii=voices.length===2?{D1:220,D2:148}:{[state.voice]:205};
-  const maxR=252;
-  g.strokeStyle=css("--line");g.lineWidth=1;
+  g.save();
+  g.translate(cx,cy);
+
+  g.strokeStyle=css("--line");
+  g.lineWidth=1.2;
+  [outer,inner].forEach(rad=>{g.beginPath();g.arc(0,0,rad,0,TAU);g.stroke();});
+
   for(let s=0;s<12;s++){
     const a=s/12*TAU-Math.PI/2;
-    g.globalAlpha=.55;g.beginPath();g.moveTo(cx,cy);g.lineTo(cx+maxR*Math.cos(a),cy+maxR*Math.sin(a));g.stroke();
-    g.globalAlpha=1;g.fillStyle=css("--muted");g.font="12px system-ui";g.textAlign="center";g.textBaseline="middle";
-    g.fillText(String(s+1),cx+(maxR+18)*Math.cos(a),cy+(maxR+18)*Math.sin(a));
+    const ca=Math.cos(a), sa=Math.sin(a);
+    g.fillStyle=css("--muted");
+    g.globalAlpha=.55;
+    g.beginPath();g.arc((outer+30)*ca,(outer+30)*sa,2.2,0,TAU);g.fill();
+    g.globalAlpha=1;
+    g.font="12px Inter, system-ui, sans-serif";
+    g.textAlign="center";g.textBaseline="middle";
+    g.fillText(String(s+1),(outer+49)*ca,(outer+49)*sa);
   }
-  voices.forEach(voice=>{
-    const it=DATA.motifs[state.piece][voice], base=radii[voice], col=colorFor(state.piece,voice);
-    const rec=reconstruct(it), mx=Math.max(...it.motif,...rec,0.001), selected=voice===state.voice;
-    g.globalAlpha=selected?1:.45;g.strokeStyle=col;g.lineWidth=selected?2.4:1.4;
-    g.beginPath();g.arc(cx,cy,base,0,TAU);g.stroke();
-    for(let s=0;s<12;s++){
+
+  [["D1",outer],["D2",inner]].forEach(([voice,rad])=>{
+    const it=r.voices[voice], values=it.motif, mx=Math.max(...values,0.001);
+    g.strokeStyle=color(voice);
+    g.globalAlpha=.7;
+    g.lineWidth=2.2;
+    g.beginPath();g.arc(0,0,rad,0,TAU);g.stroke();
+    values.forEach((v,s)=>{
       const a=s/12*TAU-Math.PI/2, ca=Math.cos(a), sa=Math.sin(a);
-      const len=38*rec[s]/mx;
-      g.globalAlpha=selected ? .25 : .12;g.strokeStyle=col;g.lineWidth=10;
-      g.beginPath();g.moveTo(cx+(base-18)*ca,cy+(base-18)*sa);g.lineTo(cx+(base-18-len)*ca,cy+(base-18-len)*sa);g.stroke();
-      const r=4+13*it.motif[s]/mx;
-      g.globalAlpha=selected ? .96 : .55;g.fillStyle=col;g.beginPath();g.arc(cx+base*ca,cy+base*sa,r,0,TAU);g.fill();
-      g.globalAlpha=selected ? .9 : .35;g.strokeStyle=css("--card");g.lineWidth=1.2;g.stroke();
-    }
-    g.globalAlpha=1;g.fillStyle=col;g.font="bold 14px system-ui";g.textAlign="center";
-    g.fillText(`${voice}${it.partial?" · partiel":""}`,cx,cy-base+20);
+      const size=5+16*Math.sqrt(v/mx);
+      g.globalAlpha=.96;
+      g.fillStyle=color(voice);
+      g.beginPath();g.arc(rad*ca,rad*sa,size,0,TAU);g.fill();
+      g.globalAlpha=.95;
+      g.strokeStyle=css("--paper");
+      g.lineWidth=1.7;
+      g.stroke();
+    });
+    g.globalAlpha=1;
+    g.fillStyle=color(voice);
+    g.font="700 15px Inter, system-ui, sans-serif";
+    g.textAlign="left";g.textBaseline="middle";
+    g.fillText(voice,rad+18,0);
   });
-  const it=item();
+
+  g.restore();
   document.getElementById("circleCaption").innerHTML =
-    `<b>${state.piece} · ${state.voice}</b> — prises utilisées : ${it.takes.join(", ")}${it.partial?" (D2 partiel, prises appariées seulement)":""}. Densité ≈ ${it.total.toFixed(2)} frappes/cycle.`;
+    `<b>${r.piece}</b> — prises appariées D1/D2 : ${r.takes.join(", ")}. `+
+    `Densités moyennes : D1 ${r.voices.D1.density.toFixed(2)}, D2 ${r.voices.D2.density.toFixed(2)} frappes/cycle.`;
 }
 
 function drawMap(){
-  const cv=document.getElementById("map"),g=cv.getContext("2d"),W=cv.width,H=cv.height,pad=38;
-  g.clearRect(0,0,W,H);g.strokeStyle=css("--line");g.lineWidth=1;
-  g.beginPath();g.moveTo(pad,H/2);g.lineTo(W-pad,H/2);g.moveTo(W/2,pad/2);g.lineTo(W/2,H-pad/2);g.stroke();
+  const cv=document.getElementById("map"),g=cv.getContext("2d"),W=cv.width,H=cv.height,pad=36;
+  g.clearRect(0,0,W,H);
+  g.strokeStyle=css("--line");g.lineWidth=1;
+  g.beginPath();g.moveTo(pad,H/2);g.lineTo(W-pad,H/2);g.moveTo(W/2,pad);g.lineTo(W/2,H-pad);g.stroke();
   DATA.map.forEach(pt=>{
-    const x=W/2+pt.x*(W/2-pad), y=H/2-pt.y*(H/2-pad);
-    const selected=pt.piece===state.piece&&pt.voice===state.voice, col=colorFor(pt.piece,pt.voice);
-    g.globalAlpha=selected?1:.75;g.fillStyle=pt.voice==="D2"?"transparent":col;g.strokeStyle=col;g.lineWidth=selected?3:2;
-    g.beginPath();g.arc(x,y,selected?11:8,0,TAU);g.fill();g.stroke();
-    g.fillStyle=css("--ink");g.globalAlpha=selected?1:.78;g.font=selected?"bold 12px system-ui":"11px system-ui";g.textAlign="center";
-    g.fillText(`${pt.piece} ${pt.voice}`,x,y-15);
+    const selected=pt.piece===state.piece;
+    const x=W/2+pt.x*(W/2-pad*1.6), y=H/2-pt.y*(H/2-pad*1.4);
+    const col=DATA.colors[pt.piece]||css("--accent");
+    g.globalAlpha=selected?1:.72;
+    g.fillStyle=col;g.strokeStyle=css("--paper");g.lineWidth=selected?3:2;
+    g.beginPath();g.arc(x,y,selected?13:9,0,TAU);g.fill();g.stroke();
+    g.globalAlpha=selected?1:.78;
+    g.fillStyle=css("--ink");
+    g.font=selected?"700 12px Inter, system-ui":"12px Inter, system-ui";
+    g.textAlign="center";g.textBaseline="bottom";
+    g.fillText(pt.piece,x,y-15);
   });
   cv.onclick=(ev)=>{
-    const rect=cv.getBoundingClientRect(), mx=(ev.clientX-rect.left)*cv.width/rect.width, my=(ev.clientY-rect.top)*cv.height/rect.height;
+    const rect=cv.getBoundingClientRect();
+    const mx=(ev.clientX-rect.left)*cv.width/rect.width, my=(ev.clientY-rect.top)*cv.height/rect.height;
     let best=null, bd=1e9;
     DATA.map.forEach(pt=>{
-      const x=W/2+pt.x*(W/2-pad), y=H/2-pt.y*(H/2-pad), d=(x-mx)**2+(y-my)**2;
+      const x=W/2+pt.x*(W/2-pad*1.6), y=H/2-pt.y*(H/2-pad*1.4);
+      const d=(x-mx)**2+(y-my)**2;
       if(d<bd){bd=d;best=pt;}
     });
-    if(best&&bd<900){state.piece=best.piece;state.voice=best.voice;render();}
+    if(best&&bd<1100){state.piece=best.piece;render();}
   };
 }
 
-function equationText(it){
-  const C=it.coeffs;
-  const terms=[];
-  for(let k=1;k<=6;k++){
-    terms.push(`${C[k].mag.toFixed(2)}∠${fmtPhase(C[k].phase)}·e${k}`);
-  }
-  return `R_${it.piece}_${it.voice} = c0(${it.total.toFixed(2)}) + ` + terms.join(" + ");
-}
-
 function renderEquation(){
-  const it=item(), C=it.coeffs;
-  document.getElementById("equation").innerHTML =
-    `${equationText(it)}<br><br>`+
-    `Vecteur c1..c6 : (${C.slice(1).map(c=>c.mag.toFixed(2)+"∠"+fmtPhase(c.phase)).join(", ")})`;
+  const r=rhythm();
+  document.getElementById("mainEquation").textContent=latexForRhythm(r);
+  document.getElementById("metrics").innerHTML=[
+    ["prises D1/D2",r.takes.join(", ")],
+    ["densité D1",r.voices.D1.density.toFixed(2)],
+    ["densité D2",r.voices.D2.density.toFixed(2)]
+  ].map(([k,v])=>`<div class="metric"><span>${k}</span><b>${v}</b></div>`).join("");
 }
 
-function renderEquationCards(){
-  const box=document.getElementById("equationCards");box.innerHTML="";
-  DATA.pieces.forEach(piece=>{
-    ["D1","D2"].forEach(voice=>{
-      const it=DATA.motifs[piece]?.[voice]; if(!it) return;
-      const div=document.createElement("div");
-      div.className="eqCard"+(piece===state.piece&&voice===state.voice?" on":"");
-      div.onclick=()=>{state.piece=piece;state.voice=voice;render();};
-      div.innerHTML=`<div class="eqTop"><b>${piece} · ${voice}${it.partial?" · partiel":""}</b><span>${it.takes.length} prise(s), densité ${it.total.toFixed(2)}</span></div>
-        <div class="equation" style="margin-top:8px">${equationText(it)}</div>
-        <div class="coefGrid">${it.coeffs.slice(1).map(c=>`<div class="coef"><b>c${c.k}</b><small>|c|=${c.mag.toFixed(3)}</small><small>phase ${fmtPhase(c.phase)}</small><div class="meter"><i style="width:${Math.min(100,c.mag*140)}%"></i></div></div>`).join("")}</div>`;
-      box.appendChild(div);
-    });
+function renderCoefTable(){
+  const r=rhythm();
+  const rows=[];
+  for(let k=1;k<=6;k++){
+    const a=r.voices.D1.coeffs[k], b=r.voices.D2.coeffs[k], name=DATA.coefNames[String(k)];
+    rows.push(`<tr><td>c${k}<br><small>${name}</small></td>
+      <td>${a.mag.toFixed(3)}</td><td>${phaseDeg(a.phase).toFixed(0)}°</td>
+      <td>${b.mag.toFixed(3)}</td><td>${phaseDeg(b.phase).toFixed(0)}°</td></tr>`);
+  }
+  document.getElementById("coefTable").innerHTML=`<table class="coefTable">
+    <thead><tr><th>couche</th><th>|D1|</th><th>arg D1</th><th>|D2|</th><th>arg D2</th></tr></thead>
+    <tbody>${rows.join("")}</tbody></table>`;
+}
+
+function renderCards(){
+  const box=document.getElementById("cards");
+  box.innerHTML="";
+  DATA.rhythms.forEach(r=>{
+    const div=document.createElement("article");
+    div.className="card"+(r.piece===state.piece?" on":"");
+    div.onclick=()=>{state.piece=r.piece;render();};
+    div.innerHTML=`<div class="cardTop"><b>${r.piece}</b><span>prises ${r.takes.join(", ")}</span></div>
+      <div class="miniEq">${latexForRhythm(r)}</div>`;
+    box.appendChild(div);
   });
 }
 
-function renderControls(){
-  const pc=document.getElementById("pieceControls"), vc=document.getElementById("voiceControls");
-  pc.innerHTML="<b style='color:var(--muted);font-size:.85rem'>rythme</b>";
-  DATA.pieces.forEach(p=>{const b=document.createElement("button");b.className="pill"+(p===state.piece?" on":"");b.textContent=p;b.onclick=()=>{state.piece=p;if(!DATA.motifs[p][state.voice])state.voice="D1";render();};pc.appendChild(b);});
-  vc.innerHTML="<b style='color:var(--muted);font-size:.85rem'>voix</b>";
-  ["D1","D2"].forEach(v=>{if(!DATA.motifs[state.piece]?.[v])return;const b=document.createElement("button");b.className="pill soft"+(v===state.voice?" on":"");b.textContent=v+(DATA.motifs[state.piece][v].partial?" · partiel":"");b.onclick=()=>{state.voice=v;render();};vc.appendChild(b);});
-  const lab=document.createElement("label");lab.className="check";lab.innerHTML=`<input type="checkbox" ${state.showBoth?"checked":""}> afficher D1+D2`;lab.querySelector("input").onchange=e=>{state.showBoth=e.target.checked;render();};vc.appendChild(lab);
-}
-
-function render(){renderControls();drawCircle();drawMap();renderEquation();renderEquationCards();}
+function render(){renderTabs();drawCircle();drawMap();renderEquation();renderCoefTable();renderCards();queueMath();}
 render();
 </script></body></html>"""
 
