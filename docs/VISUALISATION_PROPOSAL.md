@@ -6,7 +6,7 @@ les flèches et le paramètre `n`, par une interface plus musicale :
 - un cercle lisible à 12 subdivisions ;
 - deux anneaux D1/D2 quand D2 existe ;
 - une équation complexe attachée au rythme ;
-- des coefficients manipulables qui modifient la forme du motif en direct ;
+- les coefficients affichés comme empreinte, sans modification dans un premier temps ;
 - une carte vectorielle où chaque rythme devient un point.
 
 ## Idée centrale
@@ -32,14 +32,14 @@ où :
 - `k` n'est plus présenté comme un nombre abstrait, mais comme une couche de
   structure rythmique.
 
-Reconstruction interactive :
+Reconstruction affichée :
 
 ```text
-R̂(θ) = c0 + 2 · Re(Σk wk · ck · exp(i · k · θ))
+R̂(θ) = c0 + 2 · Re(Σk=1..5 ck · exp(i · k · θ)) + c6 · exp(i · 6θ)
 ```
 
-`wk` est un curseur utilisateur : il permet d'écouter/voir ce que chaque couche
-apporte au rythme.
+Les coefficients sont lus tels quels. Dans cette première version, on ne change
+pas les valeurs : l'interface sert à comparer les équations des rythmes.
 
 ## Interface proposée
 
@@ -53,7 +53,8 @@ Au centre :
 - les frappes réelles en points pleins ;
 - la reconstruction mathématique en halo ou courbe douce.
 
-Quand on bouge un coefficient, le halo change immédiatement.
+La reconstruction est affichée telle quelle : on lit l'équation du rythme, sans
+modifier les coefficients.
 
 ### 2. Console d'équation
 
@@ -67,7 +68,7 @@ Chaque `ck` est affiché comme :
 
 - amplitude `|ck|` ;
 - phase `arg(ck)` ;
-- curseur de poids `wk`.
+- nom musical de la couche.
 
 Les noms affichés doivent être musicaux plutôt que techniques :
 
@@ -90,31 +91,31 @@ En bas :
 - D1 et D2 peuvent être affichés séparément, mais D2 seulement sur les prises
   appariées.
 
-### 4. Modes
+### 4. Mode retenu
 
-Trois modes simples :
+Pour l'instant, un seul mode : **Lire**.
 
-1. **Lire** : voir le motif réel, sans math.
-2. **Décomposer** : activer/désactiver les coefficients.
-3. **Composer** : bouger les coefficients et créer un motif reconstruit.
+Il montre le motif réel, son équation, ses coefficients et sa position dans la
+carte vectorielle. Les modes de composition ou d'édition restent volontairement
+hors de cette version.
 
 ## Pourquoi c'est plus clair
 
-L'utilisateur ne manipule plus un `n` abstrait. Il manipule des couches visibles :
+L'utilisateur ne lit plus un `n` abstrait. Il lit des couches visibles :
 
-- quand `c3` monte, le cercle montre trois pôles ;
-- quand `c6` monte, l'alternance devient plus serrée ;
-- quand la phase tourne, le motif pivote dans le cycle ;
+- quand `c3` est fort, le cercle montre trois pôles ;
+- quand `c6` est fort, l'alternance est plus serrée ;
+- quand la phase est décalée, le motif pivote dans le cycle ;
 - quand plusieurs coefficients se combinent, le cercle montre directement la
   forme résultante.
 
 Le vocabulaire devient :
 
 ```text
-un rythme = une forme sur le cercle = un vecteur complexe = une équation réglable
+un rythme = une forme sur le cercle = un vecteur complexe = une équation lisible
 ```
 
-Nom retenu : **Boussole complexe des dununs**.
+Nom retenu : **Boussole des rythmes**.
 
 ## Pourquoi seulement six coefficients ?
 

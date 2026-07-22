@@ -16,7 +16,7 @@ Le projet est un prototype de recherche avancé :
 - analyse de motif, densité, tempo et micro-timing ;
 - visualisations HTML autonomes avec audio embarqué ;
 - caractérisation géométrique/Fourier des rythmes ;
-- boussole complexe interactive avec coefficients manipulables.
+- boussole des rythmes avec équations complexes comparables.
 
 Les données brutes et sorties générées ne sont pas versionnées dans Git : elles
 sont lourdes, régénérables, et liées à la licence du corpus.
@@ -51,7 +51,7 @@ Scripts principaux :
 - `utils_V2.py` : téléchargement, chargement, extraction, couverture D1/D2 ;
 - `dunun_viz_V2.py` : visualisation dynamique ;
 - `atome_vivant_V2.py` : atome polaire ;
-- `boussole_complexe_V2.py` : cercle D1/D2 + équation complexe manipulable.
+- `boussole_rythmes_V2.py` : cercle D1/D2 + équations complexes des rythmes.
 
 ## Point méthodologique important : D2
 
@@ -85,7 +85,7 @@ Voir aussi [`docs/D2_COVERAGE.md`](docs/D2_COVERAGE.md).
 ```bash
 python check_project.py
 python prepare_git.py
-python boussole_complexe_V2.py
+python boussole_rythmes_V2.py
 ```
 
 ## Résultats déjà observés
@@ -106,7 +106,7 @@ DJEMBE_LLM/
 ├── utils_V2.py
 ├── dunun_viz_V2.py
 ├── atome_vivant_V2.py
-├── boussole_complexe_V2.py
+├── boussole_rythmes_V2.py
 ├── check_project.py
 ├── prepare_git.py
 ├── qc_d2_coverage.py
