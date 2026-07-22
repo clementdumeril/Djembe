@@ -11,7 +11,7 @@ lire et comparer les signatures complexes des rythmes, avec un rendu HTML plus
 proche d'une figure de recherche.
 
 Pourquoi 6 coefficients ? Pour 12 subdivisions réelles, c7..c11 sont les
-miroirs conjugués de c5..c1. Les couches indépendantes non triviales sont donc
+miroirs conjugués de c5..c1. Les ondes indépendantes non triviales sont donc
 c1..c6, plus c0 qui porte la densité moyenne.
 """
 from __future__ import annotations
@@ -248,6 +248,9 @@ canvas{display:block;width:100%;height:auto}
       <span class="swatch d2"><i></i>D2 — anneau intérieur</span>
     </div>
     <p class="caption" id="circleCaption"></p>
+    <h3>Projection complexe : c1 et c4</h3>
+    <canvas id="layers" width="620" height="310"></canvas>
+    <p class="caption">Chaque petit vecteur est une frappe tournée par \(z_s^{-k}\). La grosse flèche est la somme : le coefficient \(c_k\). Utilise D1/D2/D1+D2 pour choisir les voix affichées.</p>
     <h3>Courbe du modèle</h3>
     <canvas id="curve" width="620" height="260"></canvas>
     <p class="caption">Axes : abscisse = subdivision Polak du cycle, ordonnée = probabilité moyenne de frappe. Les points sont observés ; les courbes viennent de l'équation complexe.</p>
@@ -375,6 +378,7 @@ function renderVoicePicker(){
       state.playVoice=value;
       renderVoicePicker();
       drawCircle();
+      drawLayers();
       drawCurve();
     };
     box.appendChild(b);
@@ -463,6 +467,65 @@ function drawCircle(){
   document.getElementById("circleCaption").innerHTML =
     `<b>${r.piece}</b> — prises appariées D1/D2 : ${r.takes.join(", ")}. `+
     `Densités moyennes : D1 ${r.voices.D1.density.toFixed(2)}, D2 ${r.voices.D2.density.toFixed(2)} frappes/cycle.`;
+}
+
+function arrow(g,x1,y1,x2,y2,col,lw=2,alpha=1){
+  const a=Math.atan2(y2-y1,x2-x1), head=7+lw;
+  g.save();
+  g.globalAlpha=alpha;
+  g.strokeStyle=col;g.fillStyle=col;g.lineWidth=lw;
+  g.beginPath();g.moveTo(x1,y1);g.lineTo(x2,y2);g.stroke();
+  g.beginPath();
+  g.moveTo(x2,y2);
+  g.lineTo(x2-head*Math.cos(a-.42),y2-head*Math.sin(a-.42));
+  g.lineTo(x2-head*Math.cos(a+.42),y2-head*Math.sin(a+.42));
+  g.closePath();g.fill();
+  g.restore();
+}
+
+function drawLayerPanel(g,r,k,cx,cy,rad){
+  g.save();
+  g.strokeStyle=css("--line");g.lineWidth=1.2;
+  g.beginPath();g.arc(cx,cy,rad,0,TAU);g.stroke();
+  g.fillStyle=css("--muted");g.font="11px Inter, system-ui";g.textAlign="center";g.textBaseline="middle";
+  for(let s=0;s<12;s++){
+    const a=s/12*TAU-Math.PI/2;
+    const x=cx+rad*Math.cos(a), y=cy+rad*Math.sin(a);
+    g.globalAlpha=.75;g.beginPath();g.arc(x,y,2.3,0,TAU);g.fill();
+    g.globalAlpha=1;g.fillText(String(s+1),cx+(rad+17)*Math.cos(a),cy+(rad+17)*Math.sin(a));
+  }
+
+  g.globalAlpha=1;
+  g.fillStyle=css("--ink");g.font="700 15px Inter, system-ui";g.textAlign="center";
+  g.fillText(`c${k} · ${k} ${k===1?"tour":"tours"} de phase`,cx,22);
+
+  selectedVoices().forEach((voice,idx)=>{
+    const it=r.voices[voice], col=color(voice), scale=rad*.95;
+    const yOffset=state.playVoice==="both" ? (voice==="D1"?-5:5) : 0;
+    it.motif.forEach((v,s)=>{
+      const w=(it.density>0 ? v/it.density : 0);
+      if(w<.006)return;
+      const phi=-k*TAU*s/12;
+      const x2=cx+Math.cos(phi)*w*scale*3.9;
+      const y2=cy+yOffset-Math.sin(phi)*w*scale*3.9;
+      arrow(g,cx,cy+yOffset,x2,y2,col,1.15,.32);
+    });
+    const c=it.coeffs[k], x2=cx+c.re*scale, y2=cy+yOffset-c.im*scale;
+    arrow(g,cx,cy+yOffset,x2,y2,col,3.2,.96);
+    g.fillStyle=col;g.font="700 12px Inter, system-ui";g.textAlign="left";g.textBaseline="middle";
+    g.fillText(`${voice}: |c${k}|=${c.mag.toFixed(3)}, arg=${phaseDeg(c.phase).toFixed(0)}°`,cx-rad,cy+rad+22+idx*17);
+  });
+  g.restore();
+}
+
+function drawLayers(){
+  const r=rhythm(), cv=document.getElementById("layers"), g=cv.getContext("2d");
+  const W=cv.width,H=cv.height;
+  g.clearRect(0,0,W,H);
+  drawLayerPanel(g,r,1,W*.265,H*.43,82);
+  drawLayerPanel(g,r,4,W*.735,H*.43,82);
+  g.fillStyle=css("--muted");g.font="12px Inter, system-ui";g.textAlign="center";
+  g.fillText("Plus les petites flèches pointent dans la même direction, plus le coefficient est grand.",W/2,H-12);
 }
 
 function drawCurve(){
@@ -637,12 +700,13 @@ document.getElementById("playBtn").onclick=playRhythm;
 
 function animatePlayback(){
   drawCircle();
+  drawLayers();
   drawCurve();
   if(playback.active) playback.raf=requestAnimationFrame(animatePlayback);
   else playback.raf=null;
 }
 
-function render(){renderTabs();renderVoicePicker();drawCircle();drawCurve();drawMap();renderEquation();renderCoefTable();renderCards();queueMath();}
+function render(){renderTabs();renderVoicePicker();drawCircle();drawLayers();drawCurve();drawMap();renderEquation();renderCoefTable();renderCards();queueMath();}
 render();
 </script></body></html>"""
 

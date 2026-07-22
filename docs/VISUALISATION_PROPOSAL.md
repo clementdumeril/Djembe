@@ -186,3 +186,15 @@ y = probabilité moyenne de frappe
 
 Les points sont les observations. La courbe est le modèle reconstruit à partir
 des coefficients complexes.
+
+## Visualiser une couche sur le cercle
+
+Pour rendre le calcul lisible, la page affiche `c1` et `c4` comme deux cercles
+de projection :
+
+- chaque petite flèche est une subdivision frappée, pondérée par son intensité ;
+- avant d'être additionnée, cette frappe est tournée par `zs^(-k)` ;
+- la grosse flèche est la somme de toutes les petites flèches : `ck`.
+
+Ainsi `c1` montre ce que devient le motif quand on le lit avec une onde qui fait
+un tour par cycle ; `c4` montre la même chose avec quatre tours par cycle.
