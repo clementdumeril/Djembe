@@ -183,6 +183,9 @@ h1{font-family:Georgia,Times,serif;font-size:clamp(2rem,4vw,4rem);line-height:.9
 .tab.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
 .actionbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:-6px 0 18px}
 .play{appearance:none;border:0;background:var(--accent);color:white;border-radius:999px;padding:10px 15px;cursor:pointer;font-weight:900;box-shadow:0 8px 22px rgba(140,92,46,.22)}
+.voicePicker{display:flex;gap:6px;align-items:center;border:1px solid var(--line);background:var(--paper);border-radius:999px;padding:4px}
+.voiceBtn{appearance:none;border:0;background:transparent;color:var(--muted);border-radius:999px;padding:7px 10px;cursor:pointer;font-weight:850}
+.voiceBtn.on{background:var(--ink);color:var(--paper)}
 .actionbar span{color:var(--muted);font-size:.86rem}
 .layout{display:grid;grid-template-columns:minmax(440px,.9fr) minmax(500px,1.1fr);gap:18px;align-items:start}
 .panel{background:var(--paper);border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow);padding:18px}
@@ -232,7 +235,8 @@ canvas{display:block;width:100%;height:auto}
 <nav class="tabs" id="tabs"></nav>
 <div class="actionbar">
   <button class="play" id="playBtn">▶ Écouter le rythme</button>
-  <span>Synthèse courte : D1 grave, D2 plus aigu, deux cycles.</span>
+  <div class="voicePicker" id="voicePicker"></div>
+  <span id="playCaption">Synthèse : D1 grave, D2 plus aigu, six cycles.</span>
 </div>
 
 <section class="layout">
@@ -262,6 +266,7 @@ canvas{display:block;width:100%;height:auto}
       <div><b>D1/D2 comparables.</b><br>La figure utilise les mêmes prises pour D1 et D2 : uniquement les prises appariées où les deux voix sont présentes.</div>
       <div><b>Six coefficients ≠ six temps.</b><br>Chaque coefficient regarde les 12 subdivisions. Il mesure une onde complète autour du cercle, pas une subdivision isolée.</div>
       <div><b>Calcul complexe.</b><br>On pose \(z_s=e^{2\pi i s/12}\). Le coefficient \(c_k\) est la somme pondérée des frappes après rotation par \(z_s^{-k}\).</div>
+      <div><b>Une “couche” = une onde test.</b><br>Pour \(k=3\), par exemple, l'onde fait trois tours pendant le cycle. Si les frappes suivent cette forme, elles s'additionnent ; sinon elles s'annulent.</div>
       <div><b>Notation.</b><br><b>Rythme</b> désigne l'objet complet ; <b>D1</b> et <b>D2</b> sont les deux courbes/voix qui composent ce rythme.</div>
     </div>
   </aside>
@@ -274,8 +279,8 @@ canvas{display:block;width:100%;height:auto}
 <script>
 const DATA=__DATA__;
 const TAU=Math.PI*2;
-const state={piece:DATA.pieces[0]};
-const playback={active:false,startedMs:0,durationMs:0,step:.155,raf:null};
+const state={piece:DATA.pieces[0],playVoice:"both"};
+const playback={active:false,startedMs:0,durationMs:0,step:.155,cycles:6,raf:null,ctx:null};
 
 function rhythm(piece=state.piece){return DATA.rhythms.find(r=>r.piece===piece) || DATA.rhythms[0];}
 function css(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
@@ -286,6 +291,14 @@ function texVector(it){
   return String.raw`\left(${it.coeffs.slice(1).map(c=>`${c.mag.toFixed(2)}e^{${phaseTex(c.phase)}i}`).join(String.raw`,\; `)}\right)`;
 }
 function color(voice){return voice==="D1"?css("--d1"):css("--d2");}
+function selectedVoices(){
+  if(state.playVoice==="D1")return ["D1"];
+  if(state.playVoice==="D2")return ["D2"];
+  return ["D1","D2"];
+}
+function playVoiceLabel(){
+  return state.playVoice==="both" ? "D1+D2" : state.playVoice;
+}
 function curveValue(it,t){
   const C=it.coeffs, theta=TAU*t/12, N=12;
   let y=C[0].re;
@@ -345,6 +358,29 @@ function queueMath(){
   }else{
     setTimeout(queueMath,120);
   }
+}
+
+function renderVoicePicker(){
+  const box=document.getElementById("voicePicker");
+  box.innerHTML="";
+  [
+    ["both","D1+D2"],
+    ["D1","D1 seul"],
+    ["D2","D2 seul"],
+  ].forEach(([value,label])=>{
+    const b=document.createElement("button");
+    b.className="voiceBtn"+(state.playVoice===value?" on":"");
+    b.textContent=label;
+    b.onclick=()=>{
+      state.playVoice=value;
+      renderVoicePicker();
+      drawCircle();
+      drawCurve();
+    };
+    box.appendChild(b);
+  });
+  document.getElementById("playCaption").textContent =
+    `Écoute : ${playVoiceLabel()}, ${playback.cycles} cycles du rythme sélectionné.`;
 }
 
 function renderTabs(){
@@ -409,15 +445,18 @@ function drawCircle(){
   const p=playheadPosition();
   if(p!==null){
     const a=p/12*TAU-Math.PI/2, ca=Math.cos(a), sa=Math.sin(a);
+    let from=inner-42, to=outer+28;
+    if(state.playVoice==="D1"){from=outer-42;to=outer+30;}
+    if(state.playVoice==="D2"){from=inner-42;to=inner+30;}
     g.globalAlpha=1;
     g.strokeStyle=css("--ink");
     g.lineWidth=2.8;
-    g.beginPath();g.moveTo((inner-42)*ca,(inner-42)*sa);g.lineTo((outer+28)*ca,(outer+28)*sa);g.stroke();
+    g.beginPath();g.moveTo(from*ca,from*sa);g.lineTo(to*ca,to*sa);g.stroke();
     g.fillStyle=css("--ink");
-    g.beginPath();g.arc((outer+28)*ca,(outer+28)*sa,5.2,0,TAU);g.fill();
+    g.beginPath();g.arc(to*ca,to*sa,5.2,0,TAU);g.fill();
     g.font="700 12px Inter, system-ui, sans-serif";
     g.textAlign="center";g.textBaseline="middle";
-    g.fillText("lecture",0,0);
+    g.fillText(playVoiceLabel(),0,0);
   }
 
   g.restore();
@@ -572,17 +611,19 @@ function hit(ctx,time,voice,amp){
 async function playRhythm(){
   const AudioCtx=window.AudioContext||window.webkitAudioContext;
   if(!AudioCtx){alert("Audio Web non disponible dans ce navigateur.");return;}
-  const ctx=new AudioCtx();
-  await ctx.resume();
-  const r=rhythm(), step=playback.step, start=ctx.currentTime+.08, cycles=2;
   if(playback.raf)cancelAnimationFrame(playback.raf);
+  if(playback.ctx)await playback.ctx.close().catch(()=>{});
+  const ctx=new AudioCtx();
+  playback.ctx=ctx;
+  await ctx.resume();
+  const r=rhythm(), step=playback.step, start=ctx.currentTime+.08, cycles=playback.cycles, voices=selectedVoices();
   playback.active=true;
   playback.startedMs=performance.now()+80;
   playback.durationMs=cycles*12*step*1000;
-  document.getElementById("playBtn").textContent="■ Lecture en cours";
+  document.getElementById("playBtn").textContent=`■ Lecture ${playVoiceLabel()}`;
   const mx=Math.max(...r.voices.D1.motif,...r.voices.D2.motif,0.001);
   for(let cycle=0;cycle<cycles;cycle++){
-    ["D1","D2"].forEach(voice=>{
+    voices.forEach(voice=>{
       r.voices[voice].motif.forEach((v,s)=>{
         if(v<0.04)return;
         hit(ctx,start+(cycle*12+s)*step,voice,v/mx);
@@ -601,7 +642,7 @@ function animatePlayback(){
   else playback.raf=null;
 }
 
-function render(){renderTabs();drawCircle();drawCurve();drawMap();renderEquation();renderCoefTable();renderCards();queueMath();}
+function render(){renderTabs();renderVoicePicker();drawCircle();drawCurve();drawMap();renderEquation();renderCoefTable();renderCards();queueMath();}
 render();
 </script></body></html>"""
 

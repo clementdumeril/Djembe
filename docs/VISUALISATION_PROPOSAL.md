@@ -33,6 +33,16 @@ où :
 - `A = Σs as` normalise le motif ;
 - `k` indique le nombre d'oscillations de l'onde complexe dans le cycle.
 
+On peut aussi l'écrire avec les racines douzièmes de l'unité :
+
+```text
+zs = exp(2πi · s/12)
+ck = Σs xs · zs^(-k)
+```
+
+Les `zs` sont les 12 points régulièrement posés sur le cercle complexe. Chaque
+coefficient compare le motif complet à une onde qui tourne autour de ce cercle.
+
 Équation affichée :
 
 ```text
@@ -134,6 +144,18 @@ redonnerait la même information en miroir.
 Important : `c1..c6` ne sont pas les six premières subdivisions du rythme. Ce
 sont six ondes de forme. Chaque onde regarde les 12 subdivisions à la fois :
 elle mesure une manière de se répartir dans le cycle.
+
+Le mot "couche" signifie donc "onde test". On ne découpe pas le rythme en six
+tranches temporelles. On le compare à six horloges :
+
+- `c1` : une horloge qui fait 1 tour pendant le cycle ;
+- `c2` : une horloge qui fait 2 tours ;
+- `c3` : une horloge qui fait 3 tours ;
+- etc.
+
+Si les frappes tombent dans le même sens que l'onde, les vecteurs complexes
+s'additionnent et `|ck|` devient grand. Si elles sont réparties dans des sens
+opposés, les vecteurs s'annulent et `|ck|` devient petit.
 
 ## Analyse des coefficients
 
