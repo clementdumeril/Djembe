@@ -269,10 +269,13 @@ canvas{display:block;width:100%;height:auto}
 .smallBtn:hover{background:var(--soft)}
 .smallBtn.on{background:var(--ink);border-color:var(--ink);color:var(--paper)}
 .resetBtn{margin-left:auto}
-.transformBar{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:0 0 10px}
-.transformAction{display:flex;align-items:center;gap:6px;background:var(--soft);border:1px solid var(--line2);border-radius:11px;padding:6px}
+.transformBar{display:grid;grid-template-columns:.82fr 1.18fr;gap:7px;margin:0 0 10px}
+.transformAction{display:grid;align-content:start;gap:6px;background:var(--soft);border:1px solid var(--line2);border-radius:11px;padding:7px}
+.transformActionHead{display:flex;align-items:center;gap:6px}
 .transformAction .smallBtn{flex:1;background:var(--paper)}
-.transformAction select{max-width:94px;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:8px;padding:7px 6px;font-size:.73rem}
+.transformAction select{max-width:98px;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:8px;padding:7px 6px;font-size:.73rem}
+.transformHint,.symmetryGuide{margin:0;color:var(--muted);font-size:.68rem;line-height:1.35}
+.symmetryGuide b{color:var(--accent)}.symmetryGuide strong{color:var(--ink)}
 .transformFeedback{min-height:18px;margin:-2px 2px 8px;color:var(--muted);font-size:.74rem}
 .transformFeedback b{color:var(--ink)}
 .coefControls{display:grid;gap:6px}
@@ -384,17 +387,21 @@ canvas{display:block;width:100%;height:auto}
     <div class="transformBar">
       <div class="transformAction">
         <button class="smallBtn" id="orthogonalBtn">⊥ Orthogonal à l’autre voix</button>
+        <p class="transformHint">Retire de la voix éditée la forme qu’elle partage avec l’autre voix.</p>
       </div>
-      <div class="transformAction">
-        <button class="smallBtn" id="mirrorBtn">Symétrie miroir</button>
-        <select id="symmetryAxis" aria-label="Axe de symétrie">
-          <option value="0">axe 1–7</option>
-          <option value="1">axe 2–8</option>
-          <option value="2">axe 3–9</option>
-          <option value="3">axe 4–10</option>
-          <option value="4">axe 5–11</option>
-          <option value="5">axe 6–12</option>
-        </select>
+      <div class="transformAction symmetryAction">
+        <div class="transformActionHead">
+          <button class="smallBtn" id="mirrorBtn">Refléter la voix</button>
+          <select id="symmetryAxis" aria-label="Axe de symétrie">
+            <option value="0">axe 1–7</option>
+            <option value="1">axe 2–8</option>
+            <option value="2">axe 3–9</option>
+            <option value="3">axe 4–10</option>
+            <option value="4">axe 5–11</option>
+            <option value="5">axe 6–12</option>
+          </select>
+        </div>
+        <p class="symmetryGuide" id="symmetryGuide"></p>
       </div>
     </div>
     <div class="transformFeedback" id="transformFeedback">Transformations appliquées à la voix en cours d’édition.</div>
@@ -465,7 +472,7 @@ const DATA=__DATA__;
 const TAU=Math.PI*2;
 const state={
   piece:DATA.pieces[0],playVoice:"both",synthEnabled:false,synthVoice:"D1",
-  synthData:{},timingMode:"grid",timingStrength:1,transformMessage:""
+  synthData:{},timingMode:"grid",timingStrength:1,transformMessage:"",symmetryAxis:0
 };
 const playback={active:false,step:.155,lookaheadMs:25,scheduleAhead:.11,raf:null,ctx:null,master:null,timer:null,nextStepTime:0,stepIndex:0,startTime:0};
 
@@ -553,6 +560,38 @@ function orthogonalComplement(source,reference){
 function mirroredMotif(source,axis){
   return Array.from({length:12},(_,s)=>source[(2*axis-s+120)%12]);
 }
+function symmetryPairs(axis){
+  const fixed=[],pairs=[],seen=new Set();
+  for(let s=0;s<12;s++){
+    if(seen.has(s))continue;
+    const target=(2*axis-s+120)%12;
+    seen.add(s);seen.add(target);
+    if(s===target)fixed.push(s+1);
+    else pairs.push([s+1,target+1]);
+  }
+  return {fixed,pairs};
+}
+function renderSymmetryGuide(){
+  const axis=state.symmetryAxis;
+  const select=document.getElementById("symmetryAxis");
+  const guide=document.getElementById("symmetryGuide");
+  const mirrorBtn=document.getElementById("mirrorBtn");
+  const {fixed,pairs}=symmetryPairs(axis);
+  select.value=String(axis);
+  mirrorBtn.textContent=`Refléter ${state.synthVoice}`;
+  guide.innerHTML=
+    `<b>Axe ${axis+1}–${axis+7}</b> · ${fixed.join(" et ")} restent fixes · `+
+    `${pairs.map(([a,b])=>`${a}↔${b}`).join(", ")}. `+
+    `<strong>Aucune frappe ajoutée : elles changent seulement de côté.</strong>`;
+  select.onchange=()=>{
+    state.symmetryAxis=Number(select.value);
+    state.transformMessage="";
+    document.getElementById("transformFeedback").textContent=
+      `Aperçu de l’axe ${state.symmetryAxis+1}–${state.symmetryAxis+7} sur le cercle.`;
+    renderSymmetryGuide();
+    drawCircle();
+  };
+}
 function applySynthMotif(motif,message){
   state.synthData[synthKey()]=synthDataFromMotif(motif);
   state.synthEnabled=true;
@@ -570,11 +609,11 @@ function applyOrthogonalProjection(){
   );
 }
 function applyMirrorSymmetry(){
-  const axis=Number(document.getElementById("symmetryAxis").value);
+  const axis=state.symmetryAxis;
   const voice=state.synthVoice;
   applySynthMotif(
     mirroredMotif(motifForTransform(voice),axis),
-    `<b>${voice}</b> réfléchi autour de l’axe ${axis+1}–${axis+7}`
+    `<b>${voice}</b> réfléchi autour de l’axe ${axis+1}–${axis+7} · densité conservée, aucune frappe dupliquée`
   );
 }
 function synthCoeffArray(data){
@@ -747,8 +786,9 @@ function renderSynthControls(){
   orthogonalBtn.textContent=`⊥ ${state.synthVoice} orthogonal à ${other}`;
   orthogonalBtn.onclick=applyOrthogonalProjection;
   document.getElementById("mirrorBtn").onclick=applyMirrorSymmetry;
+  renderSymmetryGuide();
   document.getElementById("transformFeedback").innerHTML=
-    state.transformMessage||`La projection orthogonale est calculée dans l’espace R¹² centré, après retrait de la moyenne.`;
+    state.transformMessage||`Choisis une transformation pour ${state.synthVoice}, puis écoute ou ajuste ses coefficients.`;
 
   const data=ensureSynthData();
   const rows=[];
@@ -835,14 +875,34 @@ function drawCircle(){
   g.lineWidth=1.2;
   [outer,inner].forEach(rad=>{g.beginPath();g.arc(0,0,rad,0,TAU);g.stroke();});
 
+  const axisAngle=state.symmetryAxis/12*TAU-Math.PI/2;
+  const axisX=Math.cos(axisAngle),axisY=Math.sin(axisAngle),axisRadius=outer+34;
+  g.save();
+  g.setLineDash([7,6]);
+  g.strokeStyle=css("--accent");
+  g.globalAlpha=.48;
+  g.lineWidth=1.7;
+  g.beginPath();
+  g.moveTo(-axisRadius*axisX,-axisRadius*axisY);
+  g.lineTo(axisRadius*axisX,axisRadius*axisY);
+  g.stroke();
+  g.restore();
+  g.fillStyle=css("--accent");
+  g.globalAlpha=.78;
+  g.font="700 11px Inter, system-ui, sans-serif";
+  g.textAlign="center";g.textBaseline="middle";
+  g.fillText(`axe miroir ${state.symmetryAxis+1}–${state.symmetryAxis+7}`,0,24);
+
   for(let s=0;s<12;s++){
     const a=s/12*TAU-Math.PI/2;
     const ca=Math.cos(a), sa=Math.sin(a);
-    g.fillStyle=css("--muted");
-    g.globalAlpha=.55;
-    g.beginPath();g.arc((outer+30)*ca,(outer+30)*sa,2.2,0,TAU);g.fill();
+    const fixed=s===state.symmetryAxis||s===state.symmetryAxis+6;
+    g.fillStyle=fixed?css("--accent"):css("--muted");
+    g.globalAlpha=fixed ? .9 : .55;
+    g.beginPath();g.arc((outer+30)*ca,(outer+30)*sa,fixed?4:2.2,0,TAU);g.fill();
     g.globalAlpha=1;
-    g.font="12px Inter, system-ui, sans-serif";
+    g.fillStyle=fixed?css("--accent"):css("--muted");
+    g.font=fixed?"800 12px Inter, system-ui, sans-serif":"12px Inter, system-ui, sans-serif";
     g.textAlign="center";g.textBaseline="middle";
     g.fillText(String(s+1),(outer+49)*ca,(outer+49)*sa);
   }

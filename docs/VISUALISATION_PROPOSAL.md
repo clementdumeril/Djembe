@@ -225,6 +225,12 @@ Deux opérations construisent automatiquement une nouvelle voix :
 Les deux opérations sont reconverties en coefficients complexes puis restent
 modifiables avec les curseurs.
 
+Les six axes proposés passent par `1–7`, `2–8`, ..., `6–12`. Les deux
+subdivisions portées par l'axe restent fixes ; toutes les autres s'échangent
+deux à deux. Par exemple, pour l'axe `1–7`, `2↔12`, `3↔11`, `4↔10`,
+`5↔9` et `6↔8`. Il s'agit d'une permutation : aucune frappe n'est ajoutée et
+la densité totale est conservée.
+
 ## Étudier l'impact du micro-timing
 
 Le motif répond à **où** une frappe existe dans les 12 subdivisions. Le
