@@ -202,6 +202,12 @@ La courbe reconstruite peut devenir négative si les coefficients sont poussés
 fortement. Pour l'écoute, la page coupe ces valeurs à zéro avant de déclencher
 les frappes.
 
+L'interface est organisée comme un instrument : cercle métrique à gauche,
+synthétiseur à droite, puis courbes temporelles en dessous. La lecture fonctionne
+en boucle continue. Un ordonnanceur audio ne prépare qu'une courte fenêtre
+d'avance ; une modification de `ρ`, `|ck|` ou `arg(ck)` est donc prise en compte
+sur la prochaine subdivision non encore programmée, sans relancer le cycle.
+
 ## Visualiser une couche sur le cercle
 
 Pour rendre le calcul lisible, la page affiche `c1` et `c4` comme deux cercles

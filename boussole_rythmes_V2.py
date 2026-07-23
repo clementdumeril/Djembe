@@ -160,151 +160,219 @@ window.MathJax = {
 <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
 <style>
 :root{
-  --bg:#f6f4ee;--paper:#fffdf8;--ink:#1b1b18;--muted:#6f6a60;
-  --line:#d8d0c3;--line2:#ebe5da;--accent:#8c5c2e;
-  --d1:#214e8a;--d2:#b46a2a;--shadow:0 18px 55px rgba(40,32,20,.11)
+  --bg:#f2f1ed;--paper:#fbfaf7;--ink:#20211f;--muted:#77766f;
+  --line:#d8d7d1;--line2:#e9e7e1;--soft:#f4f3ef;--accent:#b45d2c;
+  --d1:#245d9b;--d2:#c17a2b;--live:#26815a;--shadow:0 8px 28px rgba(34,34,28,.055)
 }
 @media(prefers-color-scheme:dark){
-  :root{--bg:#111216;--paper:#191b21;--ink:#f2eadc;--muted:#aaa196;--line:#30333c;--line2:#242730;--accent:#d2a15d;--shadow:0 20px 60px rgba(0,0,0,.35)}
+  :root{--bg:#111315;--paper:#191c1e;--ink:#f0eee8;--muted:#aaa9a2;--line:#34383a;--line2:#292d2f;--soft:#202426;--accent:#df8b50;--d1:#6ca4df;--d2:#e0a458;--live:#52bc88;--shadow:0 12px 35px rgba(0,0,0,.22)}
 }
 *{box-sizing:border-box}
-body{margin:0;background:
-  radial-gradient(circle at 10% -5%,rgba(180,106,42,.14),transparent 32rem),
-  linear-gradient(180deg,var(--bg),color-mix(in srgb,var(--bg) 86%,#fff 14%));
-  color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif;line-height:1.45}
-.page{max-width:1320px;margin:0 auto;padding:32px 22px 42px}
-header{display:grid;grid-template-columns:1.05fr .95fr;gap:22px;align-items:end;margin-bottom:18px}
-.kicker{font-size:.74rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:800;margin:0 0 8px}
-h1{font-family:Georgia,Times,serif;font-size:clamp(2rem,4vw,4rem);line-height:.95;margin:0;color:var(--ink);letter-spacing:-.045em}
-.abstract{background:rgba(255,255,255,.36);border:1px solid var(--line);border-radius:18px;padding:14px 16px;color:var(--muted);font-size:.94rem}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif;line-height:1.45}
+button,input{font:inherit}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid color-mix(in srgb,var(--accent) 35%,transparent);outline-offset:2px}
+.page{max-width:1440px;margin:0 auto;padding:26px 24px 46px}
+.masthead{display:flex;justify-content:space-between;gap:32px;align-items:flex-end;margin:0 2px 20px}
+.titleBlock{min-width:max-content}
+.kicker,.eyebrow{font-size:.69rem;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);font-weight:850;margin:0 0 6px}
+h1{font-family:Georgia,Times,serif;font-size:clamp(2.2rem,4vw,3.65rem);line-height:.95;margin:0;letter-spacing:-.045em}
+.abstract{max-width:660px;color:var(--muted);font-size:.9rem;margin:0}
 .abstract b{color:var(--ink)}
-.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0}
-.tab{appearance:none;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:999px;padding:9px 14px;cursor:pointer;font-weight:800;box-shadow:0 4px 14px rgba(0,0,0,.04)}
+.surface{background:var(--paper);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow)}
+.toolbar{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:10px 12px;margin-bottom:16px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tab{appearance:none;border:1px solid transparent;background:transparent;color:var(--muted);border-radius:10px;padding:8px 13px;cursor:pointer;font-weight:800}
+.tab:hover{background:var(--soft);color:var(--ink)}
 .tab.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
-.actionbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:-6px 0 18px}
-.play{appearance:none;border:0;background:var(--accent);color:white;border-radius:999px;padding:10px 15px;cursor:pointer;font-weight:900;box-shadow:0 8px 22px rgba(140,92,46,.22)}
-.voicePicker{display:flex;gap:6px;align-items:center;border:1px solid var(--line);background:var(--paper);border-radius:999px;padding:4px}
-.voiceBtn{appearance:none;border:0;background:transparent;color:var(--muted);border-radius:999px;padding:7px 10px;cursor:pointer;font-weight:850}
+.transport{display:flex;gap:9px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.play{min-width:168px;appearance:none;border:0;background:var(--accent);color:#fff;border-radius:11px;padding:10px 15px;cursor:pointer;font-weight:900}
+.play.playing{background:var(--ink)}
+.voicePicker{display:flex;gap:3px;align-items:center;border:1px solid var(--line);background:var(--soft);border-radius:11px;padding:3px}
+.voiceBtn{appearance:none;border:0;background:transparent;color:var(--muted);border-radius:8px;padding:6px 9px;cursor:pointer;font-weight:800;font-size:.78rem}
 .voiceBtn.on{background:var(--ink);color:var(--paper)}
-.actionbar span{color:var(--muted);font-size:.86rem}
-.layout{display:grid;grid-template-columns:minmax(440px,.9fr) minmax(500px,1.1fr);gap:18px;align-items:start}
-.panel{background:var(--paper);border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow);padding:18px}
-.panel h2{font-family:Georgia,Times,serif;font-size:1.25rem;margin:.1rem 0 .85rem;letter-spacing:-.02em}
-.panel h3{font-size:.82rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin:1rem 0 .55rem}
+.liveStatus{display:inline-flex;align-items:center;gap:7px;color:var(--muted);font-size:.78rem;min-width:82px}
+.liveStatus i{width:8px;height:8px;border-radius:50%;background:var(--line)}
+.liveStatus.on{color:var(--live);font-weight:850}.liveStatus.on i{background:var(--live);box-shadow:0 0 0 5px color-mix(in srgb,var(--live) 14%,transparent)}
+.playCaption{width:100%;text-align:right;color:var(--muted);font-size:.75rem}
+.studioGrid{display:grid;grid-template-columns:minmax(520px,1.06fr) minmax(490px,.94fr);gap:16px;align-items:stretch}
+.wheelPanel,.synthPanel,.curvePanel,.vectorPanel,.mapPanel{padding:18px}
+.panelHead{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:4px}
+.panelHead h2,.synthPanel h2,.curvePanel h2,.vectorPanel h2,.mapPanel h2{font-family:Georgia,Times,serif;font-size:1.35rem;margin:0;letter-spacing:-.025em}
+.modeTag{border:1px solid var(--line);background:var(--soft);border-radius:999px;color:var(--muted);padding:5px 9px;font-size:.72rem;font-weight:800}
+.modeTag.live{border-color:color-mix(in srgb,var(--live) 45%,var(--line));color:var(--live);background:color-mix(in srgb,var(--live) 7%,var(--paper))}
 canvas{display:block;width:100%;height:auto}
+.wheelPanel #circle{max-width:590px;margin:0 auto}
 .caption,.note{font-size:.85rem;color:var(--muted)}
 .caption b,.note b{color:var(--ink)}
-.legend{display:flex;gap:12px;flex-wrap:wrap;margin:10px 0 2px;color:var(--muted);font-size:.82rem}
+.legend{display:flex;gap:16px;flex-wrap:wrap;margin:6px 0 2px;color:var(--muted);font-size:.8rem}
 .swatch{display:inline-flex;align-items:center;gap:7px}.swatch i{width:13px;height:13px;border-radius:99px;display:inline-block;border:2px solid currentColor}
 .d1{color:var(--d1)}.d2{color:var(--d2)}
-.equationBox{border:1px solid var(--line);background:linear-gradient(180deg,rgba(255,255,255,.54),rgba(255,255,255,.2));border-radius:18px;padding:16px;overflow:auto}
+.synthPanel{display:flex;flex-direction:column}
+.synthIntro{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:12px}
+.synthIntro .caption{margin:4px 0 0;max-width:420px}
+.synthTop{display:flex;gap:7px;align-items:center;flex-wrap:wrap;padding:10px 0 12px;border-top:1px solid var(--line2);border-bottom:1px solid var(--line2);margin-bottom:10px}
+.smallBtn{appearance:none;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:9px;padding:7px 10px;cursor:pointer;font-weight:800;font-size:.78rem}
+.smallBtn:hover{background:var(--soft)}
+.smallBtn.on{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.resetBtn{margin-left:auto}
+.coefControls{display:grid;gap:6px}
+.coefRow{display:grid;grid-template-columns:92px 28px minmax(90px,1fr) 45px 24px minmax(90px,1fr) 43px;gap:7px;align-items:center;background:var(--soft);border:1px solid transparent;border-radius:11px;padding:8px 9px;font-size:.76rem;color:var(--muted)}
+.coefRow:hover{border-color:var(--line)}
+.coefRow b{color:var(--ink);font-size:.82rem}.coefRow small{display:block;font-size:.63rem;color:var(--muted);font-weight:600;line-height:1.15;margin-top:1px}
+.coefRow input[type=range]{width:100%;height:4px;accent-color:var(--accent);cursor:ew-resize}
+.coefRow output{font-variant-numeric:tabular-nums;color:var(--ink);font-size:.72rem;text-align:right}
+.coefRow.density{grid-template-columns:92px 28px minmax(170px,1fr) 45px}
+.liveHint{margin:auto 0 0;padding-top:12px;color:var(--muted);font-size:.8rem}
+.liveHint b{color:var(--live)}
+.curvePanel{margin-top:16px}
+.curvePanel .panelHead{align-items:flex-end;margin-bottom:6px}
+.curvePanel #curve{max-height:350px}
+.lowerGrid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+.vectorPanel #layers,.mapPanel #map{max-height:330px}
+.equationBox{border:1px solid var(--line);background:var(--soft);border-radius:14px;padding:14px;overflow:auto}
 .math{font-size:.98rem}
-.metaGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}
-.metric{border:1px solid var(--line2);background:rgba(127,127,127,.045);border-radius:14px;padding:10px}
+.metaGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0 0}
+.metric{border:1px solid var(--line2);background:var(--soft);border-radius:11px;padding:9px}
 .metric span{display:block;color:var(--muted);font-size:.74rem;text-transform:uppercase;letter-spacing:.09em}
 .metric b{font-size:1rem}
-.coefTable{width:100%;border-collapse:separate;border-spacing:0;margin-top:10px;font-size:.84rem;overflow:hidden;border:1px solid var(--line);border-radius:14px}
+.coefTable{width:100%;border-collapse:separate;border-spacing:0;font-size:.82rem;overflow:hidden;border:1px solid var(--line);border-radius:12px}
 .coefTable th,.coefTable td{padding:8px 9px;border-bottom:1px solid var(--line2);text-align:right;white-space:nowrap}
 .coefTable th:first-child,.coefTable td:first-child{text-align:left}
 .coefTable tr:last-child td{border-bottom:0}
-.coefTable th{color:var(--muted);font-weight:800;background:rgba(127,127,127,.045)}
-.synthPanel{border:1px solid var(--line);border-radius:18px;background:rgba(127,127,127,.035);padding:12px;margin-top:8px}
-.synthTop{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
-.smallBtn{appearance:none;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:999px;padding:7px 10px;cursor:pointer;font-weight:850}
-.smallBtn.on{background:var(--ink);border-color:var(--ink);color:var(--paper)}
-.coefControls{display:grid;gap:9px}
-.coefRow{display:grid;grid-template-columns:96px 36px minmax(110px,1fr) 44px 46px minmax(110px,1fr) 44px;gap:8px;align-items:center;font-size:.8rem;color:var(--muted)}
-.coefRow b{color:var(--ink)}.coefRow small{display:block;font-size:.68rem;color:var(--muted);line-height:1.1}
-.coefRow input[type=range]{width:100%;accent-color:var(--accent)}
-.coefRow output{font-variant-numeric:tabular-nums;color:var(--ink);font-size:.76rem;text-align:right}
-.coefRow.density{grid-template-columns:96px 36px minmax(160px,1fr) 44px}
-.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px}
-.card{background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:14px;box-shadow:0 10px 30px rgba(40,32,20,.07);cursor:pointer}
-.card.on{border-color:var(--accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 18%,transparent),0 10px 30px rgba(40,32,20,.08)}
-.cardTop{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
-.cardTop b{font-family:Georgia,Times,serif;font-size:1.15rem}.cardTop span{color:var(--muted);font-size:.78rem}
-.miniEq{font-size:.78rem;max-height:155px;overflow:auto;border-top:1px solid var(--line2);padding-top:8px}
+.coefTable th{color:var(--muted);font-weight:800;background:var(--soft)}
+.theory{margin-top:16px;padding:0;overflow:hidden}
+.theory summary{cursor:pointer;list-style:none;padding:16px 18px;font-family:Georgia,Times,serif;font-size:1.1rem;font-weight:700}
+.theory summary::-webkit-details-marker{display:none}
+.theory summary::after{content:"+";float:right;color:var(--muted);font-family:Inter,sans-serif}
+.theory[open] summary{border-bottom:1px solid var(--line2)}.theory[open] summary::after{content:"−"}
+.theoryBody{padding:18px}
+.theoryGrid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(430px,.8fr);gap:16px;align-items:start}
+.theoryGrid h3{font-size:.72rem;text-transform:uppercase;letter-spacing:.13em;color:var(--muted);margin:0 0 8px}
 .researchNote{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:12px}
 .researchNote div{border-left:3px solid var(--accent);padding:4px 0 4px 12px;color:var(--muted);font-size:.86rem}
 .foot{color:var(--muted);font-size:.82rem;margin:18px 2px 0}
-@media(max-width:980px){header,.layout,.researchNote{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.metaGrid{grid-template-columns:1fr 1fr}.coefRow{grid-template-columns:1fr}.coefRow output{text-align:left}}
+@media(max-width:1080px){
+  .masthead{align-items:flex-start}.studioGrid,.lowerGrid,.theoryGrid{grid-template-columns:1fr}
+  .synthPanel{min-height:0}.wheelPanel #circle{max-width:620px}.curvePanel #curve{max-height:none}
+}
+@media(max-width:720px){
+  .page{padding:18px 12px 34px}.masthead{display:block}.titleBlock{min-width:0}.abstract{margin-top:12px}
+  .toolbar{align-items:flex-start;flex-direction:column}.transport{justify-content:flex-start}.playCaption{text-align:left}
+  .studioGrid{grid-template-columns:minmax(0,1fr)}.wheelPanel,.synthPanel,.curvePanel,.vectorPanel,.mapPanel{padding:13px}
+  .coefRow,.coefRow.density{grid-template-columns:78px 1fr 46px}.coefRow span{display:none}
+  .coefRow input[data-kind="phase"]{grid-column:2}.coefRow output[data-out^="phase"]{grid-column:3}
+  .metaGrid{grid-template-columns:1fr 1fr}.theoryBody{padding:13px}
+}
 </style></head><body><main class="page">
-<header>
-  <div>
+<header class="masthead">
+  <div class="titleBlock">
     <p class="kicker">Complex rhythm signatures · dunun D1/D2</p>
     <h1>Boussole des rythmes</h1>
   </div>
-  <div class="abstract">
+  <p class="abstract">
     <b>Objet.</b> Trois rythmes, trois équations complexes. Chaque signature est
     calculée uniquement sur les prises où D1 et D2 sont tous les deux présents,
     pour comparer les deux voix sur la même base. Les coefficients sont des
     projections du motif sur les racines complexes du cycle.
-  </div>
+  </p>
 </header>
 
-<nav class="tabs" id="tabs"></nav>
-<div class="actionbar">
-  <button class="play" id="playBtn">▶ Écouter le rythme</button>
-  <div class="voicePicker" id="voicePicker"></div>
-  <span id="playCaption">Synthèse : D1 grave, D2 plus aigu, six cycles.</span>
-</div>
+<section class="toolbar surface">
+  <nav class="tabs" id="tabs"></nav>
+  <div class="transport">
+    <button class="play" id="playBtn">▶ Lancer la boucle</button>
+    <div class="voicePicker" id="voicePicker"></div>
+    <span class="liveStatus" id="liveStatus"><i></i><span>Prêt</span></span>
+    <div class="playCaption" id="playCaption">Les modifications seront audibles en direct.</div>
+  </div>
+</section>
 
-<section class="layout">
-  <article class="panel">
-    <h2>Cercle métrique à 12 subdivisions</h2>
+<section class="studioGrid">
+  <article class="wheelPanel surface">
+    <div class="panelHead">
+      <div><p class="eyebrow">Cycle actif</p><h2>Cercle métrique · 12 subdivisions</h2></div>
+      <span class="modeTag" id="circleMode">Original</span>
+    </div>
     <canvas id="circle" width="620" height="620"></canvas>
     <div class="legend">
       <span class="swatch d1"><i></i>D1 — anneau extérieur</span>
       <span class="swatch d2"><i></i>D2 — anneau intérieur</span>
     </div>
     <p class="caption" id="circleCaption"></p>
-    <h3>Projection complexe : c1 et c4</h3>
-    <canvas id="layers" width="620" height="310"></canvas>
-    <p class="caption">Chaque petit vecteur est une frappe tournée par \(z_s^{-k}\). La grosse flèche est la somme : le coefficient \(c_k\). Utilise D1/D2/D1+D2 pour choisir les voix affichées.</p>
-    <h3>Courbe du modèle</h3>
-    <canvas id="curve" width="620" height="260"></canvas>
-    <p class="caption">Axes : abscisse = subdivision Polak du cycle, ordonnée = probabilité moyenne de frappe. Les points sont observés ; les courbes viennent de l'équation complexe.</p>
-    <h3>Espace des signatures</h3>
-    <canvas id="map" width="620" height="250"></canvas>
-    <p class="caption">Axes : x = PC1, y = PC2. Ce sont deux directions calculées automatiquement pour résumer les distances entre signatures. À lire surtout comme une carte : points proches = signatures proches.</p>
   </article>
 
-  <aside class="panel">
-    <h2>Équation complexe</h2>
-    <div class="equationBox"><div class="math" id="mainEquation"></div></div>
-    <div class="metaGrid" id="metrics"></div>
-    <h3>Table des coefficients</h3>
-    <div id="coefTable"></div>
-    <h3>Synthétiseur de coefficients</h3>
-    <div class="synthPanel">
-      <div class="synthTop">
-        <button class="smallBtn" id="originalModeBtn">Original</button>
-        <button class="smallBtn" id="synthModeBtn">Synthé</button>
-        <div class="voicePicker" id="synthVoicePicker"></div>
-        <button class="smallBtn" id="resetSynthBtn">Réinitialiser</button>
+  <aside class="synthPanel surface">
+    <div class="synthIntro">
+      <div>
+        <p class="eyebrow">Transformation en temps réel</p>
+        <h2>Synthétiseur de coefficients</h2>
+        <p class="caption">\(|c_k|\) règle la force de la répétition ; \(\varphi_k\) déplace cette forme dans le cycle.</p>
       </div>
-      <div class="coefControls" id="synthControls"></div>
-      <p class="caption">Le synthé modifie la courbe reconstruite puis la joue en boucle. \(|c_k|\) change la force d'une répétition interne ; la phase la décale dans le cycle.</p>
+      <span class="modeTag" id="synthLiveTag">Prêt</span>
     </div>
-    <div class="researchNote">
-      <div><b>D1/D2 comparables.</b><br>La figure utilise les mêmes prises pour D1 et D2 : uniquement les prises appariées où les deux voix sont présentes.</div>
-      <div><b>Six coefficients ≠ six temps.</b><br>Chaque coefficient regarde les 12 subdivisions. Il mesure une onde complète autour du cercle, pas une subdivision isolée.</div>
-      <div><b>Calcul complexe.</b><br>On pose \(z_s=e^{2\pi i s/12}\). Le coefficient \(c_k\) est la somme pondérée des frappes après rotation par \(z_s^{-k}\).</div>
-      <div><b>Une “couche” = une onde test.</b><br>Pour \(k=3\), par exemple, l'onde fait trois tours pendant le cycle. Si les frappes suivent cette forme, elles s'additionnent ; sinon elles s'annulent.</div>
-      <div><b>Notation.</b><br><b>Rythme</b> désigne l'objet complet ; <b>D1</b> et <b>D2</b> sont les deux courbes/voix qui composent ce rythme.</div>
+    <div class="synthTop">
+      <button class="smallBtn" id="originalModeBtn">Original</button>
+      <button class="smallBtn" id="synthModeBtn">Synthé</button>
+      <div class="voicePicker" id="synthVoicePicker"></div>
+      <button class="smallBtn resetBtn" id="resetSynthBtn">Réinitialiser</button>
     </div>
+    <div class="coefControls" id="synthControls"></div>
+    <p class="liveHint"><b>Édition live.</b> Pendant la lecture, chaque curseur modifie le prochain pas non encore joué. La boucle continue sans redémarrer.</p>
   </aside>
 </section>
 
-<section class="cards" id="cards"></section>
-<p class="foot">Les ronds indiquent les probabilités de frappe par subdivision. La figure reste volontairement minimale : deux anneaux, trois rythmes, trois équations.</p>
+<section class="curvePanel surface">
+  <div class="panelHead">
+    <div><p class="eyebrow">Résultat temporel</p><h2>Courbes D1 et D2</h2></div>
+    <span class="modeTag" id="curveMode">Points observés + modèle</span>
+  </div>
+  <canvas id="curve" width="1260" height="340"></canvas>
+  <p class="caption">Abscisse : subdivision Polak du cycle. Ordonnée : intensité de frappe. En mode synthé, les carrés montrent les valeurs réellement jouées.</p>
+</section>
+
+<section class="lowerGrid">
+  <article class="vectorPanel surface">
+    <div class="panelHead"><div><p class="eyebrow">Calcul complexe</p><h2>Projections \(c_1\) et \(c_4\)</h2></div></div>
+    <canvas id="layers" width="620" height="310"></canvas>
+    <p class="caption">Les petites flèches sont les contributions des frappes ; la grande flèche est leur somme, donc le coefficient.</p>
+  </article>
+  <article class="mapPanel surface">
+    <div class="panelHead"><div><p class="eyebrow">Comparaison</p><h2>Espace des signatures</h2></div></div>
+    <canvas id="map" width="620" height="310"></canvas>
+    <p class="caption">Axes : PC1 et PC2. Deux points proches correspondent à deux signatures de coefficients proches.</p>
+  </article>
+</section>
+
+<details class="theory surface">
+  <summary>Équation complexe et détail des coefficients</summary>
+  <div class="theoryBody">
+    <div class="theoryGrid">
+      <section>
+        <h3>Équation du rythme sélectionné</h3>
+        <div class="equationBox"><div class="math" id="mainEquation"></div></div>
+        <div class="metaGrid" id="metrics"></div>
+      </section>
+      <section>
+        <h3>Table des coefficients</h3>
+        <div id="coefTable"></div>
+      </section>
+    </div>
+    <div class="researchNote">
+      <div><b>D1/D2 comparables.</b><br>Seules les prises appariées où les deux voix sont présentes sont utilisées.</div>
+      <div><b>Six coefficients ≠ six temps.</b><br>Chaque coefficient regarde les 12 subdivisions et teste une répétition complète.</div>
+      <div><b>Calcul complexe.</b><br>\(z_s=e^{2\pi i s/12}\) et \(c_k\) additionne les frappes après rotation par \(z_s^{-k}\).</div>
+      <div><b>Une couche = une onde test.</b><br>Pour \(k=3\), l'onde fait trois tours pendant le cycle.</div>
+    </div>
+  </div>
+</details>
+<p class="foot">Les ronds représentent les frappes moyennes observées ; le synthétiseur agit sur leur reconstruction complexe.</p>
 </main>
 
 <script>
 const DATA=__DATA__;
 const TAU=Math.PI*2;
 const state={piece:DATA.pieces[0],playVoice:"both",synthEnabled:false,synthVoice:"D1",synthData:{}};
-const playback={active:false,startedMs:0,durationMs:0,step:.155,cycles:6,raf:null,ctx:null};
+const playback={active:false,step:.155,lookaheadMs:25,scheduleAhead:.085,raf:null,ctx:null,master:null,timer:null,nextStepTime:0,stepIndex:0,startTime:0};
 
 function rhythm(piece=state.piece){return DATA.rhythms.find(r=>r.piece===piece) || DATA.rhythms[0];}
 function css(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
@@ -354,7 +422,7 @@ function curveValueFromCoeffs(coeffs,density,t,clamp=true){
     y += 2*(c.re*Math.cos(k*theta)-c.im*Math.sin(k*theta));
   }
   y += coeffs[6].re*Math.cos(6*theta);
-  const value=y/N*(density||1);
+  const value=y/N*(density??1);
   return clamp?Math.max(0,value):value;
 }
 function curveValue(it,t){
@@ -366,7 +434,7 @@ function curveValue(it,t){
   }
   const c6=C[6];
   y += c6.re*Math.cos(6*theta)-c6.im*Math.sin(6*theta);
-  return Math.max(0,y/N*(it.density||1));
+  return Math.max(0,y/N*(it.density??1));
 }
 function synthMotif(voice,piece=state.piece){
   const data=ensureSynthData(piece,voice), coeffs=synthCoeffArray(data);
@@ -386,15 +454,10 @@ function motifForPlayback(voice){
   return state.synthEnabled ? synthMotif(voice) : rhythm().voices[voice].motif;
 }
 function playheadPosition(){
-  if(!playback.active)return null;
-  const elapsed=performance.now()-playback.startedMs;
+  if(!playback.active||!playback.ctx)return null;
+  const elapsed=playback.ctx.currentTime-playback.startTime;
   if(elapsed<0)return 0;
-  if(elapsed>playback.durationMs){
-    playback.active=false;
-    document.getElementById("playBtn").textContent="▶ Écouter le rythme";
-    return null;
-  }
-  return (elapsed/1000/playback.step)%12;
+  return (elapsed/playback.step)%12;
 }
 
 function latexForRhythm(r){
@@ -440,15 +503,41 @@ function syncSynthModeButtons(){
   if(!original||!synth)return;
   original.className="smallBtn"+(!state.synthEnabled?" on":"");
   synth.className="smallBtn"+(state.synthEnabled?" on":"");
+  const circleMode=document.getElementById("circleMode");
+  const curveMode=document.getElementById("curveMode");
+  const liveTag=document.getElementById("synthLiveTag");
+  if(circleMode){
+    circleMode.textContent=state.synthEnabled?"Synthèse":"Original";
+    circleMode.className="modeTag"+(state.synthEnabled?" live":"");
+  }
+  if(curveMode){
+    curveMode.textContent=state.synthEnabled?"Courbe et pas synthétisés":"Points observés + modèle";
+    curveMode.className="modeTag"+(state.synthEnabled?" live":"");
+  }
+  if(liveTag){
+    liveTag.textContent=state.synthEnabled
+      ? `${playback.active?"LIVE":"Édition"} · ${state.synthVoice}`
+      : "Signal original";
+    liveTag.className="modeTag"+(state.synthEnabled?" live":"");
+  }
+}
+
+let equationRefreshTimer=null;
+function scheduleEquationRefresh(){
+  clearTimeout(equationRefreshTimer);
+  equationRefreshTimer=setTimeout(()=>{
+    renderEquation();
+    renderCoefTable();
+    queueMath();
+  },140);
 }
 
 function refreshSynthViews(){
   syncSynthModeButtons();
+  drawCircle();
   drawLayers();
   drawCurve();
-  renderEquation();
-  renderCoefTable();
-  queueMath();
+  scheduleEquationRefresh();
 }
 
 function renderSynthVoicePicker(){
@@ -458,7 +547,7 @@ function renderSynthVoicePicker(){
     const b=document.createElement("button");
     b.className="voiceBtn"+(state.synthVoice===voice?" on":"");
     b.textContent=`éditer ${voice}`;
-    b.onclick=()=>{state.synthVoice=voice;renderSynthControls();};
+    b.onclick=()=>{state.synthVoice=voice;renderSynthControls();syncSynthModeButtons();};
     box.appendChild(b);
   });
 }
@@ -529,7 +618,9 @@ function renderVoicePicker(){
     box.appendChild(b);
   });
   document.getElementById("playCaption").textContent =
-    `Écoute : ${playVoiceLabel()}, ${playback.cycles} cycles du rythme sélectionné.`;
+    playback.active
+      ? `Boucle continue · ${playVoiceLabel()} · les changements entrent au prochain pas.`
+      : `Écoute : ${playVoiceLabel()} · boucle continue jusqu'à l'arrêt.`;
 }
 
 function renderTabs(){
@@ -547,6 +638,8 @@ function renderTabs(){
 function drawCircle(){
   const r=rhythm(), cv=document.getElementById("circle"), g=cv.getContext("2d");
   const W=cv.width, cx=W/2, cy=W/2, outer=218, inner=146;
+  const p=playheadPosition(), currentStep=p===null?null:Math.floor(p)%12;
+  const audibleVoices=new Set(selectedVoices());
   g.clearRect(0,0,W,W);
   g.save();
   g.translate(cx,cy);
@@ -568,18 +661,24 @@ function drawCircle(){
   }
 
   [["D1",outer],["D2",inner]].forEach(([voice,rad])=>{
-    const it=r.voices[voice], values=it.motif, mx=Math.max(...values,0.001);
+    const it=voiceView(voice,r.piece), values=it.motif, mx=Math.max(...values,0.001);
+    const audible=audibleVoices.has(voice);
     g.strokeStyle=color(voice);
-    g.globalAlpha=.7;
+    g.globalAlpha=audible ? .72 : .2;
     g.lineWidth=2.2;
     g.beginPath();g.arc(0,0,rad,0,TAU);g.stroke();
     values.forEach((v,s)=>{
       const a=s/12*TAU-Math.PI/2, ca=Math.cos(a), sa=Math.sin(a);
       const size=5+16*Math.sqrt(v/mx);
-      g.globalAlpha=.96;
+      if(audible&&s===currentStep&&v>.045){
+        g.globalAlpha=.16;
+        g.fillStyle=color(voice);
+        g.beginPath();g.arc(rad*ca,rad*sa,size+10,0,TAU);g.fill();
+      }
+      g.globalAlpha=audible ? .96 : .28;
       g.fillStyle=color(voice);
       g.beginPath();g.arc(rad*ca,rad*sa,size,0,TAU);g.fill();
-      g.globalAlpha=.95;
+      g.globalAlpha=audible ? .95 : .3;
       g.strokeStyle=css("--paper");
       g.lineWidth=1.7;
       g.stroke();
@@ -591,7 +690,6 @@ function drawCircle(){
     g.fillText(voice,rad+18,0);
   });
 
-  const p=playheadPosition();
   if(p!==null){
     const a=p/12*TAU-Math.PI/2, ca=Math.cos(a), sa=Math.sin(a);
     let from=inner-42, to=outer+28;
@@ -609,9 +707,10 @@ function drawCircle(){
   }
 
   g.restore();
+  const d1=voiceView("D1"),d2=voiceView("D2");
   document.getElementById("circleCaption").innerHTML =
     `<b>${r.piece}</b> — prises appariées D1/D2 : ${r.takes.join(", ")}. `+
-    `Densités moyennes : D1 ${r.voices.D1.density.toFixed(2)}, D2 ${r.voices.D2.density.toFixed(2)} frappes/cycle.`;
+    `${state.synthEnabled?"Densités synthétisées":"Densités moyennes"} : D1 ${d1.density.toFixed(2)}, D2 ${d2.density.toFixed(2)} frappes/cycle.`;
 }
 
 function arrow(g,x1,y1,x2,y2,col,lw=2,alpha=1){
@@ -680,11 +779,11 @@ function drawCurve(){
   const samples=[];
   ["D1","D2"].forEach(voice=>{
     const it=r.voices[voice];
-    for(let i=0;i<=180;i++) samples.push(curveValueForVoice(voice,i/180*11));
+    for(let i=0;i<=180;i++) samples.push(curveValueForVoice(voice,i/180*12));
     samples.push(...it.motif,...motifForPlayback(voice));
   });
   const ymax=Math.max(...samples,0.05)*1.14;
-  const xOf=t=>left+(t/11)*span;
+  const xOf=t=>left+(t/12)*span;
   const yOf=v=>H-bottom-(v/ymax)*(H-top-bottom);
 
   g.strokeStyle=css("--line");g.lineWidth=1;
@@ -705,23 +804,24 @@ function drawCurve(){
 
   ["D1","D2"].forEach(voice=>{
     const it=r.voices[voice], col=color(voice);
-    g.strokeStyle=col;g.lineWidth=2.6;g.globalAlpha=.92;
+    const audible=selectedVoices().includes(voice);
+    g.strokeStyle=col;g.lineWidth=2.6;g.globalAlpha=audible ? .92 : .25;
     if(state.synthEnabled){g.setLineDash([8,5]);}else{g.setLineDash([]);}
     g.beginPath();
     for(let i=0;i<=180;i++){
-      const t=i/180*11, x=xOf(t), y=yOf(curveValueForVoice(voice,t));
+      const t=i/180*12, x=xOf(t), y=yOf(curveValueForVoice(voice,t));
       if(i===0)g.moveTo(x,y);else g.lineTo(x,y);
     }
     g.stroke();
     g.setLineDash([]);
     it.motif.forEach((v,s)=>{
-      g.globalAlpha=.95;g.fillStyle=col;
+      g.globalAlpha=audible ? .95 : .25;g.fillStyle=col;
       g.beginPath();g.arc(xOf(s),yOf(v),5.2,0,TAU);g.fill();
       g.strokeStyle=css("--paper");g.lineWidth=1.4;g.stroke();
     });
     if(state.synthEnabled){
       motifForPlayback(voice).forEach((v,s)=>{
-        g.globalAlpha=.62;g.strokeStyle=col;g.lineWidth=2;
+        g.globalAlpha=audible ? .72 : .2;g.strokeStyle=col;g.lineWidth=2;
         g.beginPath();g.rect(xOf(s)-4,yOf(v)-4,8,8);g.stroke();
       });
     }
@@ -800,19 +900,6 @@ function renderCoefTable(){
     <tbody>${rows.join("")}</tbody></table>`;
 }
 
-function renderCards(){
-  const box=document.getElementById("cards");
-  box.innerHTML="";
-  DATA.rhythms.forEach(r=>{
-    const div=document.createElement("article");
-    div.className="card"+(r.piece===state.piece?" on":"");
-    div.onclick=()=>{state.piece=r.piece;render();};
-    div.innerHTML=`<div class="cardTop"><b>${r.piece}</b><span>prises ${r.takes.join(", ")}</span></div>
-      <div class="miniEq">${latexForRhythm(r)}</div>`;
-    box.appendChild(div);
-  });
-}
-
 function hit(ctx,time,voice,amp){
   const osc=ctx.createOscillator(), gain=ctx.createGain(), filter=ctx.createBiquadFilter();
   osc.type=voice==="D1"?"triangle":"sine";
@@ -820,49 +907,111 @@ function hit(ctx,time,voice,amp){
   osc.frequency.exponentialRampToValueAtTime(voice==="D1"?74:155,time+.12);
   filter.type="lowpass";filter.frequency.setValueAtTime(voice==="D1"?520:900,time);
   gain.gain.setValueAtTime(0.0001,time);
-  gain.gain.exponentialRampToValueAtTime(Math.max(0.025,amp)*0.28,time+.006);
+  gain.gain.exponentialRampToValueAtTime(Math.max(0.018,amp)*0.27,time+.006);
   gain.gain.exponentialRampToValueAtTime(0.0001,time+.18);
-  osc.connect(filter);filter.connect(gain);gain.connect(ctx.destination);
+  osc.connect(filter);filter.connect(gain);gain.connect(playback.master||ctx.destination);
   osc.start(time);osc.stop(time+.2);
 }
 
-async function playRhythm(){
+function scheduleSubdivision(stepIndex,time){
+  selectedVoices().forEach(voice=>{
+    const value=motifForPlayback(voice)[stepIndex]||0;
+    if(value<.055)return;
+    const amp=Math.min(1,Math.sqrt(value));
+    hit(playback.ctx,time,voice,amp);
+  });
+}
+
+function audioScheduler(){
+  if(!playback.active||!playback.ctx)return;
+  while(playback.nextStepTime<playback.ctx.currentTime+playback.scheduleAhead){
+    scheduleSubdivision(playback.stepIndex,playback.nextStepTime);
+    playback.nextStepTime+=playback.step;
+    playback.stepIndex=(playback.stepIndex+1)%12;
+  }
+}
+
+function syncPlaybackUI(){
+  const btn=document.getElementById("playBtn");
+  const status=document.getElementById("liveStatus");
+  if(btn){
+    btn.textContent=playback.active?"■ Arrêter la boucle":"▶ Lancer la boucle";
+    btn.className="play"+(playback.active?" playing":"");
+  }
+  if(status){
+    status.className="liveStatus"+(playback.active?" on":"");
+    status.querySelector("span").textContent=playback.active?"LIVE":"Prêt";
+  }
+  const caption=document.getElementById("playCaption");
+  if(caption){
+    caption.textContent=playback.active
+      ? `Boucle continue · ${playVoiceLabel()} · réglages audibles au prochain pas.`
+      : `Écoute : ${playVoiceLabel()} · boucle continue jusqu'à l'arrêt.`;
+  }
+  syncSynthModeButtons();
+}
+
+function stopPlayback(){
+  const ctx=playback.ctx;
+  playback.active=false;
+  if(playback.timer)clearInterval(playback.timer);
+  if(playback.raf)cancelAnimationFrame(playback.raf);
+  playback.timer=null;
+  playback.raf=null;
+  playback.ctx=null;
+  playback.master=null;
+  if(ctx)ctx.close().catch(()=>{});
+  syncPlaybackUI();
+  drawCircle();
+  drawCurve();
+}
+
+async function startPlayback(){
   const AudioCtx=window.AudioContext||window.webkitAudioContext;
   if(!AudioCtx){alert("Audio Web non disponible dans ce navigateur.");return;}
-  if(playback.raf)cancelAnimationFrame(playback.raf);
-  if(playback.ctx)await playback.ctx.close().catch(()=>{});
   const ctx=new AudioCtx();
   playback.ctx=ctx;
   await ctx.resume();
-  const r=rhythm(), step=playback.step, start=ctx.currentTime+.08, cycles=playback.cycles, voices=selectedVoices();
+  playback.master=ctx.createGain();
+  playback.master.gain.setValueAtTime(.82,ctx.currentTime);
+  playback.master.connect(ctx.destination);
   playback.active=true;
-  playback.startedMs=performance.now()+80;
-  playback.durationMs=cycles*12*step*1000;
-  document.getElementById("playBtn").textContent=`■ Lecture ${playVoiceLabel()}`;
-  const playMotifs=Object.fromEntries(voices.map(voice=>[voice,motifForPlayback(voice)]));
-  const mx=Math.max(...Object.values(playMotifs).flat(),0.001);
-  for(let cycle=0;cycle<cycles;cycle++){
-    voices.forEach(voice=>{
-      playMotifs[voice].forEach((v,s)=>{
-        if(v<0.04)return;
-        hit(ctx,start+(cycle*12+s)*step,voice,v/mx);
-      });
-    });
-  }
+  playback.stepIndex=0;
+  playback.startTime=ctx.currentTime+.07;
+  playback.nextStepTime=playback.startTime;
+  audioScheduler();
+  playback.timer=setInterval(audioScheduler,playback.lookaheadMs);
+  syncPlaybackUI();
   animatePlayback();
-  setTimeout(()=>ctx.close?.(), playback.durationMs+700);
 }
-document.getElementById("playBtn").onclick=playRhythm;
+
+async function togglePlayback(){
+  if(playback.active){stopPlayback();return;}
+  await startPlayback();
+}
+document.getElementById("playBtn").onclick=togglePlayback;
 
 function animatePlayback(){
   drawCircle();
-  drawLayers();
   drawCurve();
   if(playback.active) playback.raf=requestAnimationFrame(animatePlayback);
   else playback.raf=null;
 }
 
-function render(){renderTabs();renderVoicePicker();renderSynthControls();drawCircle();drawLayers();drawCurve();drawMap();renderEquation();renderCoefTable();renderCards();queueMath();}
+function render(){
+  renderTabs();
+  renderVoicePicker();
+  renderSynthControls();
+  drawCircle();
+  drawLayers();
+  drawCurve();
+  drawMap();
+  renderEquation();
+  renderCoefTable();
+  syncPlaybackUI();
+  queueMath();
+}
+window.addEventListener("pagehide",stopPlayback);
 render();
 </script></body></html>"""
 

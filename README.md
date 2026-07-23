@@ -17,7 +17,7 @@ Le projet est un prototype de recherche avancé :
 - visualisations HTML autonomes avec audio embarqué ;
 - caractérisation géométrique/Fourier des rythmes ;
 - boussole des rythmes avec trois équations LaTeX D1/D2 comparables, courbes
-  de modèle, écoute synthétique et synthétiseur de coefficients.
+  de modèle, boucle audio continue et synthétiseur de coefficients en temps réel.
 
 Les données brutes et sorties générées ne sont pas versionnées dans Git : elles
 sont lourdes, régénérables, et liées à la licence du corpus.
