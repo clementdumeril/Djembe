@@ -6,7 +6,7 @@ les flèches et le paramètre `n`, par une interface plus musicale :
 - un cercle lisible à 12 subdivisions ;
 - deux anneaux D1/D2 quand D2 existe ;
 - une équation complexe LaTeX attachée à chaque rythme ;
-- les coefficients affichés comme empreinte, sans modification dans un premier temps ;
+- les coefficients affichés comme empreinte, puis modifiables dans un mode synthé ;
 - une carte vectorielle où chaque rythme devient un point.
 
 ## Idée centrale
@@ -50,8 +50,8 @@ D_voice(s) = ρvoice/12 · [1 + 2 · Σk=1..5 |ck| · cos(2πks/12 + φk)
               + c6 · cos(πs)]
 ```
 
-Les coefficients sont lus tels quels. Dans cette première version, on ne change
-pas les valeurs : l'interface sert à comparer les équations des trois rythmes.
+Les coefficients peuvent être lus tels quels en mode **Original**, ou modifiés
+en mode **Synthé** pour reconstruire une nouvelle courbe jouable.
 
 ## Interface proposée
 
@@ -101,13 +101,14 @@ En bas :
 - clic sur Manjanin/Maraka/Woloso pour charger son équation ;
 - D1 et D2 sont calculés sur les mêmes prises appariées.
 
-### 4. Mode retenu
+### 4. Modes retenus
 
-Pour l'instant, un seul mode : **Lire**.
+Deux modes simples :
 
-Il montre le motif réel, son équation, ses coefficients et sa position dans la
-carte vectorielle. Les modes de composition ou d'édition restent volontairement
-hors de cette version.
+- **Original** : voir le motif réel, son équation, ses coefficients et sa
+  position dans la carte vectorielle ;
+- **Synthé** : modifier la densité, les amplitudes `|ck|` et les phases, puis
+  jouer la courbe reconstruite.
 
 ## Pourquoi c'est plus clair
 
@@ -186,6 +187,20 @@ y = probabilité moyenne de frappe
 
 Les points sont les observations. La courbe est le modèle reconstruit à partir
 des coefficients complexes.
+
+## Synthétiseur de coefficients
+
+Le synthétiseur transforme les coefficients en paramètres de composition :
+
+- `ρ` règle la densité moyenne du motif ;
+- `|ck|` règle la force de l'onde `k` ;
+- `arg(ck)` décale cette onde dans le cycle ;
+- `c6` règle l'alternance maximale, qui doit rester réelle pour conserver un
+  motif réel.
+
+La courbe reconstruite peut devenir négative si les coefficients sont poussés
+fortement. Pour l'écoute, la page coupe ces valeurs à zéro avant de déclencher
+les frappes.
 
 ## Visualiser une couche sur le cercle
 

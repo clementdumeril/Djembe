@@ -6,9 +6,9 @@ appariées D1/D2 :
 
     R_piece(s) = [D1_piece(s), D2_piece(s)]
 
-Les coefficients ne sont pas modifiables dans cette version. L'objectif est de
-lire et comparer les signatures complexes des rythmes, avec un rendu HTML plus
-proche d'une figure de recherche.
+Les coefficients peuvent être lus en mode original ou modifiés en mode synthé.
+L'objectif est de comparer les signatures complexes puis de sculpter une boucle
+rythmique à partir des mêmes paramètres.
 
 Pourquoi 6 coefficients ? Pour 12 subdivisions réelles, c7..c11 sont les
 miroirs conjugués de c5..c1. Les ondes indépendantes non triviales sont donc
@@ -208,6 +208,16 @@ canvas{display:block;width:100%;height:auto}
 .coefTable th:first-child,.coefTable td:first-child{text-align:left}
 .coefTable tr:last-child td{border-bottom:0}
 .coefTable th{color:var(--muted);font-weight:800;background:rgba(127,127,127,.045)}
+.synthPanel{border:1px solid var(--line);border-radius:18px;background:rgba(127,127,127,.035);padding:12px;margin-top:8px}
+.synthTop{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+.smallBtn{appearance:none;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:999px;padding:7px 10px;cursor:pointer;font-weight:850}
+.smallBtn.on{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.coefControls{display:grid;gap:9px}
+.coefRow{display:grid;grid-template-columns:96px 36px minmax(110px,1fr) 44px 46px minmax(110px,1fr) 44px;gap:8px;align-items:center;font-size:.8rem;color:var(--muted)}
+.coefRow b{color:var(--ink)}.coefRow small{display:block;font-size:.68rem;color:var(--muted);line-height:1.1}
+.coefRow input[type=range]{width:100%;accent-color:var(--accent)}
+.coefRow output{font-variant-numeric:tabular-nums;color:var(--ink);font-size:.76rem;text-align:right}
+.coefRow.density{grid-template-columns:96px 36px minmax(160px,1fr) 44px}
 .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px}
 .card{background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:14px;box-shadow:0 10px 30px rgba(40,32,20,.07);cursor:pointer}
 .card.on{border-color:var(--accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 18%,transparent),0 10px 30px rgba(40,32,20,.08)}
@@ -217,7 +227,7 @@ canvas{display:block;width:100%;height:auto}
 .researchNote{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:12px}
 .researchNote div{border-left:3px solid var(--accent);padding:4px 0 4px 12px;color:var(--muted);font-size:.86rem}
 .foot{color:var(--muted);font-size:.82rem;margin:18px 2px 0}
-@media(max-width:980px){header,.layout,.researchNote{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.metaGrid{grid-template-columns:1fr 1fr}}
+@media(max-width:980px){header,.layout,.researchNote{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.metaGrid{grid-template-columns:1fr 1fr}.coefRow{grid-template-columns:1fr}.coefRow output{text-align:left}}
 </style></head><body><main class="page">
 <header>
   <div>
@@ -265,6 +275,17 @@ canvas{display:block;width:100%;height:auto}
     <div class="metaGrid" id="metrics"></div>
     <h3>Table des coefficients</h3>
     <div id="coefTable"></div>
+    <h3>Synthétiseur de coefficients</h3>
+    <div class="synthPanel">
+      <div class="synthTop">
+        <button class="smallBtn" id="originalModeBtn">Original</button>
+        <button class="smallBtn" id="synthModeBtn">Synthé</button>
+        <div class="voicePicker" id="synthVoicePicker"></div>
+        <button class="smallBtn" id="resetSynthBtn">Réinitialiser</button>
+      </div>
+      <div class="coefControls" id="synthControls"></div>
+      <p class="caption">Le synthé modifie la courbe reconstruite puis la joue en boucle. \(|c_k|\) change la force d'une répétition interne ; la phase la décale dans le cycle.</p>
+    </div>
     <div class="researchNote">
       <div><b>D1/D2 comparables.</b><br>La figure utilise les mêmes prises pour D1 et D2 : uniquement les prises appariées où les deux voix sont présentes.</div>
       <div><b>Six coefficients ≠ six temps.</b><br>Chaque coefficient regarde les 12 subdivisions. Il mesure une onde complète autour du cercle, pas une subdivision isolée.</div>
@@ -282,7 +303,7 @@ canvas{display:block;width:100%;height:auto}
 <script>
 const DATA=__DATA__;
 const TAU=Math.PI*2;
-const state={piece:DATA.pieces[0],playVoice:"both"};
+const state={piece:DATA.pieces[0],playVoice:"both",synthEnabled:false,synthVoice:"D1",synthData:{}};
 const playback={active:false,startedMs:0,durationMs:0,step:.155,cycles:6,raf:null,ctx:null};
 
 function rhythm(piece=state.piece){return DATA.rhythms.find(r=>r.piece===piece) || DATA.rhythms[0];}
@@ -302,6 +323,40 @@ function selectedVoices(){
 function playVoiceLabel(){
   return state.playVoice==="both" ? "D1+D2" : state.playVoice;
 }
+
+function synthKey(piece=state.piece,voice=state.synthVoice){return `${piece}:${voice}`;}
+function cloneSynthData(it){
+  const d={density:it.density, coeffs:{}};
+  for(let k=1;k<=5;k++) d.coeffs[k]={mag:it.coeffs[k].mag, phase:it.coeffs[k].phase};
+  d.coeffs[6]={real:it.coeffs[6].re};
+  return d;
+}
+function ensureSynthData(piece=state.piece,voice=state.synthVoice){
+  const key=synthKey(piece,voice);
+  if(!state.synthData[key]) state.synthData[key]=cloneSynthData(rhythm(piece).voices[voice]);
+  return state.synthData[key];
+}
+function synthCoeffArray(data){
+  const out=[{k:0,re:1,im:0,mag:1,phase:0}];
+  for(let k=1;k<=5;k++){
+    const c=data.coeffs[k], re=c.mag*Math.cos(c.phase), im=c.mag*Math.sin(c.phase);
+    out[k]={k,re,im,mag:c.mag,phase:c.phase};
+  }
+  const r=data.coeffs[6].real;
+  out[6]={k:6,re:r,im:0,mag:Math.abs(r),phase:r>=0?0:Math.PI};
+  return out;
+}
+function curveValueFromCoeffs(coeffs,density,t,clamp=true){
+  const theta=TAU*t/12, N=12;
+  let y=1;
+  for(let k=1;k<=5;k++){
+    const c=coeffs[k];
+    y += 2*(c.re*Math.cos(k*theta)-c.im*Math.sin(k*theta));
+  }
+  y += coeffs[6].re*Math.cos(6*theta);
+  const value=y/N*(density||1);
+  return clamp?Math.max(0,value):value;
+}
 function curveValue(it,t){
   const C=it.coeffs, theta=TAU*t/12, N=12;
   let y=C[0].re;
@@ -312,6 +367,23 @@ function curveValue(it,t){
   const c6=C[6];
   y += c6.re*Math.cos(6*theta)-c6.im*Math.sin(6*theta);
   return Math.max(0,y/N*(it.density||1));
+}
+function synthMotif(voice,piece=state.piece){
+  const data=ensureSynthData(piece,voice), coeffs=synthCoeffArray(data);
+  return Array.from({length:12},(_,s)=>curveValueFromCoeffs(coeffs,data.density,s,true));
+}
+function voiceView(voice,piece=state.piece){
+  if(!state.synthEnabled) return rhythm(piece).voices[voice];
+  const data=ensureSynthData(piece,voice);
+  return {voice,density:data.density,motif:synthMotif(voice,piece),takes:rhythm(piece).voices[voice].takes,coeffs:synthCoeffArray(data),synthetic:true};
+}
+function curveValueForVoice(voice,t){
+  if(!state.synthEnabled) return curveValue(rhythm().voices[voice],t);
+  const data=ensureSynthData(state.piece,voice), coeffs=synthCoeffArray(data);
+  return curveValueFromCoeffs(coeffs,data.density,t,true);
+}
+function motifForPlayback(voice){
+  return state.synthEnabled ? synthMotif(voice) : rhythm().voices[voice].motif;
 }
 function playheadPosition(){
   if(!playback.active)return null;
@@ -326,7 +398,7 @@ function playheadPosition(){
 }
 
 function latexForRhythm(r){
-  const d1=r.voices.D1, d2=r.voices.D2;
+  const d1=voiceView("D1",r.piece), d2=voiceView("D2",r.piece);
   return String.raw`
 \[
 \begin{aligned}
@@ -361,6 +433,79 @@ function queueMath(){
   }else{
     setTimeout(queueMath,120);
   }
+}
+
+function syncSynthModeButtons(){
+  const original=document.getElementById("originalModeBtn"), synth=document.getElementById("synthModeBtn");
+  if(!original||!synth)return;
+  original.className="smallBtn"+(!state.synthEnabled?" on":"");
+  synth.className="smallBtn"+(state.synthEnabled?" on":"");
+}
+
+function refreshSynthViews(){
+  syncSynthModeButtons();
+  drawLayers();
+  drawCurve();
+  renderEquation();
+  renderCoefTable();
+  queueMath();
+}
+
+function renderSynthVoicePicker(){
+  const box=document.getElementById("synthVoicePicker");
+  box.innerHTML="";
+  ["D1","D2"].forEach(voice=>{
+    const b=document.createElement("button");
+    b.className="voiceBtn"+(state.synthVoice===voice?" on":"");
+    b.textContent=`éditer ${voice}`;
+    b.onclick=()=>{state.synthVoice=voice;renderSynthControls();};
+    box.appendChild(b);
+  });
+}
+
+function renderSynthControls(){
+  renderSynthVoicePicker();
+  syncSynthModeButtons();
+  document.getElementById("originalModeBtn").onclick=()=>{state.synthEnabled=false;refreshSynthViews();};
+  document.getElementById("synthModeBtn").onclick=()=>{state.synthEnabled=true;refreshSynthViews();};
+  document.getElementById("resetSynthBtn").onclick=()=>{
+    delete state.synthData[synthKey(state.piece,state.synthVoice)];
+    ensureSynthData(state.piece,state.synthVoice);
+    state.synthEnabled=true;
+    renderSynthControls();
+    refreshSynthViews();
+  };
+
+  const data=ensureSynthData();
+  const rows=[];
+  rows.push(`<div class="coefRow density"><b>ρ<small>densité</small></b><span>val</span><input type="range" min="0" max="8" step="0.05" value="${data.density}" data-kind="density"><output data-out="density">${data.density.toFixed(2)}</output></div>`);
+  for(let k=1;k<=5;k++){
+    const c=data.coeffs[k], deg=phaseDeg(c.phase);
+    rows.push(`<div class="coefRow"><b>c${k}<small>${DATA.coefNames[String(k)]}</small></b><span>|c|</span><input type="range" min="0" max="1.2" step="0.001" value="${c.mag}" data-kind="mag" data-k="${k}"><output data-out="mag-${k}">${c.mag.toFixed(3)}</output><span>φ</span><input type="range" min="-180" max="180" step="1" value="${deg}" data-kind="phase" data-k="${k}"><output data-out="phase-${k}">${deg.toFixed(0)}°</output></div>`);
+  }
+  rows.push(`<div class="coefRow density"><b>c6<small>alternance max.</small></b><span>val</span><input type="range" min="-1" max="1" step="0.001" value="${data.coeffs[6].real}" data-kind="real6"><output data-out="real6">${data.coeffs[6].real.toFixed(3)}</output></div>`);
+  document.getElementById("synthControls").innerHTML=rows.join("");
+
+  document.querySelectorAll("#synthControls input").forEach(input=>{
+    input.oninput=()=>{
+      const d=ensureSynthData(), kind=input.dataset.kind, k=Number(input.dataset.k), value=Number(input.value);
+      state.synthEnabled=true;
+      if(kind==="density"){
+        d.density=value;
+        document.querySelector('[data-out="density"]').textContent=value.toFixed(2);
+      }else if(kind==="mag"){
+        d.coeffs[k].mag=value;
+        document.querySelector(`[data-out="mag-${k}"]`).textContent=value.toFixed(3);
+      }else if(kind==="phase"){
+        d.coeffs[k].phase=value*Math.PI/180;
+        document.querySelector(`[data-out="phase-${k}"]`).textContent=`${value.toFixed(0)}°`;
+      }else if(kind==="real6"){
+        d.coeffs[6].real=value;
+        document.querySelector('[data-out="real6"]').textContent=value.toFixed(3);
+      }
+      refreshSynthViews();
+    };
+  });
 }
 
 function renderVoicePicker(){
@@ -500,7 +645,7 @@ function drawLayerPanel(g,r,k,cx,cy,rad){
   g.fillText(`c${k} · ${k} ${k===1?"tour":"tours"} de phase`,cx,22);
 
   selectedVoices().forEach((voice,idx)=>{
-    const it=r.voices[voice], col=color(voice), scale=rad*.95;
+    const it=voiceView(voice,r.piece), col=color(voice), scale=rad*.95;
     const yOffset=state.playVoice==="both" ? (voice==="D1"?-5:5) : 0;
     it.motif.forEach((v,s)=>{
       const w=(it.density>0 ? v/it.density : 0);
@@ -535,8 +680,8 @@ function drawCurve(){
   const samples=[];
   ["D1","D2"].forEach(voice=>{
     const it=r.voices[voice];
-    for(let i=0;i<=180;i++) samples.push(curveValue(it,i/180*11));
-    samples.push(...it.motif);
+    for(let i=0;i<=180;i++) samples.push(curveValueForVoice(voice,i/180*11));
+    samples.push(...it.motif,...motifForPlayback(voice));
   });
   const ymax=Math.max(...samples,0.05)*1.14;
   const xOf=t=>left+(t/11)*span;
@@ -561,17 +706,25 @@ function drawCurve(){
   ["D1","D2"].forEach(voice=>{
     const it=r.voices[voice], col=color(voice);
     g.strokeStyle=col;g.lineWidth=2.6;g.globalAlpha=.92;
+    if(state.synthEnabled){g.setLineDash([8,5]);}else{g.setLineDash([]);}
     g.beginPath();
     for(let i=0;i<=180;i++){
-      const t=i/180*11, x=xOf(t), y=yOf(curveValue(it,t));
+      const t=i/180*11, x=xOf(t), y=yOf(curveValueForVoice(voice,t));
       if(i===0)g.moveTo(x,y);else g.lineTo(x,y);
     }
     g.stroke();
+    g.setLineDash([]);
     it.motif.forEach((v,s)=>{
       g.globalAlpha=.95;g.fillStyle=col;
       g.beginPath();g.arc(xOf(s),yOf(v),5.2,0,TAU);g.fill();
       g.strokeStyle=css("--paper");g.lineWidth=1.4;g.stroke();
     });
+    if(state.synthEnabled){
+      motifForPlayback(voice).forEach((v,s)=>{
+        g.globalAlpha=.62;g.strokeStyle=col;g.lineWidth=2;
+        g.beginPath();g.rect(xOf(s)-4,yOf(v)-4,8,8);g.stroke();
+      });
+    }
   });
 
   const p=playheadPosition();
@@ -624,10 +777,12 @@ function drawMap(){
 function renderEquation(){
   const r=rhythm();
   document.getElementById("mainEquation").textContent=latexForRhythm(r);
+  const d1=voiceView("D1"), d2=voiceView("D2");
   document.getElementById("metrics").innerHTML=[
     ["prises D1/D2",r.takes.join(", ")],
-    ["densité D1",r.voices.D1.density.toFixed(2)],
-    ["densité D2",r.voices.D2.density.toFixed(2)]
+    ["mode",state.synthEnabled?"synthé":"original"],
+    ["densité D1",d1.density.toFixed(2)],
+    ["densité D2",d2.density.toFixed(2)]
   ].map(([k,v])=>`<div class="metric"><span>${k}</span><b>${v}</b></div>`).join("");
 }
 
@@ -635,7 +790,7 @@ function renderCoefTable(){
   const r=rhythm();
   const rows=[];
   for(let k=1;k<=6;k++){
-    const a=r.voices.D1.coeffs[k], b=r.voices.D2.coeffs[k], name=DATA.coefNames[String(k)];
+    const a=voiceView("D1").coeffs[k], b=voiceView("D2").coeffs[k], name=DATA.coefNames[String(k)];
     rows.push(`<tr><td>c${k}<br><small>${name}</small></td>
       <td>${a.mag.toFixed(3)}</td><td>${phaseDeg(a.phase).toFixed(0)}°</td>
       <td>${b.mag.toFixed(3)}</td><td>${phaseDeg(b.phase).toFixed(0)}°</td></tr>`);
@@ -684,10 +839,11 @@ async function playRhythm(){
   playback.startedMs=performance.now()+80;
   playback.durationMs=cycles*12*step*1000;
   document.getElementById("playBtn").textContent=`■ Lecture ${playVoiceLabel()}`;
-  const mx=Math.max(...r.voices.D1.motif,...r.voices.D2.motif,0.001);
+  const playMotifs=Object.fromEntries(voices.map(voice=>[voice,motifForPlayback(voice)]));
+  const mx=Math.max(...Object.values(playMotifs).flat(),0.001);
   for(let cycle=0;cycle<cycles;cycle++){
     voices.forEach(voice=>{
-      r.voices[voice].motif.forEach((v,s)=>{
+      playMotifs[voice].forEach((v,s)=>{
         if(v<0.04)return;
         hit(ctx,start+(cycle*12+s)*step,voice,v/mx);
       });
@@ -706,7 +862,7 @@ function animatePlayback(){
   else playback.raf=null;
 }
 
-function render(){renderTabs();renderVoicePicker();drawCircle();drawLayers();drawCurve();drawMap();renderEquation();renderCoefTable();renderCards();queueMath();}
+function render(){renderTabs();renderVoicePicker();renderSynthControls();drawCircle();drawLayers();drawCurve();drawMap();renderEquation();renderCoefTable();renderCards();queueMath();}
 render();
 </script></body></html>"""
 
