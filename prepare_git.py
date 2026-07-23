@@ -14,7 +14,6 @@ ROOT = Path(__file__).resolve().parent
 PY_FILES = [
     "utils_V2.py",
     "dunun_viz_V2.py",
-    "atome_vivant_V2.py",
     "boussole_rythmes_V2.py",
     "check_project.py",
     "qc_d2_coverage.py",

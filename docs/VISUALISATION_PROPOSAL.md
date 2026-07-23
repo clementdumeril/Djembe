@@ -246,3 +246,10 @@ ainsi comparer le même motif et les mêmes amplitudes avec ou sans micro-timing
 sans confondre cet effet avec une modification des coefficients. Le décalage
 audio est plafonné à ±60 ms pour éviter qu'une frappe ne traverse la
 subdivision voisine quand l'effet est exagéré.
+
+Le notebook `06_dunun_microtiming_avance_V2.ipynb` reste une étape de
+validation, pas une dépendance graphique lourde de la page. Ses distributions
+complètes permettent de vérifier qu'une moyenne correspond bien à un nuage
+unique et serré. Si une subdivision était bimodale, la moyenne serait
+trompeuse : il faudrait alors afficher et jouer deux placements possibles,
+ou séparer les profils par prise, tempo ou musicien.

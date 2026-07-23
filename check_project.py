@@ -45,7 +45,6 @@ def check_source_files() -> None:
         "requirements.txt",
         "utils_V2.py",
         "dunun_viz_V2.py",
-        "atome_vivant_V2.py",
         "boussole_rythmes_V2.py",
     ]:
         if not (ROOT / name).exists():

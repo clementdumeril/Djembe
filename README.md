@@ -44,15 +44,13 @@ Lancer les notebooks depuis la racine du projet, dans cet ordre :
 | `03_dunun_comparaison_V2.ipynb` | compare motif, densité, tempo, micro-timing et séparabilité |
 | `04_dunun_visu_V2.ipynb` | génère la visualisation dynamique D1/D2 |
 | `05_dunun_microtiming_V2.ipynb` | analyse précision, swing et asynchronie D1/D2 sur prises appariées |
-| `06_dunun_microtiming_avance_V2.ipynb` | distributions complètes et lien micro-timing/intensité |
-| `07_atome_vivant_V2.ipynb` | visualisation polaire animée du micro-timing |
-| `08_dunun_fourier_V2.ipynb` | empreinte de Fourier, équation complexe et distances entre rythmes |
+| `06_dunun_microtiming_avance_V2.ipynb` | valide les moyennes par les distributions complètes et teste le lien micro-timing/intensité |
+| `07_dunun_fourier_V2.ipynb` | empreinte de Fourier, équation complexe et distances entre rythmes |
 
 Scripts principaux :
 
 - `utils_V2.py` : téléchargement, chargement, extraction, couverture D1/D2 ;
 - `dunun_viz_V2.py` : visualisation dynamique ;
-- `atome_vivant_V2.py` : atome polaire ;
 - `boussole_rythmes_V2.py` : cercle D1/D2 + équations complexes LaTeX sur prises appariées.
 
 ## Point méthodologique important : D2
@@ -104,10 +102,9 @@ python boussole_rythmes_V2.py
 
 ```text
 DJEMBE_LLM/
-├── 01_..._V2.ipynb à 08_..._V2.ipynb
+├── 01_..._V2.ipynb à 07_..._V2.ipynb
 ├── utils_V2.py
 ├── dunun_viz_V2.py
-├── atome_vivant_V2.py
 ├── boussole_rythmes_V2.py
 ├── check_project.py
 ├── prepare_git.py
