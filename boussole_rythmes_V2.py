@@ -228,7 +228,6 @@ button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visi
 .page{max-width:1440px;margin:0 auto;padding:26px 24px 46px}
 .masthead{display:flex;justify-content:space-between;gap:32px;align-items:flex-end;margin:0 2px 20px}
 .titleBlock{min-width:max-content}
-.kicker,.eyebrow{font-size:.69rem;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);font-weight:850;margin:0 0 6px}
 h1{font-family:Georgia,Times,serif;font-size:clamp(2.2rem,4vw,3.65rem);line-height:.95;margin:0;letter-spacing:-.045em}
 .abstract{max-width:660px;color:var(--muted);font-size:.9rem;margin:0}
 .abstract b{color:var(--ink)}
@@ -274,9 +273,10 @@ canvas{display:block;width:100%;height:auto}
 .transformActionHead{display:flex;align-items:center;gap:6px}
 .transformAction .smallBtn{flex:1;background:var(--paper)}
 .transformAction select{max-width:98px;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:8px;padding:7px 6px;font-size:.73rem}
-.transformHint,.symmetryGuide{margin:0;color:var(--muted);font-size:.68rem;line-height:1.35}
-.symmetryGuide b{color:var(--accent)}.symmetryGuide strong{color:var(--ink)}
-.transformFeedback{min-height:18px;margin:-2px 2px 8px;color:var(--muted);font-size:.74rem}
+.symmetryGuide{margin:0;color:var(--muted);font-size:.71rem;line-height:1.35;font-variant-numeric:tabular-nums}
+.symmetryGuide b{color:var(--ink)}
+.transformFeedback{margin:-2px 2px 8px;color:var(--muted);font-size:.74rem}
+.transformFeedback:empty{display:none}
 .transformFeedback b{color:var(--ink)}
 .coefControls{display:grid;gap:6px}
 .coefRow{display:grid;grid-template-columns:92px 28px minmax(90px,1fr) 45px 24px minmax(90px,1fr) 43px;gap:7px;align-items:center;background:var(--soft);border:1px solid transparent;border-radius:11px;padding:8px 9px;font-size:.76rem;color:var(--muted)}
@@ -285,8 +285,6 @@ canvas{display:block;width:100%;height:auto}
 .coefRow input[type=range]{width:100%;height:4px;accent-color:var(--accent);cursor:ew-resize}
 .coefRow output{font-variant-numeric:tabular-nums;color:var(--ink);font-size:.72rem;text-align:right}
 .coefRow.density{grid-template-columns:92px 28px minmax(170px,1fr) 45px}
-.liveHint{margin:auto 0 0;padding-top:12px;color:var(--muted);font-size:.8rem}
-.liveHint b{color:var(--live)}
 .curvePanel{margin-top:16px}
 .curvePanel .panelHead{align-items:flex-end;margin-bottom:6px}
 .curvePanel #curve{max-height:350px}
@@ -317,7 +315,6 @@ canvas{display:block;width:100%;height:auto}
 .theoryGrid h3{font-size:.72rem;text-transform:uppercase;letter-spacing:.13em;color:var(--muted);margin:0 0 8px}
 .researchNote{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:12px}
 .researchNote div{border-left:3px solid var(--accent);padding:4px 0 4px 12px;color:var(--muted);font-size:.86rem}
-.foot{color:var(--muted);font-size:.82rem;margin:18px 2px 0}
 @media(max-width:1080px){
   .masthead{align-items:flex-start}.studioGrid,.lowerGrid,.theoryGrid{grid-template-columns:1fr}
   .synthPanel{min-height:0}.wheelPanel #circle{max-width:620px}.curvePanel #curve{max-height:none}
@@ -334,7 +331,6 @@ canvas{display:block;width:100%;height:auto}
 </style></head><body><main class="page">
 <header class="masthead">
   <div class="titleBlock">
-    <p class="kicker">Complex rhythm signatures · dunun D1/D2</p>
     <h1>Boussole des rythmes</h1>
   </div>
   <p class="abstract">
@@ -358,7 +354,7 @@ canvas{display:block;width:100%;height:auto}
 <section class="studioGrid">
   <article class="wheelPanel surface">
     <div class="panelHead">
-      <div><p class="eyebrow">Cycle actif</p><h2>Cercle métrique · 12 subdivisions</h2></div>
+      <div><h2>Cercle métrique · 12 subdivisions</h2></div>
       <span class="modeTag" id="circleMode">Original</span>
     </div>
     <canvas id="circle" width="620" height="620"></canvas>
@@ -372,7 +368,6 @@ canvas{display:block;width:100%;height:auto}
   <aside class="synthPanel surface">
     <div class="synthIntro">
       <div>
-        <p class="eyebrow">Transformation en temps réel</p>
         <h2>Synthétiseur de coefficients</h2>
         <p class="caption">\(|c_k|\) règle la force de la répétition ; \(\varphi_k\) déplace cette forme dans le cycle.</p>
       </div>
@@ -387,7 +382,6 @@ canvas{display:block;width:100%;height:auto}
     <div class="transformBar">
       <div class="transformAction">
         <button class="smallBtn" id="orthogonalBtn">⊥ Orthogonal à l’autre voix</button>
-        <p class="transformHint">Retire de la voix éditée la forme qu’elle partage avec l’autre voix.</p>
       </div>
       <div class="transformAction symmetryAction">
         <div class="transformActionHead">
@@ -404,15 +398,14 @@ canvas{display:block;width:100%;height:auto}
         <p class="symmetryGuide" id="symmetryGuide"></p>
       </div>
     </div>
-    <div class="transformFeedback" id="transformFeedback">Transformations appliquées à la voix en cours d’édition.</div>
+    <div class="transformFeedback" id="transformFeedback"></div>
     <div class="coefControls" id="synthControls"></div>
-    <p class="liveHint"><b>Édition live.</b> Pendant la lecture, chaque curseur modifie le prochain pas non encore joué. La boucle continue sans redémarrer.</p>
   </aside>
 </section>
 
 <section class="curvePanel surface">
   <div class="panelHead">
-    <div><p class="eyebrow">Résultat temporel</p><h2>Courbes D1 et D2</h2></div>
+    <div><h2>Courbes D1 et D2</h2></div>
     <span class="modeTag" id="curveMode">Points observés + modèle</span>
   </div>
   <canvas id="curve" width="1260" height="340"></canvas>
@@ -422,7 +415,7 @@ canvas{display:block;width:100%;height:auto}
 <section class="lowerGrid">
   <article class="microPanel surface">
     <div class="panelHead">
-      <div><p class="eyebrow">Placement temporel</p><h2>Micro-timing observé</h2></div>
+      <div><h2>Micro-timing observé</h2></div>
       <div class="microControls">
         <button class="smallBtn" id="gridTimingBtn">Grille</button>
         <button class="smallBtn" id="observedTimingBtn">Feel observé</button>
@@ -436,7 +429,7 @@ canvas{display:block;width:100%;height:auto}
     <p class="caption" id="microCaption">Écart à la grille en millisecondes : négatif = avance, positif = retard. Les barres verticales montrent la dispersion.</p>
   </article>
   <article class="mapPanel surface">
-    <div class="panelHead"><div><p class="eyebrow">Comparaison</p><h2>Espace des signatures</h2></div></div>
+    <div class="panelHead"><div><h2>Espace des signatures</h2></div></div>
     <canvas id="map" width="620" height="310"></canvas>
     <p class="caption">Axes : PC1 et PC2. Deux points proches correspondent à deux signatures de coefficients proches.</p>
   </article>
@@ -464,7 +457,6 @@ canvas{display:block;width:100%;height:auto}
     </div>
   </div>
 </details>
-<p class="foot">Les ronds représentent les frappes moyennes observées ; le synthétiseur agit sur leur reconstruction complexe.</p>
 </main>
 
 <script>
@@ -580,14 +572,12 @@ function renderSymmetryGuide(){
   select.value=String(axis);
   mirrorBtn.textContent=`Refléter ${state.synthVoice}`;
   guide.innerHTML=
-    `<b>Axe ${axis+1}–${axis+7}</b> · ${fixed.join(" et ")} restent fixes · `+
-    `${pairs.map(([a,b])=>`${a}↔${b}`).join(", ")}. `+
-    `<strong>Aucune frappe ajoutée : elles changent seulement de côté.</strong>`;
+    `<b>A<sub>${axis+1}–${axis+7}</sub></b> : fixes {${fixed.join(", ")}} ; `+
+    `permutation ${pairs.map(([a,b])=>`${a}↔${b}`).join(", ")} ; ρ′ = ρ.`;
   select.onchange=()=>{
     state.symmetryAxis=Number(select.value);
     state.transformMessage="";
-    document.getElementById("transformFeedback").textContent=
-      `Aperçu de l’axe ${state.symmetryAxis+1}–${state.symmetryAxis+7} sur le cercle.`;
+    document.getElementById("transformFeedback").textContent="";
     renderSymmetryGuide();
     drawCircle();
   };
@@ -788,7 +778,7 @@ function renderSynthControls(){
   document.getElementById("mirrorBtn").onclick=applyMirrorSymmetry;
   renderSymmetryGuide();
   document.getElementById("transformFeedback").innerHTML=
-    state.transformMessage||`Choisis une transformation pour ${state.synthVoice}, puis écoute ou ajuste ses coefficients.`;
+    state.transformMessage||"";
 
   const data=ensureSynthData();
   const rows=[];
@@ -891,7 +881,7 @@ function drawCircle(){
   g.globalAlpha=.78;
   g.font="700 11px Inter, system-ui, sans-serif";
   g.textAlign="center";g.textBaseline="middle";
-  g.fillText(`axe miroir ${state.symmetryAxis+1}–${state.symmetryAxis+7}`,0,24);
+  g.fillText(`A ${state.symmetryAxis+1}–${state.symmetryAxis+7}`,0,24);
 
   for(let s=0;s<12;s++){
     const a=s/12*TAU-Math.PI/2;
