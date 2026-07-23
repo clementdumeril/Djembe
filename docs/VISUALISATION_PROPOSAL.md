@@ -208,14 +208,41 @@ en boucle continue. Un ordonnanceur audio ne prépare qu'une courte fenêtre
 d'avance ; une modification de `ρ`, `|ck|` ou `arg(ck)` est donc prise en compte
 sur la prochaine subdivision non encore programmée, sans relancer le cycle.
 
-## Visualiser une couche sur le cercle
+## Transformations automatiques
 
-Pour rendre le calcul lisible, la page affiche `c1` et `c4` comme deux cercles
-de projection :
+Deux opérations construisent automatiquement une nouvelle voix :
 
-- chaque petite flèche est une subdivision frappée, pondérée par son intensité ;
-- avant d'être additionnée, cette frappe est tournée par `zs^(-k)` ;
-- la grosse flèche est la somme de toutes les petites flèches : `ck`.
+- **projection orthogonale** : pour la voix éditée `x` et l'autre voix `y`, on
+  retire d'abord leur moyenne, puis on calcule
+  `q = xc - <xc,yc>/<yc,yc> yc`. Le résultat est donc orthogonal à l'autre voix
+  dans l'espace centré des 12 subdivisions. Une constante et un facteur
+  d'échelle le rendent positif et conservent sa densité sans modifier cette
+  orthogonalité centrée ;
+- **symétrie miroir** : la voix est réfléchie autour d'un axe passant par deux
+  subdivisions opposées. Pour un axe d'indice `a`,
+  `Dsym(s) = D((2a-s) mod 12)`.
 
-Ainsi `c1` montre ce que devient le motif quand on le lit avec une onde qui fait
-un tour par cycle ; `c4` montre la même chose avec quatre tours par cycle.
+Les deux opérations sont reconverties en coefficients complexes puis restent
+modifiables avec les curseurs.
+
+## Étudier l'impact du micro-timing
+
+Le motif répond à **où** une frappe existe dans les 12 subdivisions. Le
+micro-timing répond à **quand**, en millisecondes, elle tombe autour de cette
+position. Pour chaque voix et subdivision, la page calcule sur les prises
+appariées :
+
+- l'écart moyen à la grille
+  `δs = moyenne[(rel - (s-1)/12) × durée_cycle × 1000]` ;
+- sa dispersion, qui mesure la précision du placement ;
+- la précision résiduelle après retrait du placement moyen de chaque
+  subdivision.
+
+Dans le graphique, le cercle vide et sa barre représentent la moyenne observée
+et sa dispersion. Le point plein indique le placement réellement envoyé au
+moteur audio. Le mode **Grille** impose `δs = 0`. Le mode **Feel observé** joue
+`tfrappe = tgrille + αδs`, où le curseur d'impact `α` varie de 0 à 2. On peut
+ainsi comparer le même motif et les mêmes amplitudes avec ou sans micro-timing,
+sans confondre cet effet avec une modification des coefficients. Le décalage
+audio est plafonné à ±60 ms pour éviter qu'une frappe ne traverse la
+subdivision voisine quand l'effet est exagéré.

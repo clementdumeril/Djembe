@@ -20,6 +20,7 @@ import json
 import os
 
 import numpy as np
+import pandas as pd
 
 import utils_V2 as u
 
@@ -99,6 +100,58 @@ def _pca_map(rhythms):
     ]
 
 
+def _microtiming_profiles(rhythms, csv_path="output/dunun_frappes_V2.csv"):
+    """Résume l'écart à la grille et sa dispersion sur les prises D1/D2 appariées."""
+    if not os.path.exists(csv_path):
+        return {}
+
+    cols = ["piece", "take", "code", "SD", "rel", "dur"]
+    try:
+        strokes = pd.read_csv(csv_path, usecols=cols)
+    except (OSError, ValueError):
+        return {}
+
+    out = {}
+    for rhythm in rhythms:
+        piece = rhythm["piece"]
+        takes = set(rhythm["takes"])
+        piece_data = {}
+        for voice in ("D1", "D2"):
+            s = strokes[
+                (strokes["piece"] == piece)
+                & (strokes["code"] == voice)
+                & (strokes["take"].isin(takes))
+            ].copy()
+            if s.empty:
+                continue
+
+            s["dev_ms"] = (
+                s["rel"] - (s["SD"].astype(float) - 1.0) / 12.0
+            ) * s["dur"] * 1000.0
+            mean_rel = s.groupby("SD")["rel"].transform("mean")
+            precision = ((s["rel"] - mean_rel) * s["dur"] * 1000.0).std()
+            grouped = s.groupby("SD")["dev_ms"]
+
+            def value_at(series, subdivision, digits):
+                value = series.get(subdivision, np.nan)
+                return None if not np.isfinite(value) else round(float(value), digits)
+
+            means = grouped.mean()
+            stds = grouped.std()
+            counts = grouped.size()
+            piece_data[voice] = {
+                "mean": [value_at(means, sd, 2) for sd in range(1, 13)],
+                "std": [value_at(stds, sd, 2) for sd in range(1, 13)],
+                "n": [int(counts.get(sd, 0)) for sd in range(1, 13)],
+                "precision": (
+                    None if not np.isfinite(precision) else round(float(precision), 2)
+                ),
+            }
+        if piece_data:
+            out[piece] = piece_data
+    return out
+
+
 def build_data():
     rhythms = []
 
@@ -133,6 +186,7 @@ def build_data():
         "colors": COLORS,
         "rhythms": rhythms,
         "map": _pca_map(rhythms),
+        "microtiming": _microtiming_profiles(rhythms),
         "coefNames": {
             "1": "1 oscillation par cycle",
             "2": "2 oscillations par cycle",
@@ -169,8 +223,8 @@ window.MathJax = {
 }
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif;line-height:1.45}
-button,input{font:inherit}
-button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid color-mix(in srgb,var(--accent) 35%,transparent);outline-offset:2px}
+button,input,select{font:inherit}
+button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid color-mix(in srgb,var(--accent) 35%,transparent);outline-offset:2px}
 .page{max-width:1440px;margin:0 auto;padding:26px 24px 46px}
 .masthead{display:flex;justify-content:space-between;gap:32px;align-items:flex-end;margin:0 2px 20px}
 .titleBlock{min-width:max-content}
@@ -195,9 +249,9 @@ h1{font-family:Georgia,Times,serif;font-size:clamp(2.2rem,4vw,3.65rem);line-heig
 .liveStatus.on{color:var(--live);font-weight:850}.liveStatus.on i{background:var(--live);box-shadow:0 0 0 5px color-mix(in srgb,var(--live) 14%,transparent)}
 .playCaption{width:100%;text-align:right;color:var(--muted);font-size:.75rem}
 .studioGrid{display:grid;grid-template-columns:minmax(520px,1.06fr) minmax(490px,.94fr);gap:16px;align-items:stretch}
-.wheelPanel,.synthPanel,.curvePanel,.vectorPanel,.mapPanel{padding:18px}
+.wheelPanel,.synthPanel,.curvePanel,.microPanel,.mapPanel{padding:18px}
 .panelHead{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:4px}
-.panelHead h2,.synthPanel h2,.curvePanel h2,.vectorPanel h2,.mapPanel h2{font-family:Georgia,Times,serif;font-size:1.35rem;margin:0;letter-spacing:-.025em}
+.panelHead h2,.synthPanel h2,.curvePanel h2,.microPanel h2,.mapPanel h2{font-family:Georgia,Times,serif;font-size:1.35rem;margin:0;letter-spacing:-.025em}
 .modeTag{border:1px solid var(--line);background:var(--soft);border-radius:999px;color:var(--muted);padding:5px 9px;font-size:.72rem;font-weight:800}
 .modeTag.live{border-color:color-mix(in srgb,var(--live) 45%,var(--line));color:var(--live);background:color-mix(in srgb,var(--live) 7%,var(--paper))}
 canvas{display:block;width:100%;height:auto}
@@ -215,6 +269,12 @@ canvas{display:block;width:100%;height:auto}
 .smallBtn:hover{background:var(--soft)}
 .smallBtn.on{background:var(--ink);border-color:var(--ink);color:var(--paper)}
 .resetBtn{margin-left:auto}
+.transformBar{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:0 0 10px}
+.transformAction{display:flex;align-items:center;gap:6px;background:var(--soft);border:1px solid var(--line2);border-radius:11px;padding:6px}
+.transformAction .smallBtn{flex:1;background:var(--paper)}
+.transformAction select{max-width:94px;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:8px;padding:7px 6px;font-size:.73rem}
+.transformFeedback{min-height:18px;margin:-2px 2px 8px;color:var(--muted);font-size:.74rem}
+.transformFeedback b{color:var(--ink)}
 .coefControls{display:grid;gap:6px}
 .coefRow{display:grid;grid-template-columns:92px 28px minmax(90px,1fr) 45px 24px minmax(90px,1fr) 43px;gap:7px;align-items:center;background:var(--soft);border:1px solid transparent;border-radius:11px;padding:8px 9px;font-size:.76rem;color:var(--muted)}
 .coefRow:hover{border-color:var(--line)}
@@ -227,8 +287,12 @@ canvas{display:block;width:100%;height:auto}
 .curvePanel{margin-top:16px}
 .curvePanel .panelHead{align-items:flex-end;margin-bottom:6px}
 .curvePanel #curve{max-height:350px}
-.lowerGrid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
-.vectorPanel #layers,.mapPanel #map{max-height:330px}
+.lowerGrid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(360px,.75fr);gap:16px;margin-top:16px}
+.microControls{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.microScale{display:grid;grid-template-columns:auto 110px 38px;align-items:center;gap:6px;color:var(--muted);font-size:.72rem}
+.microScale input{width:110px;accent-color:var(--accent)}
+.microScale output{color:var(--ink);font-variant-numeric:tabular-nums;text-align:right}
+.microPanel #microTiming,.mapPanel #map{max-height:330px}
 .equationBox{border:1px solid var(--line);background:var(--soft);border-radius:14px;padding:14px;overflow:auto}
 .math{font-size:.98rem}
 .metaGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0 0}
@@ -258,7 +322,8 @@ canvas{display:block;width:100%;height:auto}
 @media(max-width:720px){
   .page{padding:18px 12px 34px}.masthead{display:block}.titleBlock{min-width:0}.abstract{margin-top:12px}
   .toolbar{align-items:flex-start;flex-direction:column}.transport{justify-content:flex-start}.playCaption{text-align:left}
-  .studioGrid{grid-template-columns:minmax(0,1fr)}.wheelPanel,.synthPanel,.curvePanel,.vectorPanel,.mapPanel{padding:13px}
+  .studioGrid{grid-template-columns:minmax(0,1fr)}.wheelPanel,.synthPanel,.curvePanel,.microPanel,.mapPanel{padding:13px}
+  .transformBar{grid-template-columns:1fr}
   .coefRow,.coefRow.density{grid-template-columns:78px 1fr 46px}.coefRow span{display:none}
   .coefRow input[data-kind="phase"]{grid-column:2}.coefRow output[data-out^="phase"]{grid-column:3}
   .metaGrid{grid-template-columns:1fr 1fr}.theoryBody{padding:13px}
@@ -316,6 +381,23 @@ canvas{display:block;width:100%;height:auto}
       <div class="voicePicker" id="synthVoicePicker"></div>
       <button class="smallBtn resetBtn" id="resetSynthBtn">Réinitialiser</button>
     </div>
+    <div class="transformBar">
+      <div class="transformAction">
+        <button class="smallBtn" id="orthogonalBtn">⊥ Orthogonal à l’autre voix</button>
+      </div>
+      <div class="transformAction">
+        <button class="smallBtn" id="mirrorBtn">Symétrie miroir</button>
+        <select id="symmetryAxis" aria-label="Axe de symétrie">
+          <option value="0">axe 1–7</option>
+          <option value="1">axe 2–8</option>
+          <option value="2">axe 3–9</option>
+          <option value="3">axe 4–10</option>
+          <option value="4">axe 5–11</option>
+          <option value="5">axe 6–12</option>
+        </select>
+      </div>
+    </div>
+    <div class="transformFeedback" id="transformFeedback">Transformations appliquées à la voix en cours d’édition.</div>
     <div class="coefControls" id="synthControls"></div>
     <p class="liveHint"><b>Édition live.</b> Pendant la lecture, chaque curseur modifie le prochain pas non encore joué. La boucle continue sans redémarrer.</p>
   </aside>
@@ -331,10 +413,20 @@ canvas{display:block;width:100%;height:auto}
 </section>
 
 <section class="lowerGrid">
-  <article class="vectorPanel surface">
-    <div class="panelHead"><div><p class="eyebrow">Calcul complexe</p><h2>Projections \(c_1\) et \(c_4\)</h2></div></div>
-    <canvas id="layers" width="620" height="310"></canvas>
-    <p class="caption">Les petites flèches sont les contributions des frappes ; la grande flèche est leur somme, donc le coefficient.</p>
+  <article class="microPanel surface">
+    <div class="panelHead">
+      <div><p class="eyebrow">Placement temporel</p><h2>Micro-timing observé</h2></div>
+      <div class="microControls">
+        <button class="smallBtn" id="gridTimingBtn">Grille</button>
+        <button class="smallBtn" id="observedTimingBtn">Feel observé</button>
+        <label class="microScale">impact
+          <input type="range" id="timingStrength" min="0" max="2" step="0.05" value="1">
+          <output id="timingStrengthOut">×1.00</output>
+        </label>
+      </div>
+    </div>
+    <canvas id="microTiming" width="760" height="310"></canvas>
+    <p class="caption" id="microCaption">Écart à la grille en millisecondes : négatif = avance, positif = retard. Les barres verticales montrent la dispersion.</p>
   </article>
   <article class="mapPanel surface">
     <div class="panelHead"><div><p class="eyebrow">Comparaison</p><h2>Espace des signatures</h2></div></div>
@@ -371,8 +463,11 @@ canvas{display:block;width:100%;height:auto}
 <script>
 const DATA=__DATA__;
 const TAU=Math.PI*2;
-const state={piece:DATA.pieces[0],playVoice:"both",synthEnabled:false,synthVoice:"D1",synthData:{}};
-const playback={active:false,step:.155,lookaheadMs:25,scheduleAhead:.085,raf:null,ctx:null,master:null,timer:null,nextStepTime:0,stepIndex:0,startTime:0};
+const state={
+  piece:DATA.pieces[0],playVoice:"both",synthEnabled:false,synthVoice:"D1",
+  synthData:{},timingMode:"grid",timingStrength:1,transformMessage:""
+};
+const playback={active:false,step:.155,lookaheadMs:25,scheduleAhead:.11,raf:null,ctx:null,master:null,timer:null,nextStepTime:0,stepIndex:0,startTime:0};
 
 function rhythm(piece=state.piece){return DATA.rhythms.find(r=>r.piece===piece) || DATA.rhythms[0];}
 function css(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
@@ -403,6 +498,84 @@ function ensureSynthData(piece=state.piece,voice=state.synthVoice){
   const key=synthKey(piece,voice);
   if(!state.synthData[key]) state.synthData[key]=cloneSynthData(rhythm(piece).voices[voice]);
   return state.synthData[key];
+}
+function synthDataFromMotif(motif){
+  const clean=motif.map(v=>Math.max(0,Number(v)||0));
+  const density=clean.reduce((a,b)=>a+b,0);
+  const x=density>1e-10 ? clean.map(v=>v/density) : clean.map(()=>0);
+  const coeffs={};
+  for(let k=1;k<=5;k++){
+    let re=0,im=0;
+    x.forEach((v,s)=>{
+      const angle=TAU*k*s/12;
+      re+=v*Math.cos(angle);
+      im-=v*Math.sin(angle);
+    });
+    coeffs[k]={mag:Math.hypot(re,im),phase:Math.atan2(im,re)};
+  }
+  let real6=0;
+  x.forEach((v,s)=>{real6+=v*Math.cos(Math.PI*s);});
+  coeffs[6]={real:real6};
+  return {density,coeffs};
+}
+function motifForTransform(voice){
+  return state.synthEnabled ? synthMotif(voice) : rhythm().voices[voice].motif.slice();
+}
+function centered(values){
+  const mean=values.reduce((a,b)=>a+b,0)/values.length;
+  return values.map(v=>v-mean);
+}
+function centeredCosine(a,b){
+  const ac=centered(a),bc=centered(b);
+  const dot=ac.reduce((sum,v,i)=>sum+v*bc[i],0);
+  const na=Math.sqrt(ac.reduce((sum,v)=>sum+v*v,0));
+  const nb=Math.sqrt(bc.reduce((sum,v)=>sum+v*v,0));
+  return na*nb>1e-10 ? dot/(na*nb) : 0;
+}
+function orthogonalComplement(source,reference){
+  const a=centered(source),b=centered(reference);
+  const bb=b.reduce((sum,v)=>sum+v*v,0);
+  const ab=a.reduce((sum,v,i)=>sum+v*b[i],0);
+  let q=bb>1e-10 ? a.map((v,i)=>v-ab/bb*b[i]) : a.slice();
+  let norm=Math.sqrt(q.reduce((sum,v)=>sum+v*v,0));
+  if(norm<1e-8){
+    const candidate=Array.from({length:12},(_,s)=>Math.sin(TAU*s/12));
+    const cb=candidate.reduce((sum,v,i)=>sum+v*b[i],0);
+    q=bb>1e-10 ? candidate.map((v,i)=>v-cb/bb*b[i]) : candidate;
+    norm=Math.sqrt(q.reduce((sum,v)=>sum+v*v,0))||1;
+  }
+  const sourceDensity=source.reduce((a,b)=>a+b,0);
+  const floor=-Math.min(...q)+.012*norm;
+  const playable=q.map(v=>v+floor);
+  const total=playable.reduce((a,b)=>a+b,0)||1;
+  return playable.map(v=>v*sourceDensity/total);
+}
+function mirroredMotif(source,axis){
+  return Array.from({length:12},(_,s)=>source[(2*axis-s+120)%12]);
+}
+function applySynthMotif(motif,message){
+  state.synthData[synthKey()]=synthDataFromMotif(motif);
+  state.synthEnabled=true;
+  state.transformMessage=message;
+  renderSynthControls();
+  refreshSynthViews();
+}
+function applyOrthogonalProjection(){
+  const voice=state.synthVoice,other=voice==="D1"?"D2":"D1";
+  const projected=orthogonalComplement(motifForTransform(voice),motifForTransform(other));
+  const cos=centeredCosine(projected,motifForTransform(other));
+  applySynthMotif(
+    projected,
+    `<b>${voice}</b> projeté dans le complément orthogonal de ${other} · cosinus centré ${cos.toFixed(3)}`
+  );
+}
+function applyMirrorSymmetry(){
+  const axis=Number(document.getElementById("symmetryAxis").value);
+  const voice=state.synthVoice;
+  applySynthMotif(
+    mirroredMotif(motifForTransform(voice),axis),
+    `<b>${voice}</b> réfléchi autour de l’axe ${axis+1}–${axis+7}`
+  );
 }
 function synthCoeffArray(data){
   const out=[{k:0,re:1,im:0,mag:1,phase:0}];
@@ -535,7 +708,6 @@ function scheduleEquationRefresh(){
 function refreshSynthViews(){
   syncSynthModeButtons();
   drawCircle();
-  drawLayers();
   drawCurve();
   scheduleEquationRefresh();
 }
@@ -547,7 +719,12 @@ function renderSynthVoicePicker(){
     const b=document.createElement("button");
     b.className="voiceBtn"+(state.synthVoice===voice?" on":"");
     b.textContent=`éditer ${voice}`;
-    b.onclick=()=>{state.synthVoice=voice;renderSynthControls();syncSynthModeButtons();};
+    b.onclick=()=>{
+      state.synthVoice=voice;
+      state.transformMessage="";
+      renderSynthControls();
+      syncSynthModeButtons();
+    };
     box.appendChild(b);
   });
 }
@@ -561,9 +738,17 @@ function renderSynthControls(){
     delete state.synthData[synthKey(state.piece,state.synthVoice)];
     ensureSynthData(state.piece,state.synthVoice);
     state.synthEnabled=true;
+    state.transformMessage=`<b>${state.synthVoice}</b> revenu à ses coefficients observés`;
     renderSynthControls();
     refreshSynthViews();
   };
+  const other=state.synthVoice==="D1"?"D2":"D1";
+  const orthogonalBtn=document.getElementById("orthogonalBtn");
+  orthogonalBtn.textContent=`⊥ ${state.synthVoice} orthogonal à ${other}`;
+  orthogonalBtn.onclick=applyOrthogonalProjection;
+  document.getElementById("mirrorBtn").onclick=applyMirrorSymmetry;
+  document.getElementById("transformFeedback").innerHTML=
+    state.transformMessage||`La projection orthogonale est calculée dans l’espace R¹² centré, après retrait de la moyenne.`;
 
   const data=ensureSynthData();
   const rows=[];
@@ -579,6 +764,7 @@ function renderSynthControls(){
     input.oninput=()=>{
       const d=ensureSynthData(), kind=input.dataset.kind, k=Number(input.dataset.k), value=Number(input.value);
       state.synthEnabled=true;
+      state.transformMessage="";
       if(kind==="density"){
         d.density=value;
         document.querySelector('[data-out="density"]').textContent=value.toFixed(2);
@@ -612,15 +798,16 @@ function renderVoicePicker(){
       state.playVoice=value;
       renderVoicePicker();
       drawCircle();
-      drawLayers();
       drawCurve();
+      drawMicroTiming();
+      syncPlaybackUI();
     };
     box.appendChild(b);
   });
   document.getElementById("playCaption").textContent =
     playback.active
-      ? `Boucle continue · ${playVoiceLabel()} · les changements entrent au prochain pas.`
-      : `Écoute : ${playVoiceLabel()} · boucle continue jusqu'à l'arrêt.`;
+      ? `Boucle continue · ${playVoiceLabel()} · ${timingModeLabel()} · les changements entrent au prochain pas.`
+      : `Écoute : ${playVoiceLabel()} · ${timingModeLabel()} · boucle continue jusqu'à l'arrêt.`;
 }
 
 function renderTabs(){
@@ -630,7 +817,7 @@ function renderTabs(){
     const b=document.createElement("button");
     b.className="tab"+(r.piece===state.piece?" on":"");
     b.textContent=r.piece;
-    b.onclick=()=>{state.piece=r.piece;render();};
+    b.onclick=()=>{state.piece=r.piece;state.transformMessage="";render();};
     nav.appendChild(b);
   });
 }
@@ -713,65 +900,6 @@ function drawCircle(){
     `${state.synthEnabled?"Densités synthétisées":"Densités moyennes"} : D1 ${d1.density.toFixed(2)}, D2 ${d2.density.toFixed(2)} frappes/cycle.`;
 }
 
-function arrow(g,x1,y1,x2,y2,col,lw=2,alpha=1){
-  const a=Math.atan2(y2-y1,x2-x1), head=7+lw;
-  g.save();
-  g.globalAlpha=alpha;
-  g.strokeStyle=col;g.fillStyle=col;g.lineWidth=lw;
-  g.beginPath();g.moveTo(x1,y1);g.lineTo(x2,y2);g.stroke();
-  g.beginPath();
-  g.moveTo(x2,y2);
-  g.lineTo(x2-head*Math.cos(a-.42),y2-head*Math.sin(a-.42));
-  g.lineTo(x2-head*Math.cos(a+.42),y2-head*Math.sin(a+.42));
-  g.closePath();g.fill();
-  g.restore();
-}
-
-function drawLayerPanel(g,r,k,cx,cy,rad){
-  g.save();
-  g.strokeStyle=css("--line");g.lineWidth=1.2;
-  g.beginPath();g.arc(cx,cy,rad,0,TAU);g.stroke();
-  g.fillStyle=css("--muted");g.font="11px Inter, system-ui";g.textAlign="center";g.textBaseline="middle";
-  for(let s=0;s<12;s++){
-    const a=s/12*TAU-Math.PI/2;
-    const x=cx+rad*Math.cos(a), y=cy+rad*Math.sin(a);
-    g.globalAlpha=.75;g.beginPath();g.arc(x,y,2.3,0,TAU);g.fill();
-    g.globalAlpha=1;g.fillText(String(s+1),cx+(rad+17)*Math.cos(a),cy+(rad+17)*Math.sin(a));
-  }
-
-  g.globalAlpha=1;
-  g.fillStyle=css("--ink");g.font="700 15px Inter, system-ui";g.textAlign="center";
-  g.fillText(`c${k} · ${k} ${k===1?"tour":"tours"} de phase`,cx,22);
-
-  selectedVoices().forEach((voice,idx)=>{
-    const it=voiceView(voice,r.piece), col=color(voice), scale=rad*.95;
-    const yOffset=state.playVoice==="both" ? (voice==="D1"?-5:5) : 0;
-    it.motif.forEach((v,s)=>{
-      const w=(it.density>0 ? v/it.density : 0);
-      if(w<.006)return;
-      const phi=-k*TAU*s/12;
-      const x2=cx+Math.cos(phi)*w*scale*3.9;
-      const y2=cy+yOffset-Math.sin(phi)*w*scale*3.9;
-      arrow(g,cx,cy+yOffset,x2,y2,col,1.15,.32);
-    });
-    const c=it.coeffs[k], x2=cx+c.re*scale, y2=cy+yOffset-c.im*scale;
-    arrow(g,cx,cy+yOffset,x2,y2,col,3.2,.96);
-    g.fillStyle=col;g.font="700 12px Inter, system-ui";g.textAlign="left";g.textBaseline="middle";
-    g.fillText(`${voice}: |c${k}|=${c.mag.toFixed(3)}, arg=${phaseDeg(c.phase).toFixed(0)}°`,cx-rad,cy+rad+22+idx*17);
-  });
-  g.restore();
-}
-
-function drawLayers(){
-  const r=rhythm(), cv=document.getElementById("layers"), g=cv.getContext("2d");
-  const W=cv.width,H=cv.height;
-  g.clearRect(0,0,W,H);
-  drawLayerPanel(g,r,1,W*.265,H*.43,82);
-  drawLayerPanel(g,r,4,W*.735,H*.43,82);
-  g.fillStyle=css("--muted");g.font="12px Inter, system-ui";g.textAlign="center";
-  g.fillText("Plus les petites flèches pointent dans la même direction, plus le coefficient est grand.",W/2,H-12);
-}
-
 function drawCurve(){
   const r=rhythm(), cv=document.getElementById("curve"), g=cv.getContext("2d");
   const W=cv.width,H=cv.height,left=50,right=20,top=18,bottom=42,span=W-left-right;
@@ -838,6 +966,118 @@ function drawCurve(){
     g.beginPath();g.arc(x,top+7,4.5,0,TAU);g.fill();
   }
   g.globalAlpha=1;
+}
+
+function microProfile(voice,piece=state.piece){
+  return DATA.microtiming?.[piece]?.[voice]||null;
+}
+function timingOffsetMs(voice,stepIndex){
+  if(state.timingMode!=="observed")return 0;
+  const value=microProfile(voice)?.mean?.[stepIndex];
+  if(!Number.isFinite(value))return 0;
+  return Math.max(-60,Math.min(60,value*state.timingStrength));
+}
+function timingModeLabel(){
+  return state.timingMode==="observed"
+    ? `feel observé ×${state.timingStrength.toFixed(2)}`
+    : "grille régulière";
+}
+function renderTimingControls(){
+  const grid=document.getElementById("gridTimingBtn");
+  const observed=document.getElementById("observedTimingBtn");
+  const slider=document.getElementById("timingStrength");
+  const output=document.getElementById("timingStrengthOut");
+  grid.className="smallBtn"+(state.timingMode==="grid"?" on":"");
+  observed.className="smallBtn"+(state.timingMode==="observed"?" on":"");
+  slider.value=state.timingStrength;
+  output.textContent=`×${state.timingStrength.toFixed(2)}`;
+  grid.onclick=()=>{
+    state.timingMode="grid";
+    renderTimingControls();
+    drawMicroTiming();
+    syncPlaybackUI();
+  };
+  observed.onclick=()=>{
+    state.timingMode="observed";
+    renderTimingControls();
+    drawMicroTiming();
+    syncPlaybackUI();
+  };
+  slider.oninput=()=>{
+    state.timingStrength=Number(slider.value);
+    state.timingMode="observed";
+    output.textContent=`×${state.timingStrength.toFixed(2)}`;
+    renderTimingControls();
+    drawMicroTiming();
+    syncPlaybackUI();
+  };
+}
+function drawMicroTiming(){
+  const cv=document.getElementById("microTiming"),g=cv.getContext("2d");
+  const W=cv.width,H=cv.height,left=54,right=18,top=30,bottom=42,span=W-left-right;
+  const profiles=["D1","D2"].map(voice=>[voice,microProfile(voice)]).filter(([,p])=>p);
+  g.clearRect(0,0,W,H);
+  if(!profiles.length){
+    g.fillStyle=css("--muted");g.font="13px Inter, system-ui";g.textAlign="center";
+    g.fillText("Données de micro-timing indisponibles pour ce rythme.",W/2,H/2);
+    return;
+  }
+  const observedValues=profiles.flatMap(([,p])=>p.mean.flatMap((m,i)=>{
+    if(!Number.isFinite(m)||p.n[i]<3)return [];
+    const sd=Number.isFinite(p.std[i])?p.std[i]:0;
+    return [m-sd,m+sd];
+  }));
+  const maxAbs=Math.max(20,...observedValues.map(v=>Math.abs(v)));
+  const limit=Math.min(100,Math.ceil(maxAbs/10)*10);
+  const xOf=s=>left+s/11*span;
+  const yOf=v=>top+(limit-v)/(2*limit)*(H-top-bottom);
+  const p=playheadPosition(),activeStep=p===null?null:Math.floor(p)%12;
+
+  if(activeStep!==null){
+    const x=xOf(activeStep),cell=span/11;
+    g.fillStyle="rgba(127,127,127,.07)";
+    g.fillRect(x-cell*.42,top,cell*.84,H-top-bottom);
+  }
+  g.strokeStyle=css("--line2");g.lineWidth=1;
+  for(let s=0;s<12;s++){
+    const x=xOf(s);
+    g.beginPath();g.moveTo(x,top);g.lineTo(x,H-bottom);g.stroke();
+  }
+  g.strokeStyle=css("--line");g.lineWidth=1.2;
+  g.beginPath();g.moveTo(left,yOf(0));g.lineTo(W-right,yOf(0));g.stroke();
+  g.fillStyle=css("--muted");g.font="11px Inter, system-ui";g.textAlign="center";g.textBaseline="top";
+  for(let s=0;s<12;s++)g.fillText(String(s+1),xOf(s),H-bottom+10);
+  g.textAlign="right";g.textBaseline="middle";
+  [-limit,0,limit].forEach(v=>g.fillText(`${v>0?"+":""}${v} ms`,left-8,yOf(v)));
+  g.save();g.translate(13,H/2);g.rotate(-Math.PI/2);g.textAlign="center";
+  g.fillText("avance ← écart à la grille → retard",0,0);g.restore();
+
+  profiles.forEach(([voice,profile],voiceIndex)=>{
+    const col=color(voice),audible=selectedVoices().includes(voice);
+    const points=[];
+    profile.mean.forEach((mean,s)=>{
+      if(!Number.isFinite(mean)||profile.n[s]<3)return;
+      const sd=Number.isFinite(profile.std[s])?profile.std[s]:0;
+      const x=xOf(s)+(voiceIndex===0?-3:3);
+      const observedY=yOf(mean),applied=timingOffsetMs(voice,s);
+      const appliedY=yOf(applied);
+      g.globalAlpha=audible ? .34 : .12;g.strokeStyle=col;g.lineWidth=1.3;
+      g.beginPath();g.moveTo(x,yOf(Math.min(limit,mean+sd)));g.lineTo(x,yOf(Math.max(-limit,mean-sd)));g.stroke();
+      g.beginPath();g.moveTo(x-4,yOf(Math.min(limit,mean+sd)));g.lineTo(x+4,yOf(Math.min(limit,mean+sd)));g.stroke();
+      g.beginPath();g.moveTo(x-4,yOf(Math.max(-limit,mean-sd)));g.lineTo(x+4,yOf(Math.max(-limit,mean-sd)));g.stroke();
+      g.globalAlpha=audible ? .55 : .18;g.fillStyle=css("--paper");g.strokeStyle=col;g.lineWidth=1.5;
+      g.beginPath();g.arc(x,observedY,4,0,TAU);g.fill();g.stroke();
+      points.push([x,appliedY]);
+    });
+    g.globalAlpha=audible ? .82 : .2;g.strokeStyle=col;g.lineWidth=2;
+    g.beginPath();points.forEach(([x,y],i)=>{if(i===0)g.moveTo(x,y);else g.lineTo(x,y);});g.stroke();
+    points.forEach(([x,y])=>{g.fillStyle=col;g.beginPath();g.arc(x,y,4.5,0,TAU);g.fill();});
+  });
+  g.globalAlpha=1;
+  const d1=microProfile("D1")?.precision,d2=microProfile("D2")?.precision;
+  document.getElementById("microCaption").innerHTML=
+    `Cercle vide + barre = moyenne et dispersion observées. Point plein = placement entendu (${timingModeLabel()}). `+
+    `Précision résiduelle : D1 ${Number.isFinite(d1)?d1.toFixed(1):"—"} ms, D2 ${Number.isFinite(d2)?d2.toFixed(1):"—"} ms.`;
 }
 
 function drawMap(){
@@ -918,7 +1158,7 @@ function scheduleSubdivision(stepIndex,time){
     const value=motifForPlayback(voice)[stepIndex]||0;
     if(value<.055)return;
     const amp=Math.min(1,Math.sqrt(value));
-    hit(playback.ctx,time,voice,amp);
+    hit(playback.ctx,time+timingOffsetMs(voice,stepIndex)/1000,voice,amp);
   });
 }
 
@@ -945,8 +1185,8 @@ function syncPlaybackUI(){
   const caption=document.getElementById("playCaption");
   if(caption){
     caption.textContent=playback.active
-      ? `Boucle continue · ${playVoiceLabel()} · réglages audibles au prochain pas.`
-      : `Écoute : ${playVoiceLabel()} · boucle continue jusqu'à l'arrêt.`;
+      ? `Boucle continue · ${playVoiceLabel()} · ${timingModeLabel()} · réglages audibles au prochain pas.`
+      : `Écoute : ${playVoiceLabel()} · ${timingModeLabel()} · boucle continue jusqu'à l'arrêt.`;
   }
   syncSynthModeButtons();
 }
@@ -964,6 +1204,7 @@ function stopPlayback(){
   syncPlaybackUI();
   drawCircle();
   drawCurve();
+  drawMicroTiming();
 }
 
 async function startPlayback(){
@@ -977,7 +1218,7 @@ async function startPlayback(){
   playback.master.connect(ctx.destination);
   playback.active=true;
   playback.stepIndex=0;
-  playback.startTime=ctx.currentTime+.07;
+  playback.startTime=ctx.currentTime+.13;
   playback.nextStepTime=playback.startTime;
   audioScheduler();
   playback.timer=setInterval(audioScheduler,playback.lookaheadMs);
@@ -994,6 +1235,7 @@ document.getElementById("playBtn").onclick=togglePlayback;
 function animatePlayback(){
   drawCircle();
   drawCurve();
+  drawMicroTiming();
   if(playback.active) playback.raf=requestAnimationFrame(animatePlayback);
   else playback.raf=null;
 }
@@ -1002,9 +1244,10 @@ function render(){
   renderTabs();
   renderVoicePicker();
   renderSynthControls();
+  renderTimingControls();
   drawCircle();
-  drawLayers();
   drawCurve();
+  drawMicroTiming();
   drawMap();
   renderEquation();
   renderCoefTable();
