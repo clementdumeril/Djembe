@@ -1,10 +1,10 @@
 """Génère output/boussole_rythmes.html.
 
 La Boussole des rythmes présente trois équations complexes, une par rythme.
-Chaque équation combine les deux voix de dunun disponibles sur les prises
-appariées D1/D2 :
+Chaque équation combine les voix de jembé et de dunun disponibles sur les prises
+appariées :
 
-    R_piece(s) = [D1_piece(s), D2_piece(s)]
+    R_piece(s) = [J1_piece(s), J2_piece(s), D1_piece(s), D2_piece(s)]
 
 Les coefficients peuvent être lus en mode original ou modifiés en mode synthé.
 L'objectif est de comparer les signatures complexes puis de sculpter une boucle
@@ -29,9 +29,14 @@ COLORS = {
     "Manjanin": "#355C9A",
     "Maraka": "#B46A2A",
     "Woloso": "#2E7D62",
+    "J1": "#6B5CA5",
+    "J2": "#8B6F47",
     "D1": "#214E8A",
     "D2": "#B46A2A",
 }
+ENSEMBLE_VOICES = ("J1", "J2", "D1", "D2")
+DUNUN_VOICES = ("D1", "D2")
+JEMBE_VOICES = ("J1", "J2")
 
 
 def _paired_takes(piece: str) -> list[int]:
@@ -74,7 +79,7 @@ def _pca_map(rhythms):
     vectors = []
     for rhythm in rhythms:
         row = []
-        for voice in ("D1", "D2"):
+        for voice in ENSEMBLE_VOICES:
             coeffs = rhythm["voices"][voice]["coeffs"]
             row.extend(v for k in range(1, 7) for v in (coeffs[k]["re"], coeffs[k]["im"]))
         vectors.append(row)
@@ -100,30 +105,57 @@ def _pca_map(rhythms):
     ]
 
 
-def _microtiming_profiles(rhythms, csv_path="output/dunun_frappes_V2.csv"):
-    """Résume l'écart à la grille et sa dispersion sur les prises D1/D2 appariées."""
-    if not os.path.exists(csv_path):
-        return {}
-
-    cols = ["piece", "take", "code", "SD", "rel", "dur"]
-    try:
-        strokes = pd.read_csv(csv_path, usecols=cols)
-    except (OSError, ValueError):
-        return {}
-
+def _microtiming_profiles(rhythms):
+    """Résume l'écart à la grille et sa dispersion sur les voix de l'ensemble."""
     out = {}
     for rhythm in rhythms:
         piece = rhythm["piece"]
-        takes = set(rhythm["takes"])
-        piece_data = {}
-        for voice in ("D1", "D2"):
-            s = strokes[
-                (strokes["piece"] == piece)
-                & (strokes["code"] == voice)
-                & (strokes["take"].isin(takes))
-            ].copy()
-            if s.empty:
+        rows_by_voice = {voice: [] for voice in ENSEMBLE_VOICES}
+        for take in rhythm["takes"]:
+            selected = u.load_selected(piece, int(take))
+            if selected is None or "Label SD" not in selected:
                 continue
+            selected = selected.copy()
+            selected["cycle_id"] = (
+                selected["Label SD"].astype(str).str.split("|", regex=False).str[0]
+            )
+            time_cols = [c for c in ENSEMBLE_VOICES if c in selected.columns]
+            if not time_cols:
+                continue
+            selected["reference"] = selected[time_cols].mean(axis=1, skipna=True)
+            cycles = list(selected.groupby("cycle_id", sort=False))
+            for idx in range(len(cycles) - 1):
+                cycle = cycles[idx][1]
+                next_cycle = cycles[idx + 1][1]
+                start_values = cycle.loc[cycle["SD"] == 1, "reference"].dropna()
+                next_values = next_cycle.loc[
+                    next_cycle["SD"] == 1, "reference"
+                ].dropna()
+                if start_values.empty or next_values.empty:
+                    continue
+                start = float(start_values.iloc[0])
+                duration = float(next_values.iloc[0]) - start
+                if not 0.5 < duration < 5.0:
+                    continue
+                for row in cycle.itertuples(index=False):
+                    sd = int(getattr(row, "SD"))
+                    if not 1 <= sd <= 12:
+                        continue
+                    for voice in ENSEMBLE_VOICES:
+                        if voice not in cycle.columns:
+                            continue
+                        value = getattr(row, voice)
+                        if pd.isna(value):
+                            continue
+                        rel = (float(value) - start) / duration
+                        if -0.05 <= rel < 1.05:
+                            rows_by_voice[voice].append((sd, rel, duration))
+
+        piece_data = {}
+        for voice, rows in rows_by_voice.items():
+            if not rows:
+                continue
+            s = pd.DataFrame(rows, columns=["SD", "rel", "dur"])
 
             s["dev_ms"] = (
                 s["rel"] - (s["SD"].astype(float) - 1.0) / 12.0
@@ -166,9 +198,7 @@ def _metric_timing_profiles(rhythms):
             selected["cycle_id"] = (
                 selected["Label SD"].astype(str).str.split("|", regex=False).str[0]
             )
-            time_cols = [
-                c for c in ("J1", "J2", "D1", "D2") if c in selected.columns
-            ]
+            time_cols = [c for c in ENSEMBLE_VOICES if c in selected.columns]
             if not time_cols:
                 continue
             selected["reference"] = selected[time_cols].mean(axis=1, skipna=True)
@@ -229,7 +259,7 @@ def _take_cycles(piece: str, take: int):
         return []
 
     selected = selected.copy()
-    time_cols = [c for c in ("J1", "J2", "D1", "D2") if c in selected.columns]
+    time_cols = [c for c in ENSEMBLE_VOICES if c in selected.columns]
     if not time_cols:
         return []
 
@@ -266,7 +296,7 @@ def _take_cycles(piece: str, take: int):
                 relative = (float(ref) - start) / duration
                 positions[sd - 1] = min(0.999999, max(0.0, relative))
 
-            for voice in ("D1", "D2"):
+            for voice in ENSEMBLE_VOICES:
                 if voice not in cycle.columns:
                     continue
                 value = getattr(row, voice)
@@ -300,7 +330,7 @@ def _take_cycles(piece: str, take: int):
             "events": events,
             "eventCounts": {
                 voice: int(sum(1 for event in events if event["voice"] == voice))
-                for voice in ("D1", "D2")
+                for voice in ENSEMBLE_VOICES
             },
         })
 
@@ -308,7 +338,7 @@ def _take_cycles(piece: str, take: int):
 
 
 def _corpus_recordings(rhythms):
-    """Pistes D1/D2 réelles et départs de cycles pour les prises appariées."""
+    """Pistes réelles et départs de cycles pour les prises appariées."""
     out = {}
     for rhythm in rhythms:
         piece = rhythm["piece"]
@@ -316,9 +346,9 @@ def _corpus_recordings(rhythms):
         for take in rhythm["takes"]:
             paths = {
                 voice: f"{u.CORPUS}/MJ_{piece}/MJ_{piece}_{take}_{voice}.wav"
-                for voice in ("D1", "D2")
+                for voice in ENSEMBLE_VOICES
             }
-            if not all(os.path.exists(path) for path in paths.values()):
+            if not all(os.path.exists(paths[voice]) for voice in DUNUN_VOICES):
                 continue
 
             cycles = _take_cycles(piece, int(take))
@@ -326,13 +356,15 @@ def _corpus_recordings(rhythms):
             if cycles:
                 cycle_starts.append(cycles[-1]["end"])
 
-            entries.append({
+            entry = {
                 "take": int(take),
-                "D1": "../" + paths["D1"].replace("\\", "/"),
-                "D2": "../" + paths["D2"].replace("\\", "/"),
                 "cycleStarts": cycle_starts,
                 "cycles": cycles,
-            })
+            }
+            for voice, path in paths.items():
+                if os.path.exists(path):
+                    entry[voice] = "../" + path.replace("\\", "/")
+            entries.append(entry)
         if entries:
             out[piece] = entries
     return out
@@ -347,7 +379,7 @@ def build_data():
             continue
 
         voices = {}
-        for code in ("D1", "D2"):
+        for code in ENSEMBLE_VOICES:
             motif, used = _profile_from_takes(piece, code, takes)
             if not used:
                 continue
@@ -360,10 +392,13 @@ def build_data():
                 "coeffs": coeffs,
             }
 
-        if {"D1", "D2"}.issubset(voices):
+        if set(ENSEMBLE_VOICES).issubset(voices):
+            comparable_takes = sorted(
+                set.intersection(*[set(voices[voice]["takes"]) for voice in ENSEMBLE_VOICES])
+            )
             rhythms.append({
                 "piece": piece,
-                "takes": sorted(set(voices["D1"]["takes"]) & set(voices["D2"]["takes"])),
+                "takes": comparable_takes,
                 "voices": voices,
             })
 
@@ -375,6 +410,9 @@ def build_data():
         "microtiming": _microtiming_profiles(rhythms),
         "metricTiming": _metric_timing_profiles(rhythms),
         "recordings": _corpus_recordings(rhythms),
+        "voices": list(ENSEMBLE_VOICES),
+        "dununVoices": list(DUNUN_VOICES),
+        "jembeVoices": list(JEMBE_VOICES),
         "coefNames": {
             "1": "1 oscillation par cycle",
             "2": "2 oscillations par cycle",
@@ -404,10 +442,10 @@ window.MathJax = {
 :root{
   --bg:#f2f1ed;--paper:#fbfaf7;--ink:#20211f;--muted:#77766f;
   --line:#d8d7d1;--line2:#e9e7e1;--soft:#f4f3ef;--accent:#b45d2c;
-  --d1:#245d9b;--d2:#c17a2b;--live:#26815a;--shadow:0 8px 28px rgba(34,34,28,.055)
+  --j1:#6b5ca5;--j2:#8b6f47;--d1:#245d9b;--d2:#c17a2b;--live:#26815a;--shadow:0 8px 28px rgba(34,34,28,.055)
 }
 @media(prefers-color-scheme:dark){
-  :root{--bg:#111315;--paper:#191c1e;--ink:#f0eee8;--muted:#aaa9a2;--line:#34383a;--line2:#292d2f;--soft:#202426;--accent:#df8b50;--d1:#6ca4df;--d2:#e0a458;--live:#52bc88;--shadow:0 12px 35px rgba(0,0,0,.22)}
+  :root{--bg:#111315;--paper:#191c1e;--ink:#f0eee8;--muted:#aaa9a2;--line:#34383a;--line2:#292d2f;--soft:#202426;--accent:#df8b50;--j1:#a799ea;--j2:#c7a06e;--d1:#6ca4df;--d2:#e0a458;--live:#52bc88;--shadow:0 12px 35px rgba(0,0,0,.22)}
 }
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif;line-height:1.45}
@@ -428,9 +466,10 @@ h1{font-family:Georgia,Times,serif;font-size:clamp(2.2rem,4vw,3.65rem);line-heig
 .transport{display:flex;gap:9px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
 .play{min-width:168px;appearance:none;border:0;background:var(--accent);color:#fff;border-radius:11px;padding:10px 15px;cursor:pointer;font-weight:900}
 .play.playing{background:var(--ink)}
-.voicePicker{display:flex;gap:3px;align-items:center;border:1px solid var(--line);background:var(--soft);border-radius:11px;padding:3px}
+.voicePicker,.scopePicker{display:flex;gap:3px;align-items:center;border:1px solid var(--line);background:var(--soft);border-radius:11px;padding:3px}
 .voiceBtn{appearance:none;border:0;background:transparent;color:var(--muted);border-radius:8px;padding:6px 9px;cursor:pointer;font-weight:800;font-size:.78rem}
 .voiceBtn.on{background:var(--ink);color:var(--paper)}
+.scopePicker .voiceBtn{font-size:.74rem}
 .volumeControl,.mixControl{display:grid;grid-template-columns:auto 82px 44px;align-items:center;gap:6px;color:var(--muted);font-size:.72rem;font-weight:750}
 .mixControl{grid-template-columns:auto 88px 54px}
 .volumeControl input,.mixControl input{width:82px;accent-color:var(--accent)}
@@ -459,7 +498,7 @@ canvas{display:block;width:100%;height:auto}
 .caption b,.note b{color:var(--ink)}
 .legend{display:flex;gap:16px;flex-wrap:wrap;margin:6px 0 2px;color:var(--muted);font-size:.8rem}
 .swatch{display:inline-flex;align-items:center;gap:7px}.swatch i{width:13px;height:13px;border-radius:99px;display:inline-block;border:2px solid currentColor}
-.d1{color:var(--d1)}.d2{color:var(--d2)}
+.j1{color:var(--j1)}.j2{color:var(--j2)}.d1{color:var(--d1)}.d2{color:var(--d2)}
 .metricKey{display:inline-flex;align-items:center;gap:7px}
 .metricKey i{width:16px;height:0;border-top:2px dashed var(--muted);opacity:.65}
 .listeningNote{margin:9px 0 0;border-left:3px solid var(--accent);padding:4px 0 4px 11px;color:var(--muted);font-size:.78rem}
@@ -576,8 +615,8 @@ canvas{display:block;width:100%;height:auto}
   </div>
   <p class="abstract">
     <b>Objet.</b> Trois rythmes, trois équations complexes. Chaque signature est
-    calculée uniquement sur les prises où D1 et D2 sont tous les deux présents,
-    pour comparer les deux voix sur la même base. Les coefficients sont des
+    calculée sur les prises où J1, J2, D1 et D2 sont présents ensemble,
+    pour comparer les quatre voix sur la même base. Les coefficients sont des
     projections du motif sur les racines complexes du cycle.
   </p>
 </header>
@@ -585,6 +624,7 @@ canvas{display:block;width:100%;height:auto}
 <section class="toolbar surface">
   <nav class="tabs" id="tabs"></nav>
   <div class="transport">
+    <div class="scopePicker" id="scopePicker" aria-label="Vue de la boussole"></div>
     <button class="play" id="playBtn">▶ Lancer la boucle</button>
     <div class="voicePicker" id="voicePicker"></div>
     <label class="takePicker" id="recordingTakeWrap">prise
@@ -621,8 +661,10 @@ canvas{display:block;width:100%;height:auto}
     </div>
     <canvas id="circle" width="620" height="620"></canvas>
     <div class="legend">
-      <span class="swatch d1"><i></i>D1 — anneau extérieur</span>
-      <span class="swatch d2"><i></i>D2 — anneau intérieur</span>
+      <span class="swatch j1" data-voice-legend="J1"><i></i>J1</span>
+      <span class="swatch j2" data-voice-legend="J2"><i></i>J2</span>
+      <span class="swatch d1" data-voice-legend="D1"><i></i>D1</span>
+      <span class="swatch d2" data-voice-legend="D2"><i></i>D2</span>
       <span class="metricKey" id="metricKey"><i></i>repères isochrones</span>
     </div>
     <p class="caption" id="circleCaption"></p>
@@ -691,7 +733,7 @@ canvas{display:block;width:100%;height:auto}
 
 <section class="curvePanel surface">
   <div class="panelHead">
-    <div><h2>Courbes D1 et D2</h2></div>
+    <div><h2>Courbes de l’ensemble</h2></div>
     <span class="modeTag" id="curveMode">Points observés + modèle</span>
   </div>
   <canvas id="curve" width="1260" height="340"></canvas>
@@ -738,7 +780,7 @@ canvas{display:block;width:100%;height:auto}
       </section>
     </div>
     <div class="researchNote">
-      <div><b>D1/D2 comparables.</b><br>Seules les prises appariées où les deux voix sont présentes sont utilisées.</div>
+      <div><b>Ensemble comparable.</b><br>Les quatre voix sont calculées sur les mêmes prises appariées.</div>
       <div><b>Six coefficients ≠ six temps.</b><br>Chaque coefficient regarde les 12 subdivisions et teste une répétition complète.</div>
       <div><b>Calcul complexe.</b><br>\(z_s=e^{2\pi i s/12}\) et \(c_k\) additionne les frappes après rotation par \(z_s^{-k}\).</div>
       <div><b>Une couche = une onde test.</b><br>Pour \(k=3\), l'onde fait trois tours pendant le cycle.</div>
@@ -750,8 +792,11 @@ canvas{display:block;width:100%;height:auto}
 <script>
 const DATA=__DATA__;
 const TAU=Math.PI*2;
+const ALL_VOICES=DATA.voices||["J1","J2","D1","D2"];
+const DUNUN_VOICES=DATA.dununVoices||["D1","D2"];
+const JEMBE_VOICES=DATA.jembeVoices||["J1","J2"];
 const state={
-  piece:DATA.pieces[0],playVoice:"both",synthEnabled:false,synthVoice:"D1",
+  piece:DATA.pieces[0],scope:"ensemble",playVoice:"ensemble",synthEnabled:false,synthVoice:"D1",
   synthData:{},listeningMode:"recording",timingMode:"observed",timingStrength:1,volume:1.3,reconstructionMix:.5,transformMessage:"",symmetryAxis:0,
   libraryPiece:DATA.pieces[0],libraryLoaded:{D1:null,D2:null},
   recordingCycleByKey:{},
@@ -779,11 +824,21 @@ function recordingKey(piece=state.piece,recording=selectedRecording(piece)){
 function recordingCycles(recording=selectedRecording()){
   return recording?.cycles||[];
 }
+function defaultCycleIndex(recording=selectedRecording()){
+  const cycles=recordingCycles(recording);
+  const voices=state.scope==="ensemble" ? ALL_VOICES : DUNUN_VOICES;
+  const complete=cycles.findIndex(cycle=>
+    voices.every(voice=>(cycle.eventCounts?.[voice]||0)>0)
+  );
+  return complete>=0 ? complete : 0;
+}
 function selectedCycleIndex(recording=selectedRecording(),piece=state.piece){
   const cycles=recordingCycles(recording);
   if(!cycles.length)return -1;
   const key=recordingKey(piece,recording);
-  const stored=Number(state.recordingCycleByKey[key]??0);
+  const stored=Object.prototype.hasOwnProperty.call(state.recordingCycleByKey,key)
+    ? Number(state.recordingCycleByKey[key])
+    : defaultCycleIndex(recording);
   return Math.max(0,Math.min(cycles.length-1,Number.isFinite(stored)?stored:0));
 }
 function selectedCycle(recording=selectedRecording(),piece=state.piece){
@@ -801,14 +856,22 @@ function phaseTex(rad){return signed(rad,2);}
 function texVector(it){
   return String.raw`\left(${it.coeffs.slice(1).map(c=>`${c.mag.toFixed(2)}e^{${phaseTex(c.phase)}i}`).join(String.raw`,\; `)}\right)`;
 }
-function color(voice){return voice==="D1"?css("--d1"):css("--d2");}
+function color(voice){return css(`--${voice.toLowerCase()}`)||css("--accent");}
+function visibleVoices(){
+  return state.scope==="dunun" ? DUNUN_VOICES.slice() : ALL_VOICES.slice();
+}
 function selectedVoices(){
-  if(state.playVoice==="D1")return ["D1"];
-  if(state.playVoice==="D2")return ["D2"];
-  return ["D1","D2"];
+  if(state.playVoice==="ensemble")return ALL_VOICES.slice();
+  if(state.playVoice==="dunun")return DUNUN_VOICES.slice();
+  if(state.playVoice==="jembe")return JEMBE_VOICES.slice();
+  if(ALL_VOICES.includes(state.playVoice))return [state.playVoice];
+  return DUNUN_VOICES.slice();
 }
 function playVoiceLabel(){
-  return state.playVoice==="both" ? "D1+D2" : state.playVoice;
+  if(state.playVoice==="ensemble")return "J1+J2+D1+D2";
+  if(state.playVoice==="dunun")return "D1+D2";
+  if(state.playVoice==="jembe")return "J1+J2";
+  return state.playVoice;
 }
 function applyVolume(){
   if(!playback.master||!playback.ctx)return;
@@ -848,7 +911,8 @@ function renderRecordingCycleControl(){
   cycles.forEach((cycle,index)=>{
     const option=document.createElement("option");
     option.value=String(index);
-    option.textContent=`${index+1} · ${cycle.duration.toFixed(3)} s · D1 ${cycle.eventCounts?.D1??0} / D2 ${cycle.eventCounts?.D2??0}`;
+    const counts=visibleVoices().map(voice=>`${voice} ${cycle.eventCounts?.[voice]??0}`).join(" / ");
+    option.textContent=`${index+1} · ${cycle.duration.toFixed(3)} s · ${counts}`;
     option.selected=index===selectedCycleIndex(recording);
     select.appendChild(option);
   });
@@ -1269,9 +1333,13 @@ function subdivisionAtCyclePhase(phase,cycle=selectedCycle()){
   if(!cycle?.positions?.length)return subdivisionAtMetricPhase(phase);
   return subdivisionAtPositions(phase,cycle.positions);
 }
+function primaryMedia(){
+  const preferred=selectedVoices().map(voice=>playback.media[voice]).find(Boolean);
+  return preferred||playback.media.D1||Object.values(playback.media)[0]||null;
+}
 function corpusPlaybackPhase(){
   if(!["recording","reconstruction"].includes(playback.kind))return null;
-  const audio=playback.media.D1||playback.media.D2;
+  const audio=primaryMedia();
   const cycle=playback.cycle||selectedCycle();
   if(!audio||!cycle||!Number.isFinite(audio.currentTime))return null;
   const duration=cycle.duration||(cycle.end-cycle.start)||1;
@@ -1307,30 +1375,29 @@ function playheadCirclePhase(position){
 }
 
 function latexForRhythm(r){
-  const d1=voiceView("D1",r.piece), d2=voiceView("D2",r.piece);
+  const voices=visibleVoices();
+  const vectorRows=voices.map(voice=>String.raw`\operatorname{${voice}}_{\mathrm{${r.piece}}}(s)`).join(String.raw`\\`);
+  const coefficientRows=voices.map(voice=>String.raw`\mathbf{c}_{${voice}} &= ${texVector(voiceView(voice,r.piece))}`).join(String.raw`\\`);
   return String.raw`
 \[
 \begin{aligned}
 \text{points du cercle:}\quad
 z_s &= e^{2\pi i s/12}\\
 \text{motif normalisé:}\quad
-x_{v,s} &= \frac{\operatorname{D}_{v}(s)}{\rho_v},
-\qquad \rho_v=\sum_{s=0}^{11}\operatorname{D}_{v}(s)\\
+x_{v,s} &= \frac{\operatorname{V}_{v}(s)}{\rho_v},
+\qquad \rho_v=\sum_{s=0}^{11}\operatorname{V}_{v}(s)\\
 \text{coefficients:}\quad
 c_{v,k} &= \sum_{s=0}^{11}x_{v,s}\,z_s^{-k},
 \qquad k=0,\ldots,6\\
 \operatorname{Rythme}_{\mathrm{${r.piece}}}(s)
-  &= \begin{bmatrix}\operatorname{D1}_{\mathrm{${r.piece}}}(s)\\\operatorname{D2}_{\mathrm{${r.piece}}}(s)\end{bmatrix},
+  &= \begin{bmatrix}${vectorRows}\end{bmatrix},
   \qquad s\in\{0,\ldots,11\}\\
-\operatorname{D}_{v,\mathrm{${r.piece}}}(s)
+\operatorname{V}_{v,\mathrm{${r.piece}}}(s)
   &= \frac{\rho_v}{12}\left[
       1+2\,\Re\!\left(\sum_{k=1}^{5}c_{v,k}z_s^k\right)
       + c_{v,6}(-1)^s
     \right]\\
-\mathbf{c}_{D1}
-  &= ${texVector(d1)}\\
-\mathbf{c}_{D2}
-  &= ${texVector(d2)}
+${coefficientRows}
 \end{aligned}
 \]`;
 }
@@ -1465,14 +1532,45 @@ function renderSynthControls(){
   });
 }
 
+function renderScopePicker(){
+  const box=document.getElementById("scopePicker");
+  box.innerHTML="";
+  [
+    ["ensemble","Ensemble"],
+    ["dunun","Dunun"],
+  ].forEach(([value,label])=>{
+    const b=document.createElement("button");
+    b.className="voiceBtn"+(state.scope===value?" on":"");
+    b.textContent=label;
+    b.onclick=()=>{
+      state.scope=value;
+      if(value==="dunun"&&["ensemble","jembe","J1","J2"].includes(state.playVoice)){
+        state.playVoice="dunun";
+      }else if(value==="ensemble"&&state.playVoice==="dunun"){
+        state.playVoice="ensemble";
+      }
+      renderScopePicker();
+      renderVoicePicker();
+      renderRecordingCycleControl();
+      drawCircle();
+      drawCurve();
+      drawMicroTiming();
+      renderEquation();
+      renderCoefTable();
+      queueMath();
+      syncPlaybackUI();
+    };
+    box.appendChild(b);
+  });
+}
+
 function renderVoicePicker(){
   const box=document.getElementById("voicePicker");
   box.innerHTML="";
-  [
-    ["both","D1+D2"],
-    ["D1","D1 seul"],
-    ["D2","D2 seul"],
-  ].forEach(([value,label])=>{
+  const options=state.scope==="ensemble"
+    ? [["ensemble","Tout"],["jembe","J1+J2"],["dunun","D1+D2"],["J1","J1"],["J2","J2"],["D1","D1"],["D2","D2"]]
+    : [["dunun","D1+D2"],["D1","D1"],["D2","D2"]];
+  options.forEach(([value,label])=>{
     const b=document.createElement("button");
     b.className="voiceBtn"+(state.playVoice===value?" on":"");
     b.textContent=label;
@@ -1518,18 +1616,27 @@ function renderTabs(){
 
 function drawCircle(){
   const r=rhythm(), cv=document.getElementById("circle"), g=cv.getContext("2d");
-  const W=cv.width, cx=W/2, cy=W/2, outer=218, inner=146;
+  const W=cv.width, cx=W/2, cy=W/2;
+  const voices=visibleVoices();
+  const outer=voices.length>2?238:218;
+  const gap=voices.length>2?45:72;
+  const ringMap=new Map(voices.map((voice,index)=>[voice,outer-index*gap]));
+  const radii=[...ringMap.values()];
+  const inner=Math.min(...radii);
   const p=playheadPosition(), currentStep=p===null?null:Math.floor(p)%12;
   const positions=metricPositions(),durations=metricDurations();
   const observedMode=state.timingMode==="observed";
   const audibleVoices=new Set(selectedVoices());
+  document.querySelectorAll("[data-voice-legend]").forEach(item=>{
+    item.style.display=voices.includes(item.dataset.voiceLegend)?"inline-flex":"none";
+  });
   g.clearRect(0,0,W,W);
   g.save();
   g.translate(cx,cy);
 
   g.strokeStyle=css("--line");
   g.lineWidth=1.2;
-  [outer,inner].forEach(rad=>{g.beginPath();g.arc(0,0,rad,0,TAU);g.stroke();});
+  radii.forEach(rad=>{g.beginPath();g.arc(0,0,rad,0,TAU);g.stroke();});
 
   if(observedMode){
     g.save();
@@ -1592,7 +1699,8 @@ function drawCircle(){
     g.fillText(String(s+1),(outer+49)*ca,(outer+49)*sa);
   }
 
-  [["D1",outer],["D2",inner]].forEach(([voice,rad])=>{
+  voices.forEach(voice=>{
+    const rad=ringMap.get(voice);
     const it=voiceView(voice,r.piece), values=it.motif, mx=Math.max(...values,0.001);
     const audible=audibleVoices.has(voice);
     g.strokeStyle=color(voice);
@@ -1625,8 +1733,10 @@ function drawCircle(){
   if(p!==null){
     const a=playheadCirclePhase(p)*TAU-Math.PI/2, ca=Math.cos(a), sa=Math.sin(a);
     let from=inner-42, to=outer+28;
-    if(state.playVoice==="D1"){from=outer-42;to=outer+30;}
-    if(state.playVoice==="D2"){from=inner-42;to=inner+30;}
+    if(ALL_VOICES.includes(state.playVoice)&&ringMap.has(state.playVoice)){
+      const rad=ringMap.get(state.playVoice);
+      from=rad-35;to=rad+30;
+    }
     g.globalAlpha=1;
     g.strokeStyle=css("--ink");
     g.lineWidth=2.8;
@@ -1639,22 +1749,23 @@ function drawCircle(){
   }
 
   g.restore();
-  const d1=voiceView("D1"),d2=voiceView("D2");
   const triplet=[0,1,2].map(q=>durations.filter((_,s)=>s%3===q).reduce((sum,value)=>sum+value,0));
   const tripletTotal=triplet.reduce((sum,value)=>sum+value,0)||1;
   const tripletText=triplet.map(value=>(value/tripletTotal*100).toFixed(1)+" %").join(" / ");
   const key=document.getElementById("metricKey");
   key.style.display=observedMode?"inline-flex":"none";
   const temporalCaption=["recording","reconstruction"].includes(state.listeningMode)
-    ? `La barre noire suit ${selectedCycleLabel()} de la prise ${selectedRecording()?.take??"—"} ; les points restent le motif moyen D1/D2.`
+    ? `La barre noire suit ${selectedCycleLabel()} de la prise ${selectedRecording()?.take??"—"} ; les points restent le motif moyen des voix visibles.`
     : observedMode
       ? "Les traits pointillés conservent la grille isochrone ; les points suivent les positions moyennes mesurées dans l’ensemble."
       : "Les douze positions sont espacées régulièrement.";
   document.getElementById("circleCaption").innerHTML =
-    `<b>${r.piece}</b> — prises appariées D1/D2 : ${r.takes.join(", ")}. `+
+    `<b>${r.piece}</b> — prises appariées ensemble : ${r.takes.join(", ")}. `+
     `${temporalCaption} `+
     `Proportions temporelles moyennes : ${tripletText}. `+
-    `${state.synthEnabled?"Densités synthétisées":"Densités moyennes"} : D1 ${d1.density.toFixed(2)}, D2 ${d2.density.toFixed(2)} frappes/cycle.`;
+    `${state.synthEnabled?"Densités synthétisées":"Densités moyennes"} : ${
+      voices.map(voice=>`${voice} ${voiceView(voice).density.toFixed(2)}`).join(", ")
+    } frappes/cycle.`;
 }
 
 function drawCurve(){
@@ -1662,7 +1773,7 @@ function drawCurve(){
   const W=cv.width,H=cv.height,left=50,right=20,top=18,bottom=42,span=W-left-right;
   g.clearRect(0,0,W,H);
   const samples=[];
-  ["D1","D2"].forEach(voice=>{
+  visibleVoices().forEach(voice=>{
     const it=r.voices[voice];
     for(let i=0;i<=180;i++) samples.push(curveValueForVoice(voice,i/180*12));
     samples.push(...it.motif,...motifForPlayback(voice));
@@ -1687,7 +1798,7 @@ function drawCurve(){
   g.textAlign="center";g.textBaseline="bottom";g.fillStyle=css("--muted");
   g.fillText("subdivision du cycle (1–12)",left+span/2,H-5);
 
-  ["D1","D2"].forEach(voice=>{
+  visibleVoices().forEach(voice=>{
     const it=r.voices[voice], col=color(voice);
     const audible=selectedVoices().includes(voice);
     g.strokeStyle=col;g.lineWidth=2.6;g.globalAlpha=audible ? .92 : .25;
@@ -1808,11 +1919,11 @@ function renderTimingControls(){
   if(state.listeningMode==="recording"){
     note.innerHTML=
       `<b>Enregistrement réel.</b> Prise ${recordingInfo?.take??"—"}, ${selectedCycleLabel(recordingInfo)} : vrais timbres, `+
-      `non-isochronie et asynchronie D1/D2. La boucle suit les bornes annotées du cycle sélectionné.`;
+      `non-isochronie et asynchronie de l’ensemble. La boucle suit les bornes annotées du cycle sélectionné.`;
   }else if(state.listeningMode==="reconstruction"){
     note.innerHTML=
       `<b>Reconstruction annotée.</b> Même prise, même cycle (${cycleInfo?.duration?.toFixed(3)??"—"} s), mais les frappes sont rejouées `+
-      `par le synthé aux timestamps D1/D2 exacts. Le mix A/B dose réel puis reconstruit.`;
+      `par le synthé aux timestamps exacts des voix sélectionnées. Le mix A/B dose réel puis reconstruit.`;
   }else if(state.listeningMode==="model"){
     note.innerHTML=
       `<b>Modèle temporel moyen.</b> Le laboratoire moyenne les motifs et les positions annotées sur les prises appariées, `+
@@ -1825,7 +1936,7 @@ function renderTimingControls(){
 function drawMicroTiming(){
   const cv=document.getElementById("microTiming"),g=cv.getContext("2d");
   const W=cv.width,H=cv.height,left=54,right=18,top=30,bottom=42,span=W-left-right;
-  const profiles=["D1","D2"].map(voice=>[voice,microProfile(voice)]).filter(([,p])=>p);
+  const profiles=visibleVoices().map(voice=>[voice,microProfile(voice)]).filter(([,p])=>p);
   g.clearRect(0,0,W,H);
   if(!profiles.length){
     g.fillStyle=css("--muted");g.font="13px Inter, system-ui";g.textAlign="center";
@@ -1887,16 +1998,18 @@ function drawMicroTiming(){
     points.forEach(([x,y])=>{g.fillStyle=col;g.beginPath();g.arc(x,y,4.5,0,TAU);g.fill();});
   });
   g.globalAlpha=1;
-  const d1=microProfile("D1")?.precision,d2=microProfile("D2")?.precision;
+  const precisionText=profiles
+    .map(([voice])=>`${voice} ${Number.isFinite(microProfile(voice)?.precision)?microProfile(voice).precision.toFixed(1):"—"} ms`)
+    .join(", ");
   const heardLabel=state.listeningMode==="recording"
     ? `L’enregistrement réel varie à l’intérieur de cette distribution ; le point plein reste sa moyenne de référence.`
     : state.listeningMode==="reconstruction"
       ? `La reconstruction suit le cycle annoté sélectionné ; le graphe reste la distribution moyenne du corpus.`
       : `Point plein = placement entendu (${timingModeLabel()}).`;
   document.getElementById("microCaption").innerHTML=
-    `La roue montre le mètre moyen de l’ensemble ; ce graphe sépare les écarts propres à D1 et D2. `+
+    `La roue montre le mètre moyen de l’ensemble ; ce graphe sépare les écarts propres aux voix visibles. `+
     `Cercle vide + barre = moyenne et dispersion observées. ${heardLabel} `+
-    `Précision résiduelle : D1 ${Number.isFinite(d1)?d1.toFixed(1):"—"} ms, D2 ${Number.isFinite(d2)?d2.toFixed(1):"—"} ms.`;
+    `Précision résiduelle : ${precisionText}.`;
 }
 
 function drawMap(){
@@ -1936,41 +2049,53 @@ function drawMap(){
 function renderEquation(){
   const r=rhythm();
   document.getElementById("mainEquation").textContent=latexForRhythm(r);
-  const d1=voiceView("D1"), d2=voiceView("D2");
+  const densityText=visibleVoices()
+    .map(voice=>`${voice} ${voiceView(voice).density.toFixed(2)}`)
+    .join(" · ");
   document.getElementById("metrics").innerHTML=[
-    ["prises D1/D2",r.takes.join(", ")],
+    ["prises",r.takes.join(", ")],
+    ["vue",state.scope==="ensemble"?"ensemble complet":"dunun"],
     ["mode",state.synthEnabled?"synthé":"original"],
-    ["densité D1",d1.density.toFixed(2)],
-    ["densité D2",d2.density.toFixed(2)]
+    ["densités",densityText]
   ].map(([k,v])=>`<div class="metric"><span>${k}</span><b>${v}</b></div>`).join("");
 }
 
 function renderCoefTable(){
   const r=rhythm();
   const rows=[];
+  const voices=visibleVoices();
   for(let k=1;k<=6;k++){
-    const a=voiceView("D1").coeffs[k], b=voiceView("D2").coeffs[k], name=DATA.coefNames[String(k)];
-    rows.push(`<tr><td>c${k}<br><small>${name}</small></td>
-      <td>${a.mag.toFixed(3)}</td><td>${phaseDeg(a.phase).toFixed(0)}°</td>
-      <td>${b.mag.toFixed(3)}</td><td>${phaseDeg(b.phase).toFixed(0)}°</td></tr>`);
+    const name=DATA.coefNames[String(k)];
+    rows.push(`<tr><td>c${k}<br><small>${name}</small></td>${
+      voices.map(voice=>{
+        const c=voiceView(voice).coeffs[k];
+        return `<td>${c.mag.toFixed(3)}<br><small>${phaseDeg(c.phase).toFixed(0)}°</small></td>`;
+      }).join("")
+    }</tr>`);
   }
   document.getElementById("coefTable").innerHTML=`<table class="coefTable">
-    <thead><tr><th>onde</th><th>|D1|</th><th>arg D1</th><th>|D2|</th><th>arg D2</th></tr></thead>
+    <thead><tr><th>onde</th>${voices.map(voice=>`<th>${voice}<br><small>|c| / arg</small></th>`).join("")}</tr></thead>
     <tbody>${rows.join("")}</tbody></table>`;
 }
 
 function hit(ctx,time,voice,amp){
   const osc=ctx.createOscillator(), gain=ctx.createGain(), filter=ctx.createBiquadFilter();
-  osc.type=voice==="D1"?"triangle":"sine";
-  osc.frequency.setValueAtTime(voice==="D1"?118:235,time);
-  osc.frequency.exponentialRampToValueAtTime(voice==="D1"?74:155,time+.12);
-  filter.type="lowpass";filter.frequency.setValueAtTime(voice==="D1"?520:900,time);
+  const params={
+    J1:{type:"square",f0:310,f1:180,filter:1450,decay:.105,gain:.18},
+    J2:{type:"triangle",f0:255,f1:145,filter:1200,decay:.12,gain:.18},
+    D1:{type:"triangle",f0:118,f1:74,filter:520,decay:.18,gain:.27},
+    D2:{type:"sine",f0:235,f1:155,filter:900,decay:.18,gain:.25},
+  }[voice]||{type:"sine",f0:180,f1:110,filter:900,decay:.16,gain:.22};
+  osc.type=params.type;
+  osc.frequency.setValueAtTime(params.f0,time);
+  osc.frequency.exponentialRampToValueAtTime(params.f1,time+Math.min(.14,params.decay));
+  filter.type="lowpass";filter.frequency.setValueAtTime(params.filter,time);
   gain.gain.setValueAtTime(0.0001,time);
-  gain.gain.exponentialRampToValueAtTime(Math.max(0.018,amp)*0.27,time+.006);
-  gain.gain.exponentialRampToValueAtTime(0.0001,time+.18);
+  gain.gain.exponentialRampToValueAtTime(Math.max(0.018,amp)*params.gain,time+.006);
+  gain.gain.exponentialRampToValueAtTime(0.0001,time+params.decay);
   const destination=playback.reconstructionGain||playback.master||ctx.destination;
   osc.connect(filter);filter.connect(gain);gain.connect(destination);
-  osc.start(time);osc.stop(time+.2);
+  osc.start(time);osc.stop(time+params.decay+.03);
 }
 
 function scheduleSubdivision(stepIndex,time){
@@ -2002,7 +2127,7 @@ function syncCorpusVoiceGains(){
   const audible=new Set(selectedVoices());
   const now=playback.ctx.currentTime;
   const realLevel=playback.kind==="reconstruction" ? 1-state.reconstructionMix : 1;
-  ["D1","D2"].forEach(voice=>{
+  ALL_VOICES.forEach(voice=>{
     const gain=playback.voiceGains[voice];
     if(gain)gain.gain.setTargetAtTime(audible.has(voice)?realLevel:0,now,.015);
   });
@@ -2022,22 +2147,26 @@ function recordingBounds(recording=selectedRecording()){
 }
 function syncCorpusPlayback(){
   if(!playback.active||!["recording","reconstruction"].includes(playback.kind))return;
-  const d1=playback.media.D1,d2=playback.media.D2;
-  if(!d1||!d2)return;
+  const primary=primaryMedia();
+  const media=Object.values(playback.media);
+  if(!primary||!media.length)return;
   const bounds=recordingBounds();
-  if(d1.currentTime>=bounds.end||d2.currentTime>=bounds.end){
-    d1.currentTime=bounds.start;
-    d2.currentTime=bounds.start;
+  if(media.some(audio=>audio.currentTime>=bounds.end)){
+    media.forEach(audio=>{audio.currentTime=bounds.start;});
     playback.nextEventIndex=0;
     playback.timeline=[];
-  }else if(Math.abs(d1.currentTime-d2.currentTime)>.025){
-    d2.currentTime=d1.currentTime;
+  }else{
+    media.forEach(audio=>{
+      if(audio!==primary&&Math.abs(audio.currentTime-primary.currentTime)>.025){
+        audio.currentTime=primary.currentTime;
+      }
+    });
   }
 }
 function reconstructionScheduler(){
   if(!playback.active||playback.kind!=="reconstruction"||!playback.ctx)return;
   syncCorpusPlayback();
-  const audio=playback.media.D1||playback.media.D2;
+  const audio=primaryMedia();
   const cycle=playback.cycle||selectedCycle();
   if(!audio||!cycle)return;
   const events=cycle.events||[];
@@ -2079,7 +2208,7 @@ function syncPlaybackUI(){
   if(caption){
     if(state.listeningMode==="recording"){
       caption.textContent=playback.active
-        ? `Lecture réelle · ${playVoiceLabel()} · prise ${selectedRecording()?.take??"—"} · ${selectedCycleLabel()} · D1/D2 synchronisés.`
+        ? `Lecture réelle · ${playVoiceLabel()} · prise ${selectedRecording()?.take??"—"} · ${selectedCycleLabel()} · pistes synchronisées.`
         : `Référence réelle · ${playVoiceLabel()} · prise ${selectedRecording()?.take??"—"} · ${selectedCycleLabel()}.`;
     }else if(state.listeningMode==="reconstruction"){
       caption.textContent=playback.active
@@ -2136,7 +2265,7 @@ function configureMaster(ctx){
 async function startCorpusPlayback(AudioCtx){
   const recording=selectedRecording();
   if(!recording){
-    alert("Aucune prise D1/D2 réelle n’est disponible pour ce rythme.");
+    alert("Aucune prise réelle n’est disponible pour ce rythme.");
     return;
   }
   const ctx=new AudioCtx();
@@ -2148,7 +2277,8 @@ async function startCorpusPlayback(AudioCtx){
   playback.voiceGains={};
   playback.cycle=selectedCycle(recording);
   const bounds=recordingBounds(recording);
-  for(const voice of ["D1","D2"]){
+  for(const voice of ALL_VOICES){
+    if(!recording[voice])continue;
     const audio=new Audio(new URL(recording[voice],location.href).href);
     audio.preload="auto";
     audio.currentTime=bounds.start;
@@ -2157,6 +2287,11 @@ async function startCorpusPlayback(AudioCtx){
     source.connect(gain);gain.connect(playback.master);
     playback.media[voice]=audio;
     playback.voiceGains[voice]=gain;
+  }
+  if(!Object.keys(playback.media).length){
+    stopPlayback();
+    alert("Aucune piste audio exploitable pour cette prise.");
+    return;
   }
   syncCorpusVoiceGains();
   playback.active=true;
@@ -2191,7 +2326,8 @@ async function startReconstructionPlayback(AudioCtx){
   playback.cycle=cycle;
   playback.nextEventIndex=0;
   playback.timeline=[];
-  for(const voice of ["D1","D2"]){
+  for(const voice of ALL_VOICES){
+    if(!recording[voice])continue;
     const audio=new Audio(new URL(recording[voice],location.href).href);
     audio.preload="auto";
     audio.currentTime=cycle.start;
@@ -2200,6 +2336,11 @@ async function startReconstructionPlayback(AudioCtx){
     source.connect(gain);gain.connect(playback.master);
     playback.media[voice]=audio;
     playback.voiceGains[voice]=gain;
+  }
+  if(!Object.keys(playback.media).length){
+    stopPlayback();
+    alert("Aucune piste audio exploitable pour cette prise.");
+    return;
   }
   syncCorpusVoiceGains();
   playback.active=true;
@@ -2255,6 +2396,7 @@ function animatePlayback(){
 
 function render(){
   renderTabs();
+  renderScopePicker();
   renderVoicePicker();
   renderVolumeControl();
   renderSynthControls();
