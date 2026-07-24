@@ -271,6 +271,26 @@ Le motif répond à **où** une frappe existe dans les 12 subdivisions. Le
 micro-timing répond à **quand**, en millisecondes, elle tombe autour de cette
 position.
 
+L'écoute distingue désormais trois niveaux :
+
+1. **Enregistrement réel** : lecture synchronisée des pistes WAV D1 et D2
+   d'une prise appariée du corpus. Cette référence conserve les vrais timbres,
+   la dynamique, les variations entre cycles, la non-isochronie et
+   l'asynchronie naturelle. Manjanin permet de choisir la prise 1 ou 4 ;
+2. **Modèle temporel moyen** : pour chaque rythme, le motif et la position de
+   chaque subdivision sont moyennés sur les prises appariées. Ce cycle idéal
+   de 12 subdivisions est ensuite répété à l'identique avec les sons
+   synthétiques du laboratoire. Il conserve la tendance temporelle centrale,
+   mais retire les fluctuations de cycle, les nuances et le timbre réel ;
+3. **Contrôle isochrone** : le même motif synthétique est placé sur douze
+   intervalles égaux. Ce mode n'est pas une performance « normale », mais une
+   condition expérimentale permettant d'isoler l'effet du timing observé.
+
+Les enregistrements sont référencés depuis `corpus/` et ne sont pas incorporés
+dans le HTML ni versionnés dans Git. Le mode réel fonctionne donc dans le
+laboratoire local lorsque le corpus est présent. Les deux modes synthétiques
+restent disponibles sans lecture des WAV.
+
 La page sépare maintenant deux niveaux temporels :
 
 - le **mètre non isochrone de l'ensemble**, estimé pour chaque subdivision par
@@ -280,8 +300,8 @@ La page sépare maintenant deux niveaux temporels :
   autour de ce mètre collectif.
 
 Si `ps` est la position moyenne de la subdivision `s`, la durée observée de
-l'intervalle est `ds = p(s+1) - ps`. Le mode **Isochrone** impose
-`ds = 1/12`. Le mode **Mètre observé** interpole
+l'intervalle est `ds = p(s+1) - ps`. Le **contrôle isochrone** impose
+`ds = 1/12`. Le **modèle temporel moyen** interpole
 `ds(α) = 1/12 + α(ds - 1/12)`, puis normalise les douze durées. Le curseur
 `α`, entre 0 et 2, permet de passer continûment de la grille régulière au
 profil mesuré, puis de l'exagérer.

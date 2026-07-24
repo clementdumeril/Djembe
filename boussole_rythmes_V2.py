@@ -222,6 +222,54 @@ def _metric_timing_profiles(rhythms):
     return out
 
 
+def _corpus_recordings(rhythms):
+    """Pistes D1/D2 réelles et départs de cycles pour les prises appariées."""
+    out = {}
+    for rhythm in rhythms:
+        piece = rhythm["piece"]
+        entries = []
+        for take in rhythm["takes"]:
+            paths = {
+                voice: f"{u.CORPUS}/MJ_{piece}/MJ_{piece}_{take}_{voice}.wav"
+                for voice in ("D1", "D2")
+            }
+            if not all(os.path.exists(path) for path in paths.values()):
+                continue
+
+            cycle_starts = []
+            selected = u.load_selected(piece, int(take))
+            if selected is not None and {"Label SD", "SD"}.issubset(selected.columns):
+                selected = selected.copy()
+                time_cols = [
+                    col for col in ("J1", "J2", "D1", "D2")
+                    if col in selected.columns
+                ]
+                if time_cols:
+                    selected["cycle_id"] = (
+                        selected["Label SD"].astype(str)
+                        .str.split("|", regex=False).str[0]
+                    )
+                    selected["reference"] = selected[time_cols].mean(
+                        axis=1, skipna=True
+                    )
+                    for _, cycle in selected.groupby("cycle_id", sort=False):
+                        values = cycle.loc[
+                            cycle["SD"] == 1, "reference"
+                        ].dropna()
+                        if not values.empty:
+                            cycle_starts.append(round(float(values.iloc[0]), 5))
+
+            entries.append({
+                "take": int(take),
+                "D1": "../" + paths["D1"].replace("\\", "/"),
+                "D2": "../" + paths["D2"].replace("\\", "/"),
+                "cycleStarts": cycle_starts,
+            })
+        if entries:
+            out[piece] = entries
+    return out
+
+
 def build_data():
     rhythms = []
 
@@ -258,6 +306,7 @@ def build_data():
         "map": _pca_map(rhythms),
         "microtiming": _microtiming_profiles(rhythms),
         "metricTiming": _metric_timing_profiles(rhythms),
+        "recordings": _corpus_recordings(rhythms),
         "coefNames": {
             "1": "1 oscillation par cycle",
             "2": "2 oscillations par cycle",
@@ -317,6 +366,9 @@ h1{font-family:Georgia,Times,serif;font-size:clamp(2.2rem,4vw,3.65rem);line-heig
 .volumeControl{display:grid;grid-template-columns:auto 82px 38px;align-items:center;gap:6px;color:var(--muted);font-size:.72rem;font-weight:750}
 .volumeControl input{width:82px;accent-color:var(--accent)}
 .volumeControl output{color:var(--ink);font-variant-numeric:tabular-nums;text-align:right}
+.takePicker{display:flex;align-items:center;gap:5px;color:var(--muted);font-size:.72rem;font-weight:750}
+.takePicker select{border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:8px;padding:5px 7px;font-size:.75rem}
+.takePicker[hidden]{display:none}
 .liveStatus{display:inline-flex;align-items:center;gap:7px;color:var(--muted);font-size:.78rem;min-width:82px}
 .liveStatus i{width:8px;height:8px;border-radius:50%;background:var(--line)}
 .liveStatus.on{color:var(--live);font-weight:850}.liveStatus.on i{background:var(--live);box-shadow:0 0 0 5px color-mix(in srgb,var(--live) 14%,transparent)}
@@ -340,6 +392,8 @@ canvas{display:block;width:100%;height:auto}
 .d1{color:var(--d1)}.d2{color:var(--d2)}
 .metricKey{display:inline-flex;align-items:center;gap:7px}
 .metricKey i{width:16px;height:0;border-top:2px dashed var(--muted);opacity:.65}
+.listeningNote{margin:9px 0 0;border-left:3px solid var(--accent);padding:4px 0 4px 11px;color:var(--muted);font-size:.78rem}
+.listeningNote b{color:var(--ink)}
 .synthPanel{display:block;align-self:start}
 .synthIntro{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:12px;cursor:pointer;list-style:none}
 .synthIntro::-webkit-details-marker{display:none}
@@ -463,6 +517,9 @@ canvas{display:block;width:100%;height:auto}
   <div class="transport">
     <button class="play" id="playBtn">▶ Lancer la boucle</button>
     <div class="voicePicker" id="voicePicker"></div>
+    <label class="takePicker" id="recordingTakeWrap">prise
+      <select id="recordingTake" aria-label="Prise réelle du corpus"></select>
+    </label>
     <label class="volumeControl">volume
       <input type="range" id="volumeSlider" min="0" max="200" step="5" value="130">
       <output id="volumeOut">130 %</output>
@@ -478,10 +535,10 @@ canvas{display:block;width:100%;height:auto}
       <div><h2>Cercle métrique · 12 subdivisions</h2></div>
       <div class="metricControlGroup">
         <div class="metricPicker" aria-label="Temporalité du cercle">
+          <button class="smallBtn" id="circleRecordingBtn">Enregistrement</button>
+          <button class="smallBtn" id="circleObservedBtn">Modèle moyen</button>
           <button class="smallBtn" id="circleGridBtn">Isochrone</button>
-          <button class="smallBtn" id="circleObservedBtn">Mètre observé</button>
         </div>
-        <span class="modeTag" id="circleMode">Original</span>
       </div>
     </div>
     <canvas id="circle" width="620" height="620"></canvas>
@@ -491,6 +548,7 @@ canvas{display:block;width:100%;height:auto}
       <span class="metricKey" id="metricKey"><i></i>repères isochrones</span>
     </div>
     <p class="caption" id="circleCaption"></p>
+    <p class="listeningNote" id="listeningNote"></p>
   </article>
 
   <details class="synthPanel surface" id="synthPanel" open>
@@ -567,8 +625,9 @@ canvas{display:block;width:100%;height:auto}
     <div class="panelHead">
       <div><h2>Temporalité observée</h2></div>
       <div class="microControls">
+        <button class="smallBtn" id="recordingTimingBtn">Enregistrement</button>
+        <button class="smallBtn" id="observedTimingBtn">Modèle moyen</button>
         <button class="smallBtn" id="gridTimingBtn">Isochrone</button>
-        <button class="smallBtn" id="observedTimingBtn">Mètre observé</button>
         <label class="microScale">impact
           <input type="range" id="timingStrength" min="0" max="2" step="0.05" value="1">
           <output id="timingStrengthOut">×1.00</output>
@@ -614,12 +673,25 @@ const DATA=__DATA__;
 const TAU=Math.PI*2;
 const state={
   piece:DATA.pieces[0],playVoice:"both",synthEnabled:false,synthVoice:"D1",
-  synthData:{},timingMode:"observed",timingStrength:1,volume:1.3,transformMessage:"",symmetryAxis:0,
-  libraryPiece:DATA.pieces[0],libraryLoaded:{D1:null,D2:null}
+  synthData:{},listeningMode:"recording",timingMode:"observed",timingStrength:1,volume:1.3,transformMessage:"",symmetryAxis:0,
+  libraryPiece:DATA.pieces[0],libraryLoaded:{D1:null,D2:null},
+  recordingTakeByPiece:Object.fromEntries(DATA.pieces.map(piece=>[
+    piece,DATA.recordings?.[piece]?.[0]?.take??null
+  ]))
 };
-const playback={active:false,step:.155,lookaheadMs:25,scheduleAhead:.11,raf:null,ctx:null,master:null,compressor:null,timer:null,nextStepTime:0,stepIndex:0,startTime:0,timeline:[]};
+const playback={
+  active:false,kind:null,step:.155,lookaheadMs:25,scheduleAhead:.11,raf:null,
+  ctx:null,master:null,compressor:null,timer:null,nextStepTime:0,stepIndex:0,
+  startTime:0,timeline:[],media:{},voiceGains:{}
+};
 
 function rhythm(piece=state.piece){return DATA.rhythms.find(r=>r.piece===piece) || DATA.rhythms[0];}
+function recordingOptions(piece=state.piece){return DATA.recordings?.[piece]||[];}
+function selectedRecording(piece=state.piece){
+  const options=recordingOptions(piece);
+  const take=state.recordingTakeByPiece[piece];
+  return options.find(item=>item.take===take)||options[0]||null;
+}
 function css(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
 function phaseDeg(rad){let d=rad*180/Math.PI;while(d>180)d-=360;while(d<=-180)d+=360;return d;}
 function signed(x,digits=2){return (x>=0?"+":"") + x.toFixed(digits);}
@@ -642,6 +714,28 @@ function applyVolume(){
   playback.master.gain.cancelScheduledValues(now);
   playback.master.gain.setTargetAtTime(state.volume,now,.025);
 }
+function renderRecordingTakeControl(){
+  const wrap=document.getElementById("recordingTakeWrap");
+  const select=document.getElementById("recordingTake");
+  const options=recordingOptions();
+  wrap.hidden=state.listeningMode!=="recording"||!options.length;
+  select.innerHTML="";
+  options.forEach(recording=>{
+    const option=document.createElement("option");
+    option.value=String(recording.take);
+    option.textContent=`${recording.take}`;
+    option.selected=selectedRecording()?.take===recording.take;
+    select.appendChild(option);
+  });
+  select.onchange=async()=>{
+    const wasPlaying=playback.active;
+    if(wasPlaying)stopPlayback();
+    state.recordingTakeByPiece[state.piece]=Number(select.value);
+    renderTimingControls();
+    drawCircle();
+    if(wasPlaying)await startPlayback();
+  };
+}
 function renderVolumeControl(){
   const slider=document.getElementById("volumeSlider");
   const output=document.getElementById("volumeOut");
@@ -654,7 +748,8 @@ function renderVolumeControl(){
   };
 }
 function timingAmount(){
-  return state.timingMode==="observed" ? state.timingStrength : 0;
+  if(state.listeningMode==="recording")return 1;
+  return state.listeningMode==="model" ? state.timingStrength : 0;
 }
 function metricTiming(piece=state.piece){
   return DATA.metricTiming?.[piece]||null;
@@ -822,7 +917,9 @@ function drawVariantPreview(canvas,motif,voice,axis){
   });
   g.restore();
 }
-function loadLibraryVariant(piece,voice,axis){
+async function loadLibraryVariant(piece,voice,axis){
+  const restartPlayback=playback.active&&piece!==state.piece;
+  if(restartPlayback)stopPlayback();
   const base=rhythm(piece).voices[voice].motif.slice();
   const motif=axis===null?base:mirroredMotif(base,axis);
   state.piece=piece;
@@ -836,6 +933,7 @@ function loadLibraryVariant(piece,voice,axis){
     ? `<b>${piece} · ${voice}</b> original chargé · l’autre voix est conservée`
     : `<b>${piece} · ${voice}</b> réflexion ${axis+1}–${axis+7} chargée · l’autre voix est conservée`;
   render();
+  if(restartPlayback)await startPlayback();
 }
 function renderSymmetryLibrary(){
   if(!DATA.pieces.includes(state.libraryPiece))state.libraryPiece=DATA.pieces[0];
@@ -1000,8 +1098,39 @@ function curveValueForVoice(voice,t){
 function motifForPlayback(voice){
   return state.synthEnabled ? synthMotif(voice) : rhythm().voices[voice].motif;
 }
+function subdivisionAtMetricPhase(phase){
+  const positions=metricPositions(),durations=metricDurations();
+  const wrapped=((phase%1)+1)%1;
+  let step=11;
+  for(let s=0;s<12;s++){
+    if(wrapped>=positions[s]&&wrapped<positions[s]+durations[s]){
+      step=s;
+      break;
+    }
+  }
+  return step+(wrapped-positions[step])/durations[step];
+}
+function corpusPlayheadPosition(){
+  const audio=playback.media.D1||playback.media.D2;
+  const starts=selectedRecording()?.cycleStarts||[];
+  if(!audio||!Number.isFinite(audio.currentTime)||starts.length<2)return null;
+  const time=audio.currentTime;
+  let index=-1;
+  for(let i=0;i<starts.length;i++){
+    if(starts[i]<=time)index=i;
+    else break;
+  }
+  if(index<0)return null;
+  const start=starts[index];
+  const previousDuration=index>0?start-starts[index-1]:starts[1]-starts[0];
+  const end=starts[index+1]??(start+previousDuration);
+  const phase=Math.max(0,Math.min(.999999,(time-start)/(end-start||1)));
+  return subdivisionAtMetricPhase(phase);
+}
 function playheadPosition(){
-  if(!playback.active||!playback.ctx)return null;
+  if(!playback.active)return null;
+  if(playback.kind==="recording")return corpusPlayheadPosition();
+  if(!playback.ctx)return null;
   const now=playback.ctx.currentTime;
   if(now<playback.startTime)return 0;
   let event=null;
@@ -1073,7 +1202,7 @@ function syncSynthModeButtons(){
   }
   if(liveTag){
     liveTag.textContent=state.synthEnabled
-      ? `${playback.active?"LIVE":"Édition"} · ${state.synthVoice}`
+      ? `${playback.active&&playback.kind==="synthetic"?"LIVE":"Édition"} · ${state.synthVoice}`
       : "Signal original";
     liveTag.className="modeTag"+(state.synthEnabled?" live":"");
   }
@@ -1190,6 +1319,7 @@ function renderVoicePicker(){
     b.onclick=()=>{
       state.playVoice=value;
       renderVoicePicker();
+      syncCorpusVoiceGains();
       drawCircle();
       drawCurve();
       drawMicroTiming();
@@ -1203,6 +1333,17 @@ function renderVoicePicker(){
       : `Écoute : ${playVoiceLabel()} · ${timingModeLabel()} · boucle continue jusqu'à l'arrêt.`;
 }
 
+async function selectPiece(piece){
+  if(piece===state.piece)return;
+  const wasPlaying=playback.active;
+  if(wasPlaying)stopPlayback();
+  state.piece=piece;
+  state.libraryPiece=piece;
+  state.libraryLoaded={D1:null,D2:null};
+  state.transformMessage="";
+  render();
+  if(wasPlaying)await startPlayback();
+}
 function renderTabs(){
   const nav=document.getElementById("tabs");
   nav.innerHTML="";
@@ -1210,13 +1351,7 @@ function renderTabs(){
     const b=document.createElement("button");
     b.className="tab"+(r.piece===state.piece?" on":"");
     b.textContent=r.piece;
-    b.onclick=()=>{
-      state.piece=r.piece;
-      state.libraryPiece=r.piece;
-      state.libraryLoaded={D1:null,D2:null};
-      state.transformMessage="";
-      render();
-    };
+    b.onclick=()=>selectPiece(r.piece);
     nav.appendChild(b);
   });
 }
@@ -1432,7 +1567,8 @@ function timingOffsetMs(voice,stepIndex){
   if(state.timingMode!=="observed")return 0;
   const value=microProfile(voice)?.mean?.[stepIndex];
   if(!Number.isFinite(value))return 0;
-  return Math.max(-100,Math.min(100,value*state.timingStrength));
+  const strength=state.listeningMode==="recording"?1:state.timingStrength;
+  return Math.max(-100,Math.min(100,value*strength));
 }
 function voiceResidualOffsetMs(voice,stepIndex){
   const value=microProfile(voice)?.mean?.[stepIndex];
@@ -1440,45 +1576,73 @@ function voiceResidualOffsetMs(voice,stepIndex){
   return timingOffsetMs(voice,stepIndex)-metricOffsetMs(stepIndex);
 }
 function timingModeLabel(){
-  return state.timingMode==="observed"
-    ? `mètre observé ×${state.timingStrength.toFixed(2)}`
-    : "mètre isochrone";
+  if(state.listeningMode==="recording"){
+    return `enregistrement · prise ${selectedRecording()?.take??"—"}`;
+  }
+  if(state.listeningMode==="model"){
+    return `modèle temporel moyen ×${state.timingStrength.toFixed(2)}`;
+  }
+  return "contrôle isochrone";
 }
-function setTimingMode(mode){
-  state.timingMode=mode;
+async function setListeningMode(mode){
+  const wasPlaying=playback.active;
+  if(wasPlaying)stopPlayback();
+  state.listeningMode=mode;
+  state.timingMode=mode==="grid"?"grid":"observed";
   renderTimingControls();
   drawCircle();
   drawCurve();
   drawMicroTiming();
   syncPlaybackUI();
+  if(wasPlaying)await startPlayback();
 }
 function renderTimingControls(){
   const grid=document.getElementById("gridTimingBtn");
   const observed=document.getElementById("observedTimingBtn");
+  const recording=document.getElementById("recordingTimingBtn");
   const circleGrid=document.getElementById("circleGridBtn");
   const circleObserved=document.getElementById("circleObservedBtn");
+  const circleRecording=document.getElementById("circleRecordingBtn");
   const slider=document.getElementById("timingStrength");
   const output=document.getElementById("timingStrengthOut");
-  [grid,circleGrid].forEach(button=>{
-    button.className="smallBtn"+(state.timingMode==="grid"?" on":"");
-    button.onclick=()=>setTimingMode("grid");
-  });
-  [observed,circleObserved].forEach(button=>{
-    button.className="smallBtn"+(state.timingMode==="observed"?" on":"");
-    button.onclick=()=>setTimingMode("observed");
+  [
+    ["recording",[recording,circleRecording]],
+    ["model",[observed,circleObserved]],
+    ["grid",[grid,circleGrid]]
+  ].forEach(([mode,buttons])=>{
+    buttons.forEach(button=>{
+      button.className="smallBtn"+(state.listeningMode===mode?" on":"");
+      button.onclick=()=>setListeningMode(mode);
+    });
   });
   slider.value=state.timingStrength;
-  output.textContent=`×${state.timingStrength.toFixed(2)}`;
+  slider.disabled=state.listeningMode!=="model";
+  output.textContent=state.listeningMode==="model"
+    ? `×${state.timingStrength.toFixed(2)}`
+    : "—";
   slider.oninput=()=>{
     state.timingStrength=Number(slider.value);
-    state.timingMode="observed";
     output.textContent=`×${state.timingStrength.toFixed(2)}`;
-    renderTimingControls();
     drawCircle();
     drawCurve();
     drawMicroTiming();
     syncPlaybackUI();
   };
+  renderRecordingTakeControl();
+  const recordingInfo=selectedRecording();
+  const note=document.getElementById("listeningNote");
+  if(state.listeningMode==="recording"){
+    note.innerHTML=
+      `<b>Enregistrement réel.</b> Prise ${recordingInfo?.take??"—"} du corpus : vrais timbres, variations de cycle, `+
+      `non-isochronie et asynchronie D1/D2. Les réglages du synthétiseur ne modifient pas cette piste de référence.`;
+  }else if(state.listeningMode==="model"){
+    note.innerHTML=
+      `<b>Modèle temporel moyen.</b> Le laboratoire moyenne les motifs et les positions annotées sur les prises appariées, `+
+      `puis répète toujours ce même cycle de 12 subdivisions avec des sons synthétiques.`;
+  }else{
+    note.innerHTML=
+      `<b>Contrôle isochrone.</b> Le même motif synthétique est replacé sur douze intervalles égaux pour isoler l’effet du timing humain.`;
+  }
 }
 function drawMicroTiming(){
   const cv=document.getElementById("microTiming"),g=cv.getContext("2d");
@@ -1546,9 +1710,12 @@ function drawMicroTiming(){
   });
   g.globalAlpha=1;
   const d1=microProfile("D1")?.precision,d2=microProfile("D2")?.precision;
+  const heardLabel=state.listeningMode==="recording"
+    ? `L’enregistrement réel varie à l’intérieur de cette distribution ; le point plein reste sa moyenne de référence.`
+    : `Point plein = placement entendu (${timingModeLabel()}).`;
   document.getElementById("microCaption").innerHTML=
     `La roue montre le mètre moyen de l’ensemble ; ce graphe sépare les écarts propres à D1 et D2. `+
-    `Cercle vide + barre = moyenne et dispersion observées. Point plein = placement entendu (${timingModeLabel()}). `+
+    `Cercle vide + barre = moyenne et dispersion observées. ${heardLabel} `+
     `Précision résiduelle : D1 ${Number.isFinite(d1)?d1.toFixed(1):"—"} ms, D2 ${Number.isFinite(d2)?d2.toFixed(1):"—"} ms.`;
 }
 
@@ -1582,12 +1749,7 @@ function drawMap(){
       const d=(x-mx)**2+(y-my)**2;
       if(d<bd){bd=d;best=pt;}
     });
-    if(best&&bd<1100){
-      state.piece=best.piece;
-      state.libraryPiece=best.piece;
-      state.libraryLoaded={D1:null,D2:null};
-      render();
-    }
+    if(best&&bd<1100)selectPiece(best.piece);
   };
 }
 
@@ -1640,7 +1802,7 @@ function scheduleSubdivision(stepIndex,time){
 }
 
 function audioScheduler(){
-  if(!playback.active||!playback.ctx)return;
+  if(!playback.active||playback.kind!=="synthetic"||!playback.ctx)return;
   while(playback.nextStepTime<playback.ctx.currentTime+playback.scheduleAhead){
     const step=playback.stepIndex;
     const duration=metricDurations()[step]*12*playback.step;
@@ -1654,11 +1816,45 @@ function audioScheduler(){
   playback.timeline=playback.timeline.filter(event=>event.end>=cutoff).slice(-48);
 }
 
+function syncCorpusVoiceGains(){
+  if(playback.kind!=="recording"||!playback.ctx)return;
+  const audible=new Set(selectedVoices());
+  const now=playback.ctx.currentTime;
+  ["D1","D2"].forEach(voice=>{
+    const gain=playback.voiceGains[voice];
+    if(gain)gain.gain.setTargetAtTime(audible.has(voice)?1:0,now,.015);
+  });
+}
+function recordingBounds(recording=selectedRecording()){
+  const starts=recording?.cycleStarts||[];
+  if(starts.length<2)return {start:0,end:Infinity};
+  const durations=starts.slice(1).map((value,index)=>value-starts[index]);
+  const sorted=durations.slice().sort((a,b)=>a-b);
+  const median=sorted[Math.floor(sorted.length/2)]||durations[0];
+  return {start:starts[0],end:starts[starts.length-1]+median};
+}
+function syncCorpusPlayback(){
+  if(!playback.active||playback.kind!=="recording")return;
+  const d1=playback.media.D1,d2=playback.media.D2;
+  if(!d1||!d2)return;
+  const bounds=recordingBounds();
+  if(d1.currentTime>=bounds.end||d2.currentTime>=bounds.end){
+    d1.currentTime=bounds.start;
+    d2.currentTime=bounds.start;
+  }else if(Math.abs(d1.currentTime-d2.currentTime)>.025){
+    d2.currentTime=d1.currentTime;
+  }
+}
+
 function syncPlaybackUI(){
   const btn=document.getElementById("playBtn");
   const status=document.getElementById("liveStatus");
   if(btn){
-    btn.textContent=playback.active?"■ Arrêter la boucle":"▶ Lancer la boucle";
+    btn.textContent=playback.active
+      ?"■ Arrêter l’écoute"
+      :state.listeningMode==="recording"
+        ?"▶ Lire l’enregistrement"
+        :"▶ Lancer la boucle";
     btn.className="play"+(playback.active?" playing":"");
   }
   if(status){
@@ -1667,9 +1863,15 @@ function syncPlaybackUI(){
   }
   const caption=document.getElementById("playCaption");
   if(caption){
-    caption.textContent=playback.active
-      ? `Boucle continue · ${playVoiceLabel()} · ${timingModeLabel()} · réglages audibles au prochain pas.`
-      : `Écoute : ${playVoiceLabel()} · ${timingModeLabel()} · boucle continue jusqu'à l'arrêt.`;
+    if(state.listeningMode==="recording"){
+      caption.textContent=playback.active
+        ? `Lecture réelle · ${playVoiceLabel()} · prise ${selectedRecording()?.take??"—"} · D1/D2 synchronisés.`
+        : `Référence réelle · ${playVoiceLabel()} · prise ${selectedRecording()?.take??"—"}.`;
+    }else{
+      caption.textContent=playback.active
+        ? `Boucle synthétique · ${playVoiceLabel()} · ${timingModeLabel()} · réglages audibles au prochain pas.`
+        : `Écoute synthétique · ${playVoiceLabel()} · ${timingModeLabel()}.`;
+    }
   }
   syncSynthModeButtons();
 }
@@ -1681,10 +1883,16 @@ function stopPlayback(){
   if(playback.raf)cancelAnimationFrame(playback.raf);
   playback.timer=null;
   playback.raf=null;
+  Object.values(playback.media).forEach(audio=>{
+    try{audio.pause();}catch(_){}
+  });
+  playback.kind=null;
   playback.ctx=null;
   playback.master=null;
   playback.compressor=null;
   playback.timeline=[];
+  playback.media={};
+  playback.voiceGains={};
   if(ctx)ctx.close().catch(()=>{});
   syncPlaybackUI();
   drawCircle();
@@ -1692,12 +1900,7 @@ function stopPlayback(){
   drawMicroTiming();
 }
 
-async function startPlayback(){
-  const AudioCtx=window.AudioContext||window.webkitAudioContext;
-  if(!AudioCtx){alert("Audio Web non disponible dans ce navigateur.");return;}
-  const ctx=new AudioCtx();
-  playback.ctx=ctx;
-  await ctx.resume();
+function configureMaster(ctx){
   playback.master=ctx.createGain();
   playback.compressor=ctx.createDynamicsCompressor();
   playback.compressor.threshold.setValueAtTime(-8,ctx.currentTime);
@@ -1708,6 +1911,50 @@ async function startPlayback(){
   playback.master.gain.setValueAtTime(state.volume,ctx.currentTime);
   playback.master.connect(playback.compressor);
   playback.compressor.connect(ctx.destination);
+}
+async function startCorpusPlayback(AudioCtx){
+  const recording=selectedRecording();
+  if(!recording){
+    alert("Aucune prise D1/D2 réelle n’est disponible pour ce rythme.");
+    return;
+  }
+  const ctx=new AudioCtx();
+  playback.ctx=ctx;
+  await ctx.resume();
+  configureMaster(ctx);
+  playback.kind="recording";
+  playback.media={};
+  playback.voiceGains={};
+  const bounds=recordingBounds(recording);
+  for(const voice of ["D1","D2"]){
+    const audio=new Audio(new URL(recording[voice],location.href).href);
+    audio.preload="auto";
+    const source=ctx.createMediaElementSource(audio);
+    const gain=ctx.createGain();
+    source.connect(gain);gain.connect(playback.master);
+    playback.media[voice]=audio;
+    playback.voiceGains[voice]=gain;
+  }
+  syncCorpusVoiceGains();
+  playback.active=true;
+  try{
+    await Promise.all(Object.values(playback.media).map(audio=>audio.play()));
+    Object.values(playback.media).forEach(audio=>{audio.currentTime=bounds.start;});
+  }catch(error){
+    stopPlayback();
+    alert(`Lecture de l’enregistrement impossible : ${error.message}`);
+    return;
+  }
+  playback.timer=setInterval(syncCorpusPlayback,120);
+  syncPlaybackUI();
+  animatePlayback();
+}
+async function startSyntheticPlayback(AudioCtx){
+  const ctx=new AudioCtx();
+  playback.ctx=ctx;
+  await ctx.resume();
+  configureMaster(ctx);
+  playback.kind="synthetic";
   playback.active=true;
   playback.stepIndex=0;
   playback.startTime=ctx.currentTime+.13;
@@ -1717,6 +1964,12 @@ async function startPlayback(){
   playback.timer=setInterval(audioScheduler,playback.lookaheadMs);
   syncPlaybackUI();
   animatePlayback();
+}
+async function startPlayback(){
+  const AudioCtx=window.AudioContext||window.webkitAudioContext;
+  if(!AudioCtx){alert("Audio Web non disponible dans ce navigateur.");return;}
+  if(state.listeningMode==="recording")await startCorpusPlayback(AudioCtx);
+  else await startSyntheticPlayback(AudioCtx);
 }
 
 async function togglePlayback(){

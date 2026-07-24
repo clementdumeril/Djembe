@@ -19,8 +19,8 @@ Le projet est un prototype de recherche avancé :
 - boussole des rythmes avec trois équations LaTeX D1/D2 comparables, courbes
   de modèle, boucle audio continue, transformations orthogonale/symétrique et
   synthétiseur repliable, catalogue combinatoire D1/D2 des variantes
-  symétriques, comparaison interactive entre grille isochrone, mètre observé
-  et micro-asynchronie D1/D2.
+  symétriques, écoute des enregistrements réels D1/D2 et comparaison avec le
+  modèle temporel moyen et le contrôle isochrone.
 
 Les données brutes et sorties générées ne sont pas versionnées dans Git : elles
 sont lourdes, régénérables, et liées à la licence du corpus.
