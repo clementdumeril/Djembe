@@ -314,6 +314,9 @@ h1{font-family:Georgia,Times,serif;font-size:clamp(2.2rem,4vw,3.65rem);line-heig
 .voicePicker{display:flex;gap:3px;align-items:center;border:1px solid var(--line);background:var(--soft);border-radius:11px;padding:3px}
 .voiceBtn{appearance:none;border:0;background:transparent;color:var(--muted);border-radius:8px;padding:6px 9px;cursor:pointer;font-weight:800;font-size:.78rem}
 .voiceBtn.on{background:var(--ink);color:var(--paper)}
+.volumeControl{display:grid;grid-template-columns:auto 82px 38px;align-items:center;gap:6px;color:var(--muted);font-size:.72rem;font-weight:750}
+.volumeControl input{width:82px;accent-color:var(--accent)}
+.volumeControl output{color:var(--ink);font-variant-numeric:tabular-nums;text-align:right}
 .liveStatus{display:inline-flex;align-items:center;gap:7px;color:var(--muted);font-size:.78rem;min-width:82px}
 .liveStatus i{width:8px;height:8px;border-radius:50%;background:var(--line)}
 .liveStatus.on{color:var(--live);font-weight:850}.liveStatus.on i{background:var(--live);box-shadow:0 0 0 5px color-mix(in srgb,var(--live) 14%,transparent)}
@@ -424,6 +427,10 @@ canvas{display:block;width:100%;height:auto}
   <div class="transport">
     <button class="play" id="playBtn">▶ Lancer la boucle</button>
     <div class="voicePicker" id="voicePicker"></div>
+    <label class="volumeControl">volume
+      <input type="range" id="volumeSlider" min="0" max="200" step="5" value="130">
+      <output id="volumeOut">130 %</output>
+    </label>
     <span class="liveStatus" id="liveStatus"><i></i><span>Prêt</span></span>
     <div class="playCaption" id="playCaption">Les modifications seront audibles en direct.</div>
   </div>
@@ -549,9 +556,9 @@ const DATA=__DATA__;
 const TAU=Math.PI*2;
 const state={
   piece:DATA.pieces[0],playVoice:"both",synthEnabled:false,synthVoice:"D1",
-  synthData:{},timingMode:"observed",timingStrength:1,transformMessage:"",symmetryAxis:0
+  synthData:{},timingMode:"observed",timingStrength:1,volume:1.3,transformMessage:"",symmetryAxis:0
 };
-const playback={active:false,step:.155,lookaheadMs:25,scheduleAhead:.11,raf:null,ctx:null,master:null,timer:null,nextStepTime:0,stepIndex:0,startTime:0,timeline:[]};
+const playback={active:false,step:.155,lookaheadMs:25,scheduleAhead:.11,raf:null,ctx:null,master:null,compressor:null,timer:null,nextStepTime:0,stepIndex:0,startTime:0,timeline:[]};
 
 function rhythm(piece=state.piece){return DATA.rhythms.find(r=>r.piece===piece) || DATA.rhythms[0];}
 function css(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
@@ -569,6 +576,23 @@ function selectedVoices(){
 }
 function playVoiceLabel(){
   return state.playVoice==="both" ? "D1+D2" : state.playVoice;
+}
+function applyVolume(){
+  if(!playback.master||!playback.ctx)return;
+  const now=playback.ctx.currentTime;
+  playback.master.gain.cancelScheduledValues(now);
+  playback.master.gain.setTargetAtTime(state.volume,now,.025);
+}
+function renderVolumeControl(){
+  const slider=document.getElementById("volumeSlider");
+  const output=document.getElementById("volumeOut");
+  slider.value=Math.round(state.volume*100);
+  output.textContent=`${Math.round(state.volume*100)} %`;
+  slider.oninput=()=>{
+    state.volume=Number(slider.value)/100;
+    output.textContent=`${slider.value} %`;
+    applyVolume();
+  };
 }
 function timingAmount(){
   return state.timingMode==="observed" ? state.timingStrength : 0;
@@ -1435,6 +1459,7 @@ function stopPlayback(){
   playback.raf=null;
   playback.ctx=null;
   playback.master=null;
+  playback.compressor=null;
   playback.timeline=[];
   if(ctx)ctx.close().catch(()=>{});
   syncPlaybackUI();
@@ -1450,8 +1475,15 @@ async function startPlayback(){
   playback.ctx=ctx;
   await ctx.resume();
   playback.master=ctx.createGain();
-  playback.master.gain.setValueAtTime(.82,ctx.currentTime);
-  playback.master.connect(ctx.destination);
+  playback.compressor=ctx.createDynamicsCompressor();
+  playback.compressor.threshold.setValueAtTime(-8,ctx.currentTime);
+  playback.compressor.knee.setValueAtTime(8,ctx.currentTime);
+  playback.compressor.ratio.setValueAtTime(6,ctx.currentTime);
+  playback.compressor.attack.setValueAtTime(.003,ctx.currentTime);
+  playback.compressor.release.setValueAtTime(.18,ctx.currentTime);
+  playback.master.gain.setValueAtTime(state.volume,ctx.currentTime);
+  playback.master.connect(playback.compressor);
+  playback.compressor.connect(ctx.destination);
   playback.active=true;
   playback.stepIndex=0;
   playback.startTime=ctx.currentTime+.13;
@@ -1480,6 +1512,7 @@ function animatePlayback(){
 function render(){
   renderTabs();
   renderVoicePicker();
+  renderVolumeControl();
   renderSynthControls();
   renderTimingControls();
   drawCircle();

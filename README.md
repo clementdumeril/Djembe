@@ -54,6 +54,13 @@ Scripts principaux :
 - `dunun_viz_V2.py` : visualisation dynamique ;
 - `boussole_rythmes_V2.py` : cercle D1/D2 + équations complexes LaTeX sur prises appariées.
 
+Les notebooks constituent le **laboratoire scientifique** : ils explorent,
+documentent et valident les méthodes. La Boussole est l'interface interactive
+issue de ce laboratoire. Elle ne lance pas directement les notebooks dans le
+navigateur : `boussole_rythmes_V2.py` reprend leurs calculs stabilisés et génère
+une page autonome. Les notebooks 05–06 fondent la partie temporelle ; le
+notebook 07 fonde les coefficients de Fourier et l'équation complexe.
+
 ## Point méthodologique important : D2
 
 D2 n'est **pas disponible sur toutes les prises**. Ce n'est pas un bug : c'est
