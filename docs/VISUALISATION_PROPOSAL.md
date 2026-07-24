@@ -231,6 +231,24 @@ deux à deux. Par exemple, pour l'axe `1–7`, `2↔12`, `3↔11`, `4↔10`,
 `5↔9` et `6↔8`. Il s'agit d'une permutation : aucune frappe n'est ajoutée et
 la densité totale est conservée.
 
+## Dossier des variantes symétriques
+
+Le laboratoire contient un catalogue repliable pour Manjanin, Maraka et
+Woloso, séparément pour D1 et D2. Il présente l'orbite finie du motif sous les
+six réflexions disponibles :
+
+`O(x) = {x, M0(x), M1(x), ..., M5(x)}`.
+
+Le dossier affiche donc sept configurations par couple rythme/voix, signale
+les éventuels doublons lorsqu'un motif est invariant sous une réflexion, puis
+permet de charger chaque configuration dans le synthétiseur. La variante est
+alors reconvertie en coefficients complexes et reste entièrement modifiable.
+
+Ce catalogue n'essaie pas d'énumérer toutes les sorties du synthétiseur : les
+valeurs continues de `ρ`, `|ck|` et `arg(ck)` définissent une infinité de
+combinaisons. Il inventorie seulement la famille finie, reproductible et
+interprétable produite par les six axes de symétrie actuels.
+
 ## Étudier l'impact du micro-timing
 
 Le motif répond à **où** une frappe existe dans les 12 subdivisions. Le
