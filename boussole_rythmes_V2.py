@@ -222,6 +222,91 @@ def _metric_timing_profiles(rhythms):
     return out
 
 
+def _take_cycles(piece: str, take: int):
+    """Cycles annotes, avec frappes D1/D2 exactes dans le temps de la prise."""
+    selected = u.load_selected(piece, int(take))
+    if selected is None or not {"Label SD", "SD"}.issubset(selected.columns):
+        return []
+
+    selected = selected.copy()
+    time_cols = [c for c in ("J1", "J2", "D1", "D2") if c in selected.columns]
+    if not time_cols:
+        return []
+
+    selected["cycle_id"] = (
+        selected["Label SD"].astype(str).str.split("|", regex=False).str[0]
+    )
+    selected["reference"] = selected[time_cols].mean(axis=1, skipna=True)
+    grouped_cycles = list(selected.groupby("cycle_id", sort=False))
+    out = []
+
+    for idx in range(len(grouped_cycles) - 1):
+        label, cycle = grouped_cycles[idx]
+        next_cycle = grouped_cycles[idx + 1][1]
+        start_values = cycle.loc[cycle["SD"] == 1, "reference"].dropna()
+        next_values = next_cycle.loc[next_cycle["SD"] == 1, "reference"].dropna()
+        if start_values.empty or next_values.empty:
+            continue
+
+        start = float(start_values.iloc[0])
+        end = float(next_values.iloc[0])
+        duration = end - start
+        if not 0.5 < duration < 5.0:
+            continue
+
+        positions = [None] * 12
+        events = []
+        for row in cycle.itertuples(index=False):
+            sd = int(getattr(row, "SD"))
+            if not 1 <= sd <= 12:
+                continue
+
+            ref = getattr(row, "reference")
+            if pd.notna(ref):
+                relative = (float(ref) - start) / duration
+                positions[sd - 1] = min(0.999999, max(0.0, relative))
+
+            for voice in ("D1", "D2"):
+                if voice not in cycle.columns:
+                    continue
+                value = getattr(row, voice)
+                if pd.isna(value):
+                    continue
+                event_time = float(value) - start
+                if -0.06 <= event_time <= duration + 0.06:
+                    events.append({
+                        "voice": voice,
+                        "sd": sd - 1,
+                        "time": round(float(min(duration, max(0.0, event_time))), 5),
+                    })
+
+        if not events:
+            continue
+        for sd in range(12):
+            if positions[sd] is None:
+                positions[sd] = sd / 12
+        positions = np.asarray(positions, dtype=float)
+        positions[0] = 0.0
+        positions = np.maximum.accumulate(positions)
+        positions = np.minimum(positions, 0.999999)
+        events = sorted(events, key=lambda event: (event["time"], event["voice"]))
+        out.append({
+            "index": len(out),
+            "label": str(label),
+            "start": round(start, 5),
+            "end": round(end, 5),
+            "duration": round(duration, 5),
+            "positions": [round(float(x), 6) for x in positions],
+            "events": events,
+            "eventCounts": {
+                voice: int(sum(1 for event in events if event["voice"] == voice))
+                for voice in ("D1", "D2")
+            },
+        })
+
+    return out
+
+
 def _corpus_recordings(rhythms):
     """Pistes D1/D2 réelles et départs de cycles pour les prises appariées."""
     out = {}
@@ -236,34 +321,17 @@ def _corpus_recordings(rhythms):
             if not all(os.path.exists(path) for path in paths.values()):
                 continue
 
-            cycle_starts = []
-            selected = u.load_selected(piece, int(take))
-            if selected is not None and {"Label SD", "SD"}.issubset(selected.columns):
-                selected = selected.copy()
-                time_cols = [
-                    col for col in ("J1", "J2", "D1", "D2")
-                    if col in selected.columns
-                ]
-                if time_cols:
-                    selected["cycle_id"] = (
-                        selected["Label SD"].astype(str)
-                        .str.split("|", regex=False).str[0]
-                    )
-                    selected["reference"] = selected[time_cols].mean(
-                        axis=1, skipna=True
-                    )
-                    for _, cycle in selected.groupby("cycle_id", sort=False):
-                        values = cycle.loc[
-                            cycle["SD"] == 1, "reference"
-                        ].dropna()
-                        if not values.empty:
-                            cycle_starts.append(round(float(values.iloc[0]), 5))
+            cycles = _take_cycles(piece, int(take))
+            cycle_starts = [cycle["start"] for cycle in cycles]
+            if cycles:
+                cycle_starts.append(cycles[-1]["end"])
 
             entries.append({
                 "take": int(take),
                 "D1": "../" + paths["D1"].replace("\\", "/"),
                 "D2": "../" + paths["D2"].replace("\\", "/"),
                 "cycleStarts": cycle_starts,
+                "cycles": cycles,
             })
         if entries:
             out[piece] = entries
@@ -363,12 +431,14 @@ h1{font-family:Georgia,Times,serif;font-size:clamp(2.2rem,4vw,3.65rem);line-heig
 .voicePicker{display:flex;gap:3px;align-items:center;border:1px solid var(--line);background:var(--soft);border-radius:11px;padding:3px}
 .voiceBtn{appearance:none;border:0;background:transparent;color:var(--muted);border-radius:8px;padding:6px 9px;cursor:pointer;font-weight:800;font-size:.78rem}
 .voiceBtn.on{background:var(--ink);color:var(--paper)}
-.volumeControl{display:grid;grid-template-columns:auto 82px 38px;align-items:center;gap:6px;color:var(--muted);font-size:.72rem;font-weight:750}
-.volumeControl input{width:82px;accent-color:var(--accent)}
-.volumeControl output{color:var(--ink);font-variant-numeric:tabular-nums;text-align:right}
-.takePicker{display:flex;align-items:center;gap:5px;color:var(--muted);font-size:.72rem;font-weight:750}
-.takePicker select{border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:8px;padding:5px 7px;font-size:.75rem}
-.takePicker[hidden]{display:none}
+.volumeControl,.mixControl{display:grid;grid-template-columns:auto 82px 44px;align-items:center;gap:6px;color:var(--muted);font-size:.72rem;font-weight:750}
+.mixControl{grid-template-columns:auto 88px 54px}
+.volumeControl input,.mixControl input{width:82px;accent-color:var(--accent)}
+.mixControl input{width:88px}
+.volumeControl output,.mixControl output{color:var(--ink);font-variant-numeric:tabular-nums;text-align:right}
+.takePicker,.cyclePicker{display:flex;align-items:center;gap:5px;color:var(--muted);font-size:.72rem;font-weight:750}
+.takePicker select,.cyclePicker select{border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:8px;padding:5px 7px;font-size:.75rem}
+.takePicker[hidden],.cyclePicker[hidden],.mixControl[hidden]{display:none}
 .liveStatus{display:inline-flex;align-items:center;gap:7px;color:var(--muted);font-size:.78rem;min-width:82px}
 .liveStatus i{width:8px;height:8px;border-radius:50%;background:var(--line)}
 .liveStatus.on{color:var(--live);font-weight:850}.liveStatus.on i{background:var(--live);box-shadow:0 0 0 5px color-mix(in srgb,var(--live) 14%,transparent)}
@@ -520,6 +590,13 @@ canvas{display:block;width:100%;height:auto}
     <label class="takePicker" id="recordingTakeWrap">prise
       <select id="recordingTake" aria-label="Prise réelle du corpus"></select>
     </label>
+    <label class="cyclePicker" id="recordingCycleWrap">cycle
+      <select id="recordingCycle" aria-label="Cycle annoté de la prise"></select>
+    </label>
+    <label class="mixControl" id="reconstructionMixWrap">A/B
+      <input type="range" id="reconstructionMix" min="0" max="100" step="5" value="50">
+      <output id="reconstructionMixOut">50/50</output>
+    </label>
     <label class="volumeControl">volume
       <input type="range" id="volumeSlider" min="0" max="200" step="5" value="130">
       <output id="volumeOut">130 %</output>
@@ -536,6 +613,7 @@ canvas{display:block;width:100%;height:auto}
       <div class="metricControlGroup">
         <div class="metricPicker" aria-label="Temporalité du cercle">
           <button class="smallBtn" id="circleRecordingBtn">Enregistrement</button>
+          <button class="smallBtn" id="circleReconstructionBtn">Reconstruction</button>
           <button class="smallBtn" id="circleObservedBtn">Modèle moyen</button>
           <button class="smallBtn" id="circleGridBtn">Isochrone</button>
         </div>
@@ -626,6 +704,7 @@ canvas{display:block;width:100%;height:auto}
       <div><h2>Temporalité observée</h2></div>
       <div class="microControls">
         <button class="smallBtn" id="recordingTimingBtn">Enregistrement</button>
+        <button class="smallBtn" id="reconstructionTimingBtn">Reconstruction</button>
         <button class="smallBtn" id="observedTimingBtn">Modèle moyen</button>
         <button class="smallBtn" id="gridTimingBtn">Isochrone</button>
         <label class="microScale">impact
@@ -673,8 +752,9 @@ const DATA=__DATA__;
 const TAU=Math.PI*2;
 const state={
   piece:DATA.pieces[0],playVoice:"both",synthEnabled:false,synthVoice:"D1",
-  synthData:{},listeningMode:"recording",timingMode:"observed",timingStrength:1,volume:1.3,transformMessage:"",symmetryAxis:0,
+  synthData:{},listeningMode:"recording",timingMode:"observed",timingStrength:1,volume:1.3,reconstructionMix:.5,transformMessage:"",symmetryAxis:0,
   libraryPiece:DATA.pieces[0],libraryLoaded:{D1:null,D2:null},
+  recordingCycleByKey:{},
   recordingTakeByPiece:Object.fromEntries(DATA.pieces.map(piece=>[
     piece,DATA.recordings?.[piece]?.[0]?.take??null
   ]))
@@ -682,7 +762,8 @@ const state={
 const playback={
   active:false,kind:null,step:.155,lookaheadMs:25,scheduleAhead:.11,raf:null,
   ctx:null,master:null,compressor:null,timer:null,nextStepTime:0,stepIndex:0,
-  startTime:0,timeline:[],media:{},voiceGains:{}
+  startTime:0,timeline:[],media:{},voiceGains:{},reconstructionGain:null,
+  cycle:null,nextEventIndex:0
 };
 
 function rhythm(piece=state.piece){return DATA.rhythms.find(r=>r.piece===piece) || DATA.rhythms[0];}
@@ -691,6 +772,27 @@ function selectedRecording(piece=state.piece){
   const options=recordingOptions(piece);
   const take=state.recordingTakeByPiece[piece];
   return options.find(item=>item.take===take)||options[0]||null;
+}
+function recordingKey(piece=state.piece,recording=selectedRecording(piece)){
+  return `${piece}:${recording?.take??"none"}`;
+}
+function recordingCycles(recording=selectedRecording()){
+  return recording?.cycles||[];
+}
+function selectedCycleIndex(recording=selectedRecording(),piece=state.piece){
+  const cycles=recordingCycles(recording);
+  if(!cycles.length)return -1;
+  const key=recordingKey(piece,recording);
+  const stored=Number(state.recordingCycleByKey[key]??0);
+  return Math.max(0,Math.min(cycles.length-1,Number.isFinite(stored)?stored:0));
+}
+function selectedCycle(recording=selectedRecording(),piece=state.piece){
+  const index=selectedCycleIndex(recording,piece);
+  return index<0 ? null : recordingCycles(recording)[index];
+}
+function selectedCycleLabel(recording=selectedRecording(),piece=state.piece){
+  const cycle=selectedCycle(recording,piece), index=selectedCycleIndex(recording,piece);
+  return cycle ? `cycle ${index+1}` : "cycle —";
 }
 function css(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
 function phaseDeg(rad){let d=rad*180/Math.PI;while(d>180)d-=360;while(d<=-180)d+=360;return d;}
@@ -718,7 +820,7 @@ function renderRecordingTakeControl(){
   const wrap=document.getElementById("recordingTakeWrap");
   const select=document.getElementById("recordingTake");
   const options=recordingOptions();
-  wrap.hidden=state.listeningMode!=="recording"||!options.length;
+  wrap.hidden=!["recording","reconstruction"].includes(state.listeningMode)||!options.length;
   select.innerHTML="";
   options.forEach(recording=>{
     const option=document.createElement("option");
@@ -736,6 +838,53 @@ function renderRecordingTakeControl(){
     if(wasPlaying)await startPlayback();
   };
 }
+function renderRecordingCycleControl(){
+  const wrap=document.getElementById("recordingCycleWrap");
+  const select=document.getElementById("recordingCycle");
+  const recording=selectedRecording();
+  const cycles=recordingCycles(recording);
+  wrap.hidden=!["recording","reconstruction"].includes(state.listeningMode)||!cycles.length;
+  select.innerHTML="";
+  cycles.forEach((cycle,index)=>{
+    const option=document.createElement("option");
+    option.value=String(index);
+    option.textContent=`${index+1} · ${cycle.duration.toFixed(3)} s · D1 ${cycle.eventCounts?.D1??0} / D2 ${cycle.eventCounts?.D2??0}`;
+    option.selected=index===selectedCycleIndex(recording);
+    select.appendChild(option);
+  });
+  select.onchange=async()=>{
+    const wasPlaying=playback.active;
+    if(wasPlaying)stopPlayback();
+    state.recordingCycleByKey[recordingKey()]=Number(select.value);
+    renderTimingControls();
+    drawCircle();
+    drawCurve();
+    drawMicroTiming();
+    if(wasPlaying)await startPlayback();
+  };
+}
+function applyReconstructionMix(){
+  if(!playback.ctx)return;
+  const now=playback.ctx.currentTime;
+  if(playback.reconstructionGain){
+    playback.reconstructionGain.gain.setTargetAtTime(state.reconstructionMix,now,.025);
+  }
+  syncCorpusVoiceGains();
+}
+function renderReconstructionMixControl(){
+  const wrap=document.getElementById("reconstructionMixWrap");
+  const slider=document.getElementById("reconstructionMix");
+  const output=document.getElementById("reconstructionMixOut");
+  wrap.hidden=state.listeningMode!=="reconstruction";
+  slider.value=Math.round(state.reconstructionMix*100);
+  output.textContent=`${Math.round((1-state.reconstructionMix)*100)}/${Math.round(state.reconstructionMix*100)}`;
+  slider.oninput=()=>{
+    state.reconstructionMix=Number(slider.value)/100;
+    output.textContent=`${Math.round((1-state.reconstructionMix)*100)}/${Math.round(state.reconstructionMix*100)}`;
+    applyReconstructionMix();
+    syncPlaybackUI();
+  };
+}
 function renderVolumeControl(){
   const slider=document.getElementById("volumeSlider");
   const output=document.getElementById("volumeOut");
@@ -748,7 +897,7 @@ function renderVolumeControl(){
   };
 }
 function timingAmount(){
-  if(state.listeningMode==="recording")return 1;
+  if(state.listeningMode==="recording"||state.listeningMode==="reconstruction")return 1;
   return state.listeningMode==="model" ? state.timingStrength : 0;
 }
 function metricTiming(piece=state.piece){
@@ -1099,37 +1248,43 @@ function motifForPlayback(voice){
   return state.synthEnabled ? synthMotif(voice) : rhythm().voices[voice].motif;
 }
 function subdivisionAtMetricPhase(phase){
-  const positions=metricPositions(),durations=metricDurations();
+  return subdivisionAtPositions(phase,metricPositions(),metricDurations());
+}
+function subdivisionAtPositions(phase,positions,durations=null){
+  const resolvedDurations=durations||positions.map((position,index)=>{
+    const next=positions[index+1]??1;
+    return Math.max(1e-6,next-position);
+  });
   const wrapped=((phase%1)+1)%1;
   let step=11;
   for(let s=0;s<12;s++){
-    if(wrapped>=positions[s]&&wrapped<positions[s]+durations[s]){
+    if(wrapped>=positions[s]&&wrapped<positions[s]+resolvedDurations[s]){
       step=s;
       break;
     }
   }
-  return step+(wrapped-positions[step])/durations[step];
+  return step+(wrapped-positions[step])/(resolvedDurations[step]||1/12);
+}
+function subdivisionAtCyclePhase(phase,cycle=selectedCycle()){
+  if(!cycle?.positions?.length)return subdivisionAtMetricPhase(phase);
+  return subdivisionAtPositions(phase,cycle.positions);
+}
+function corpusPlaybackPhase(){
+  if(!["recording","reconstruction"].includes(playback.kind))return null;
+  const audio=playback.media.D1||playback.media.D2;
+  const cycle=playback.cycle||selectedCycle();
+  if(!audio||!cycle||!Number.isFinite(audio.currentTime))return null;
+  const duration=cycle.duration||(cycle.end-cycle.start)||1;
+  return Math.max(0,Math.min(.999999,(audio.currentTime-cycle.start)/duration));
 }
 function corpusPlayheadPosition(){
-  const audio=playback.media.D1||playback.media.D2;
-  const starts=selectedRecording()?.cycleStarts||[];
-  if(!audio||!Number.isFinite(audio.currentTime)||starts.length<2)return null;
-  const time=audio.currentTime;
-  let index=-1;
-  for(let i=0;i<starts.length;i++){
-    if(starts[i]<=time)index=i;
-    else break;
-  }
-  if(index<0)return null;
-  const start=starts[index];
-  const previousDuration=index>0?start-starts[index-1]:starts[1]-starts[0];
-  const end=starts[index+1]??(start+previousDuration);
-  const phase=Math.max(0,Math.min(.999999,(time-start)/(end-start||1)));
-  return subdivisionAtMetricPhase(phase);
+  const phase=corpusPlaybackPhase();
+  if(phase===null)return null;
+  return subdivisionAtCyclePhase(phase,playback.cycle||selectedCycle());
 }
 function playheadPosition(){
   if(!playback.active)return null;
-  if(playback.kind==="recording")return corpusPlayheadPosition();
+  if(playback.kind==="recording"||playback.kind==="reconstruction")return corpusPlayheadPosition();
   if(!playback.ctx)return null;
   const now=playback.ctx.currentTime;
   if(now<playback.startTime)return 0;
@@ -1144,6 +1299,11 @@ function playheadPosition(){
   if(!event)return 0;
   const fraction=Math.max(0,Math.min(1,(now-event.time)/(event.end-event.time||1)));
   return event.step+fraction;
+}
+function playheadCirclePhase(position){
+  const phase=corpusPlaybackPhase();
+  if(phase!==null)return phase;
+  return position===null ? null : metricPhaseAtSubdivision(position);
 }
 
 function latexForRhythm(r){
@@ -1463,7 +1623,7 @@ function drawCircle(){
   });
 
   if(p!==null){
-    const a=metricPhaseAtSubdivision(p)*TAU-Math.PI/2, ca=Math.cos(a), sa=Math.sin(a);
+    const a=playheadCirclePhase(p)*TAU-Math.PI/2, ca=Math.cos(a), sa=Math.sin(a);
     let from=inner-42, to=outer+28;
     if(state.playVoice==="D1"){from=outer-42;to=outer+30;}
     if(state.playVoice==="D2"){from=inner-42;to=inner+30;}
@@ -1485,9 +1645,14 @@ function drawCircle(){
   const tripletText=triplet.map(value=>(value/tripletTotal*100).toFixed(1)+" %").join(" / ");
   const key=document.getElementById("metricKey");
   key.style.display=observedMode?"inline-flex":"none";
+  const temporalCaption=["recording","reconstruction"].includes(state.listeningMode)
+    ? `La barre noire suit ${selectedCycleLabel()} de la prise ${selectedRecording()?.take??"—"} ; les points restent le motif moyen D1/D2.`
+    : observedMode
+      ? "Les traits pointillés conservent la grille isochrone ; les points suivent les positions moyennes mesurées dans l’ensemble."
+      : "Les douze positions sont espacées régulièrement.";
   document.getElementById("circleCaption").innerHTML =
     `<b>${r.piece}</b> — prises appariées D1/D2 : ${r.takes.join(", ")}. `+
-    `${observedMode?"Les traits pointillés conservent la grille isochrone ; les points suivent les positions moyennes mesurées dans l’ensemble.":"Les douze positions sont espacées régulièrement."} `+
+    `${temporalCaption} `+
     `Proportions temporelles moyennes : ${tripletText}. `+
     `${state.synthEnabled?"Densités synthétisées":"Densités moyennes"} : D1 ${d1.density.toFixed(2)}, D2 ${d2.density.toFixed(2)} frappes/cycle.`;
 }
@@ -1577,7 +1742,10 @@ function voiceResidualOffsetMs(voice,stepIndex){
 }
 function timingModeLabel(){
   if(state.listeningMode==="recording"){
-    return `enregistrement · prise ${selectedRecording()?.take??"—"}`;
+    return `enregistrement · prise ${selectedRecording()?.take??"—"} · ${selectedCycleLabel()}`;
+  }
+  if(state.listeningMode==="reconstruction"){
+    return `reconstruction annotée · prise ${selectedRecording()?.take??"—"} · ${selectedCycleLabel()}`;
   }
   if(state.listeningMode==="model"){
     return `modèle temporel moyen ×${state.timingStrength.toFixed(2)}`;
@@ -1600,13 +1768,16 @@ function renderTimingControls(){
   const grid=document.getElementById("gridTimingBtn");
   const observed=document.getElementById("observedTimingBtn");
   const recording=document.getElementById("recordingTimingBtn");
+  const reconstruction=document.getElementById("reconstructionTimingBtn");
   const circleGrid=document.getElementById("circleGridBtn");
   const circleObserved=document.getElementById("circleObservedBtn");
   const circleRecording=document.getElementById("circleRecordingBtn");
+  const circleReconstruction=document.getElementById("circleReconstructionBtn");
   const slider=document.getElementById("timingStrength");
   const output=document.getElementById("timingStrengthOut");
   [
     ["recording",[recording,circleRecording]],
+    ["reconstruction",[reconstruction,circleReconstruction]],
     ["model",[observed,circleObserved]],
     ["grid",[grid,circleGrid]]
   ].forEach(([mode,buttons])=>{
@@ -1629,12 +1800,19 @@ function renderTimingControls(){
     syncPlaybackUI();
   };
   renderRecordingTakeControl();
+  renderRecordingCycleControl();
+  renderReconstructionMixControl();
   const recordingInfo=selectedRecording();
+  const cycleInfo=selectedCycle(recordingInfo);
   const note=document.getElementById("listeningNote");
   if(state.listeningMode==="recording"){
     note.innerHTML=
-      `<b>Enregistrement réel.</b> Prise ${recordingInfo?.take??"—"} du corpus : vrais timbres, variations de cycle, `+
-      `non-isochronie et asynchronie D1/D2. Les réglages du synthétiseur ne modifient pas cette piste de référence.`;
+      `<b>Enregistrement réel.</b> Prise ${recordingInfo?.take??"—"}, ${selectedCycleLabel(recordingInfo)} : vrais timbres, `+
+      `non-isochronie et asynchronie D1/D2. La boucle suit les bornes annotées du cycle sélectionné.`;
+  }else if(state.listeningMode==="reconstruction"){
+    note.innerHTML=
+      `<b>Reconstruction annotée.</b> Même prise, même cycle (${cycleInfo?.duration?.toFixed(3)??"—"} s), mais les frappes sont rejouées `+
+      `par le synthé aux timestamps D1/D2 exacts. Le mix A/B dose réel puis reconstruit.`;
   }else if(state.listeningMode==="model"){
     note.innerHTML=
       `<b>Modèle temporel moyen.</b> Le laboratoire moyenne les motifs et les positions annotées sur les prises appariées, `+
@@ -1712,7 +1890,9 @@ function drawMicroTiming(){
   const d1=microProfile("D1")?.precision,d2=microProfile("D2")?.precision;
   const heardLabel=state.listeningMode==="recording"
     ? `L’enregistrement réel varie à l’intérieur de cette distribution ; le point plein reste sa moyenne de référence.`
-    : `Point plein = placement entendu (${timingModeLabel()}).`;
+    : state.listeningMode==="reconstruction"
+      ? `La reconstruction suit le cycle annoté sélectionné ; le graphe reste la distribution moyenne du corpus.`
+      : `Point plein = placement entendu (${timingModeLabel()}).`;
   document.getElementById("microCaption").innerHTML=
     `La roue montre le mètre moyen de l’ensemble ; ce graphe sépare les écarts propres à D1 et D2. `+
     `Cercle vide + barre = moyenne et dispersion observées. ${heardLabel} `+
@@ -1788,7 +1968,8 @@ function hit(ctx,time,voice,amp){
   gain.gain.setValueAtTime(0.0001,time);
   gain.gain.exponentialRampToValueAtTime(Math.max(0.018,amp)*0.27,time+.006);
   gain.gain.exponentialRampToValueAtTime(0.0001,time+.18);
-  osc.connect(filter);filter.connect(gain);gain.connect(playback.master||ctx.destination);
+  const destination=playback.reconstructionGain||playback.master||ctx.destination;
+  osc.connect(filter);filter.connect(gain);gain.connect(destination);
   osc.start(time);osc.stop(time+.2);
 }
 
@@ -1817,15 +1998,21 @@ function audioScheduler(){
 }
 
 function syncCorpusVoiceGains(){
-  if(playback.kind!=="recording"||!playback.ctx)return;
+  if(!["recording","reconstruction"].includes(playback.kind)||!playback.ctx)return;
   const audible=new Set(selectedVoices());
   const now=playback.ctx.currentTime;
+  const realLevel=playback.kind==="reconstruction" ? 1-state.reconstructionMix : 1;
   ["D1","D2"].forEach(voice=>{
     const gain=playback.voiceGains[voice];
-    if(gain)gain.gain.setTargetAtTime(audible.has(voice)?1:0,now,.015);
+    if(gain)gain.gain.setTargetAtTime(audible.has(voice)?realLevel:0,now,.015);
   });
+  if(playback.reconstructionGain){
+    playback.reconstructionGain.gain.setTargetAtTime(state.reconstructionMix,now,.02);
+  }
 }
 function recordingBounds(recording=selectedRecording()){
+  const cycle=selectedCycle(recording);
+  if(cycle)return {start:cycle.start,end:cycle.end,duration:cycle.duration};
   const starts=recording?.cycleStarts||[];
   if(starts.length<2)return {start:0,end:Infinity};
   const durations=starts.slice(1).map((value,index)=>value-starts[index]);
@@ -1834,16 +2021,41 @@ function recordingBounds(recording=selectedRecording()){
   return {start:starts[0],end:starts[starts.length-1]+median};
 }
 function syncCorpusPlayback(){
-  if(!playback.active||playback.kind!=="recording")return;
+  if(!playback.active||!["recording","reconstruction"].includes(playback.kind))return;
   const d1=playback.media.D1,d2=playback.media.D2;
   if(!d1||!d2)return;
   const bounds=recordingBounds();
   if(d1.currentTime>=bounds.end||d2.currentTime>=bounds.end){
     d1.currentTime=bounds.start;
     d2.currentTime=bounds.start;
+    playback.nextEventIndex=0;
+    playback.timeline=[];
   }else if(Math.abs(d1.currentTime-d2.currentTime)>.025){
     d2.currentTime=d1.currentTime;
   }
+}
+function reconstructionScheduler(){
+  if(!playback.active||playback.kind!=="reconstruction"||!playback.ctx)return;
+  syncCorpusPlayback();
+  const audio=playback.media.D1||playback.media.D2;
+  const cycle=playback.cycle||selectedCycle();
+  if(!audio||!cycle)return;
+  const events=cycle.events||[];
+  const phase=Math.max(0,audio.currentTime-cycle.start);
+  while(playback.nextEventIndex<events.length&&events[playback.nextEventIndex].time<phase-.045){
+    playback.nextEventIndex++;
+  }
+  while(playback.nextEventIndex<events.length&&events[playback.nextEventIndex].time<=phase+playback.scheduleAhead){
+    const event=events[playback.nextEventIndex];
+    if(selectedVoices().includes(event.voice)&&event.time>=phase-.045){
+      const time=playback.ctx.currentTime+Math.max(.004,event.time-phase);
+      hit(playback.ctx,time,event.voice,.9);
+      playback.timeline.push({step:event.sd,time,end:time+.12});
+    }
+    playback.nextEventIndex++;
+  }
+  const cutoff=playback.ctx.currentTime-.5;
+  playback.timeline=playback.timeline.filter(event=>event.end>=cutoff).slice(-64);
 }
 
 function syncPlaybackUI(){
@@ -1854,6 +2066,8 @@ function syncPlaybackUI(){
       ?"■ Arrêter l’écoute"
       :state.listeningMode==="recording"
         ?"▶ Lire l’enregistrement"
+        :state.listeningMode==="reconstruction"
+          ?"▶ Comparer A/B"
         :"▶ Lancer la boucle";
     btn.className="play"+(playback.active?" playing":"");
   }
@@ -1865,8 +2079,12 @@ function syncPlaybackUI(){
   if(caption){
     if(state.listeningMode==="recording"){
       caption.textContent=playback.active
-        ? `Lecture réelle · ${playVoiceLabel()} · prise ${selectedRecording()?.take??"—"} · D1/D2 synchronisés.`
-        : `Référence réelle · ${playVoiceLabel()} · prise ${selectedRecording()?.take??"—"}.`;
+        ? `Lecture réelle · ${playVoiceLabel()} · prise ${selectedRecording()?.take??"—"} · ${selectedCycleLabel()} · D1/D2 synchronisés.`
+        : `Référence réelle · ${playVoiceLabel()} · prise ${selectedRecording()?.take??"—"} · ${selectedCycleLabel()}.`;
+    }else if(state.listeningMode==="reconstruction"){
+      caption.textContent=playback.active
+        ? `Comparaison A/B · ${playVoiceLabel()} · ${selectedCycleLabel()} · réel ${Math.round((1-state.reconstructionMix)*100)} % / reconstruit ${Math.round(state.reconstructionMix*100)} %.`
+        : `Reconstruction annotée · ${playVoiceLabel()} · ${selectedCycleLabel()} · mix réel/reconstruit réglable.`;
     }else{
       caption.textContent=playback.active
         ? `Boucle synthétique · ${playVoiceLabel()} · ${timingModeLabel()} · réglages audibles au prochain pas.`
@@ -1890,6 +2108,9 @@ function stopPlayback(){
   playback.ctx=null;
   playback.master=null;
   playback.compressor=null;
+  playback.reconstructionGain=null;
+  playback.cycle=null;
+  playback.nextEventIndex=0;
   playback.timeline=[];
   playback.media={};
   playback.voiceGains={};
@@ -1925,10 +2146,12 @@ async function startCorpusPlayback(AudioCtx){
   playback.kind="recording";
   playback.media={};
   playback.voiceGains={};
+  playback.cycle=selectedCycle(recording);
   const bounds=recordingBounds(recording);
   for(const voice of ["D1","D2"]){
     const audio=new Audio(new URL(recording[voice],location.href).href);
     audio.preload="auto";
+    audio.currentTime=bounds.start;
     const source=ctx.createMediaElementSource(audio);
     const gain=ctx.createGain();
     source.connect(gain);gain.connect(playback.master);
@@ -1939,13 +2162,56 @@ async function startCorpusPlayback(AudioCtx){
   playback.active=true;
   try{
     await Promise.all(Object.values(playback.media).map(audio=>audio.play()));
-    Object.values(playback.media).forEach(audio=>{audio.currentTime=bounds.start;});
   }catch(error){
     stopPlayback();
     alert(`Lecture de l’enregistrement impossible : ${error.message}`);
     return;
   }
   playback.timer=setInterval(syncCorpusPlayback,120);
+  syncPlaybackUI();
+  animatePlayback();
+}
+async function startReconstructionPlayback(AudioCtx){
+  const recording=selectedRecording();
+  const cycle=selectedCycle(recording);
+  if(!recording||!cycle){
+    alert("Aucun cycle annoté n’est disponible pour reconstruire cette prise.");
+    return;
+  }
+  const ctx=new AudioCtx();
+  playback.ctx=ctx;
+  await ctx.resume();
+  configureMaster(ctx);
+  playback.kind="reconstruction";
+  playback.media={};
+  playback.voiceGains={};
+  playback.reconstructionGain=ctx.createGain();
+  playback.reconstructionGain.gain.setValueAtTime(state.reconstructionMix,ctx.currentTime);
+  playback.reconstructionGain.connect(playback.master);
+  playback.cycle=cycle;
+  playback.nextEventIndex=0;
+  playback.timeline=[];
+  for(const voice of ["D1","D2"]){
+    const audio=new Audio(new URL(recording[voice],location.href).href);
+    audio.preload="auto";
+    audio.currentTime=cycle.start;
+    const source=ctx.createMediaElementSource(audio);
+    const gain=ctx.createGain();
+    source.connect(gain);gain.connect(playback.master);
+    playback.media[voice]=audio;
+    playback.voiceGains[voice]=gain;
+  }
+  syncCorpusVoiceGains();
+  playback.active=true;
+  try{
+    await Promise.all(Object.values(playback.media).map(audio=>audio.play()));
+  }catch(error){
+    stopPlayback();
+    alert(`Lecture de la reconstruction impossible : ${error.message}`);
+    return;
+  }
+  reconstructionScheduler();
+  playback.timer=setInterval(reconstructionScheduler,playback.lookaheadMs);
   syncPlaybackUI();
   animatePlayback();
 }
@@ -1969,6 +2235,7 @@ async function startPlayback(){
   const AudioCtx=window.AudioContext||window.webkitAudioContext;
   if(!AudioCtx){alert("Audio Web non disponible dans ce navigateur.");return;}
   if(state.listeningMode==="recording")await startCorpusPlayback(AudioCtx);
+  else if(state.listeningMode==="reconstruction")await startReconstructionPlayback(AudioCtx);
   else await startSyntheticPlayback(AudioCtx);
 }
 
