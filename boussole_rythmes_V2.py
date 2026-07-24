@@ -340,9 +340,15 @@ canvas{display:block;width:100%;height:auto}
 .d1{color:var(--d1)}.d2{color:var(--d2)}
 .metricKey{display:inline-flex;align-items:center;gap:7px}
 .metricKey i{width:16px;height:0;border-top:2px dashed var(--muted);opacity:.65}
-.synthPanel{display:flex;flex-direction:column}
-.synthIntro{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:12px}
+.synthPanel{display:block;align-self:start}
+.synthIntro{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:12px;cursor:pointer;list-style:none}
+.synthIntro::-webkit-details-marker{display:none}
+.synthPanel:not([open]) .synthIntro{margin-bottom:0}
 .synthIntro .caption{margin:4px 0 0;max-width:420px}
+.synthSummaryState{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.foldState{color:var(--muted);font-size:.68rem;font-weight:850;text-transform:uppercase;letter-spacing:.08em}
+.foldState::before{content:"ouvrir"}
+.synthPanel[open] .foldState::before{content:"réduire"}
 .synthTop{display:flex;gap:7px;align-items:center;flex-wrap:wrap;padding:10px 0 12px;border-top:1px solid var(--line2);border-bottom:1px solid var(--line2);margin-bottom:10px}
 .smallBtn{appearance:none;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:9px;padding:7px 10px;cursor:pointer;font-weight:800;font-size:.78rem}
 .smallBtn:hover{background:var(--soft)}
@@ -381,14 +387,21 @@ canvas{display:block;width:100%;height:auto}
 .libraryTabs{display:flex;gap:5px;flex-wrap:wrap}
 .libraryStatus{color:var(--muted);font-size:.8rem;margin:0 0 12px}
 .libraryStatus b{color:var(--ink)}
-.variantGrid{display:grid;grid-template-columns:repeat(7,minmax(128px,1fr));gap:9px}
-.variantCard{appearance:none;display:grid;grid-template-rows:auto auto 1fr auto;width:100%;min-width:0;text-align:left;border:1px solid var(--line2);background:var(--soft);color:var(--ink);border-radius:13px;padding:9px;cursor:pointer}
+.libraryDistance{border-left:3px solid var(--accent);padding:4px 0 4px 11px;color:var(--muted);font-size:.75rem;margin:0 0 13px}
+.libraryDistance b{color:var(--ink)}
+.voiceVariantColumns{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}
+.voiceVariantColumn{border:1px solid var(--line2);border-radius:15px;padding:10px;background:color-mix(in srgb,var(--soft) 62%,var(--paper))}
+.voiceVariantHead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 2px 8px}
+.voiceVariantHead h3{margin:0;font-family:Georgia,Times,serif;font-size:1.05rem}
+.voiceVariantHead span{font-size:.7rem;color:var(--muted)}
+.voiceVariantGrid{display:grid;gap:7px}
+.variantCard{appearance:none;display:grid;grid-template-columns:78px minmax(0,1fr);grid-template-rows:auto auto 1fr;width:100%;min-width:0;text-align:left;border:1px solid var(--line2);background:var(--soft);color:var(--ink);border-radius:12px;padding:7px 9px 7px 7px;cursor:pointer;align-items:center}
 .variantCard:hover{border-color:var(--line);background:var(--paper)}
 .variantCard.on{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent);background:color-mix(in srgb,var(--accent) 5%,var(--paper))}
-.variantCard canvas{width:100%;max-width:122px;margin:0 auto 4px}
+.variantCard canvas{grid-row:1/4;width:72px;height:72px;margin:0}
 .variantCard b{font-family:Georgia,Times,serif;font-size:.94rem}
-.variantCard small{display:block;color:var(--muted);font-size:.67rem;line-height:1.3;margin-top:2px}
-.variantCard .variantAction{color:var(--accent);font-size:.69rem;font-weight:850;margin-top:7px}
+.variantCard small{display:block;color:var(--muted);font-size:.67rem;line-height:1.3;margin-top:1px}
+.variantCard .variantAction{color:var(--accent);font-size:.68rem;font-weight:850;margin-top:4px}
 .lowerGrid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(360px,.75fr);gap:16px;margin-top:16px}
 .microControls{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
 .microScale{display:grid;grid-template-columns:auto 110px 38px;align-items:center;gap:6px;color:var(--muted);font-size:.72rem}
@@ -419,7 +432,6 @@ canvas{display:block;width:100%;height:auto}
 @media(max-width:1080px){
   .masthead{align-items:flex-start}.studioGrid,.lowerGrid,.theoryGrid{grid-template-columns:1fr}
   .synthPanel{min-height:0}.wheelPanel #circle{max-width:620px}.curvePanel #curve{max-height:none}
-  .variantGrid{grid-template-columns:repeat(4,minmax(130px,1fr))}
 }
 @media(max-width:720px){
   .page{padding:18px 12px 34px}.masthead{display:block}.titleBlock{min-width:0}.abstract{margin-top:12px}
@@ -431,7 +443,7 @@ canvas{display:block;width:100%;height:auto}
   .coefRow input[data-kind="phase"]{grid-column:2}.coefRow output[data-out^="phase"]{grid-column:3}
   .metaGrid{grid-template-columns:1fr 1fr}.theoryBody{padding:13px}
   .variantLibrary>summary{display:block}.variantLibrary>summary::after{display:block;margin-top:8px}
-  .libraryBody{padding:12px}.variantGrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .libraryBody{padding:12px}.voiceVariantColumns{grid-template-columns:1fr}
 }
 </style></head><body><main class="page">
 <header class="masthead">
@@ -481,14 +493,18 @@ canvas{display:block;width:100%;height:auto}
     <p class="caption" id="circleCaption"></p>
   </article>
 
-  <aside class="synthPanel surface">
-    <div class="synthIntro">
+  <details class="synthPanel surface" id="synthPanel" open>
+    <summary class="synthIntro">
       <div>
         <h2>Synthétiseur de coefficients</h2>
         <p class="caption">\(|c_k|\) règle la force de la répétition ; \(\varphi_k\) déplace cette forme dans le cycle.</p>
       </div>
-      <span class="modeTag" id="synthLiveTag">Prêt</span>
-    </div>
+      <div class="synthSummaryState">
+        <span class="modeTag" id="synthLiveTag">Prêt</span>
+        <span class="foldState" aria-hidden="true"></span>
+      </div>
+    </summary>
+    <div class="synthBody">
     <div class="synthTop">
       <button class="smallBtn" id="originalModeBtn">Original</button>
       <button class="smallBtn" id="synthModeBtn">Synthé</button>
@@ -516,7 +532,8 @@ canvas{display:block;width:100%;height:auto}
     </div>
     <div class="transformFeedback" id="transformFeedback"></div>
     <div class="coefControls" id="synthControls"></div>
-  </aside>
+    </div>
+  </details>
 </section>
 
 <details class="variantLibrary surface" id="variantLibrary" open>
@@ -529,10 +546,10 @@ canvas{display:block;width:100%;height:auto}
   <div class="libraryBody">
     <div class="libraryToolbar">
       <nav class="libraryTabs" id="libraryPieceTabs" aria-label="Rythme du catalogue"></nav>
-      <div class="voicePicker" id="libraryVoicePicker" aria-label="Voix du catalogue"></div>
     </div>
     <p class="libraryStatus" id="libraryStatus"></p>
-    <div class="variantGrid" id="variantGrid"></div>
+    <p class="libraryDistance" id="libraryDistance"></p>
+    <div class="voiceVariantColumns" id="variantColumns"></div>
   </div>
 </details>
 
@@ -598,7 +615,7 @@ const TAU=Math.PI*2;
 const state={
   piece:DATA.pieces[0],playVoice:"both",synthEnabled:false,synthVoice:"D1",
   synthData:{},timingMode:"observed",timingStrength:1,volume:1.3,transformMessage:"",symmetryAxis:0,
-  libraryPiece:DATA.pieces[0],libraryVoice:"D1",libraryLoaded:null
+  libraryPiece:DATA.pieces[0],libraryLoaded:{D1:null,D2:null}
 };
 const playback={active:false,step:.155,lookaheadMs:25,scheduleAhead:.11,raf:null,ctx:null,master:null,compressor:null,timer:null,nextStepTime:0,stepIndex:0,startTime:0,timeline:[]};
 
@@ -746,7 +763,7 @@ function normalizedMotifDistance(a,b){
   },0);
   return Math.min(1,Math.sqrt(squared/2));
 }
-function libraryVariants(piece=state.libraryPiece,voice=state.libraryVoice){
+function libraryVariants(piece=state.libraryPiece,voice="D1"){
   const base=rhythm(piece).voices[voice].motif.slice();
   const variants=[
     {axis:null,label:"Original",motif:base,distance:0},
@@ -765,13 +782,16 @@ function libraryVariants(piece=state.libraryPiece,voice=state.libraryVoice){
   });
   return variants;
 }
-function clearLibrarySelection(){
-  state.libraryLoaded=null;
-  document.querySelectorAll(".variantCard.on").forEach(card=>{
-    card.classList.remove("on");
-    card.setAttribute("aria-pressed","false");
-    const action=card.querySelector(".variantAction");
-    if(action)action.textContent="charger dans le synthétiseur";
+function clearLibrarySelection(voice=null){
+  const voices=voice?[voice]:["D1","D2"];
+  voices.forEach(target=>{
+    state.libraryLoaded[target]=null;
+    document.querySelectorAll(`.variantCard.on[data-voice="${target}"]`).forEach(card=>{
+      card.classList.remove("on");
+      card.setAttribute("aria-pressed","false");
+      const action=card.querySelector(".variantAction");
+      if(action)action.textContent=`charger pour ${target}`;
+    });
   });
 }
 function drawVariantPreview(canvas,motif,voice,axis){
@@ -808,64 +828,73 @@ function loadLibraryVariant(piece,voice,axis){
   state.piece=piece;
   state.libraryPiece=piece;
   state.synthVoice=voice;
-  state.libraryVoice=voice;
   state.symmetryAxis=axis===null?0:axis;
   state.synthData[synthKey(piece,voice)]=synthDataFromMotif(motif);
   state.synthEnabled=true;
-  state.libraryLoaded=libraryVariantKey(piece,voice,axis);
+  state.libraryLoaded[voice]=libraryVariantKey(piece,voice,axis);
   state.transformMessage=axis===null
-    ? `<b>${piece} · ${voice}</b> original chargé dans le synthétiseur`
-    : `<b>${piece} · ${voice}</b> chargé depuis le dossier · réflexion ${axis+1}–${axis+7}`;
+    ? `<b>${piece} · ${voice}</b> original chargé · l’autre voix est conservée`
+    : `<b>${piece} · ${voice}</b> réflexion ${axis+1}–${axis+7} chargée · l’autre voix est conservée`;
   render();
 }
 function renderSymmetryLibrary(){
   if(!DATA.pieces.includes(state.libraryPiece))state.libraryPiece=DATA.pieces[0];
   const pieceTabs=document.getElementById("libraryPieceTabs");
-  const voicePicker=document.getElementById("libraryVoicePicker");
-  const grid=document.getElementById("variantGrid");
+  const columns=document.getElementById("variantColumns");
   pieceTabs.innerHTML="";
   DATA.pieces.forEach(piece=>{
     const button=document.createElement("button");
     button.className="tab"+(piece===state.libraryPiece?" on":"");
     button.textContent=piece;
-    button.onclick=()=>{state.libraryPiece=piece;state.libraryLoaded=null;renderSymmetryLibrary();};
+    button.onclick=()=>{
+      state.libraryPiece=piece;
+      state.libraryLoaded={D1:null,D2:null};
+      renderSymmetryLibrary();
+    };
     pieceTabs.appendChild(button);
   });
-  voicePicker.innerHTML="";
-  ["D1","D2"].forEach(voice=>{
-    const button=document.createElement("button");
-    button.className="voiceBtn"+(voice===state.libraryVoice?" on":"");
-    button.textContent=voice;
-    button.onclick=()=>{state.libraryVoice=voice;state.libraryLoaded=null;renderSymmetryLibrary();};
-    voicePicker.appendChild(button);
-  });
 
-  const variants=libraryVariants();
-  const uniqueCount=new Set(variants.map(variant=>
-    variant.motif.map(value=>value.toFixed(6)).join("|")
-  )).size;
-  document.getElementById("libraryStatus").innerHTML=
-    `<b>${state.libraryPiece} · ${state.libraryVoice}</b> — 7 configurations calculées, ${uniqueCount} disposition${uniqueCount>1?"s":""} distincte${uniqueCount>1?"s":""}. `+
-    `Ce dossier couvre l’original et les six réflexions ; les combinaisons continues restent dans le synthétiseur.`;
-  grid.innerHTML="";
-  variants.forEach(variant=>{
-    const key=libraryVariantKey(state.libraryPiece,state.libraryVoice,variant.axis);
-    const card=document.createElement("button");
-    card.className="variantCard"+(state.libraryLoaded===key?" on":"");
-    card.setAttribute("aria-pressed",state.libraryLoaded===key?"true":"false");
-    const detail=variant.axis===null
-      ? "motif mesuré · densité conservée"
-      : variant.duplicateOf
-        ? `identique à ${variant.duplicateOf}`
-        : `écart à l’original ${(variant.distance*100).toFixed(1)} %`;
-    card.innerHTML=
-      `<canvas width="136" height="136" aria-hidden="true"></canvas>`+
-      `<b>${variant.label}</b><small>${detail}</small>`+
-      `<span class="variantAction">${state.libraryLoaded===key?"chargé":"charger dans le synthétiseur"}</span>`;
-    card.onclick=()=>loadLibraryVariant(state.libraryPiece,state.libraryVoice,variant.axis);
-    grid.appendChild(card);
-    drawVariantPreview(card.querySelector("canvas"),variant.motif,state.libraryVoice,variant.axis);
+  const counts={};
+  columns.innerHTML="";
+  ["D1","D2"].forEach(voice=>{
+    const variants=libraryVariants(state.libraryPiece,voice);
+    counts[voice]=new Set(variants.map(variant=>
+      variant.motif.map(value=>value.toFixed(6)).join("|")
+    )).size;
+    const column=document.createElement("section");
+    column.className="voiceVariantColumn";
+    column.innerHTML=
+      `<div class="voiceVariantHead"><h3>${voice}</h3><span>modifie uniquement ${voice}</span></div>`+
+      `<div class="voiceVariantGrid"></div>`;
+    const grid=column.querySelector(".voiceVariantGrid");
+    variants.forEach(variant=>{
+      const key=libraryVariantKey(state.libraryPiece,voice,variant.axis);
+      const loaded=state.libraryLoaded[voice]===key;
+      const card=document.createElement("button");
+      card.className="variantCard"+(loaded?" on":"");
+      card.dataset.voice=voice;
+      card.setAttribute("aria-pressed",loaded?"true":"false");
+      const detail=variant.axis===null
+        ? "motif mesuré · densité conservée"
+        : variant.duplicateOf
+          ? `identique à ${variant.duplicateOf}`
+          : `écart de forme ${(variant.distance*100).toFixed(1)} %`;
+      card.innerHTML=
+        `<canvas width="136" height="136" aria-hidden="true"></canvas>`+
+        `<b>${variant.label}</b><small>${detail}</small>`+
+        `<span class="variantAction">${loaded?`chargé pour ${voice}`:`charger pour ${voice}`}</span>`;
+      card.onclick=()=>loadLibraryVariant(state.libraryPiece,voice,variant.axis);
+      grid.appendChild(card);
+      drawVariantPreview(card.querySelector("canvas"),variant.motif,voice,variant.axis);
+    });
+    columns.appendChild(column);
   });
+  document.getElementById("libraryStatus").innerHTML=
+    `<b>${state.libraryPiece}</b> — choisis une variante dans chaque colonne : D1 et D2 se combinent sans s’écraser. `+
+    `D1 : ${counts.D1} dispositions distinctes ; D2 : ${counts.D2} dispositions distinctes.`;
+  document.getElementById("libraryDistance").innerHTML=
+    `<b>Écart de forme.</b> Δ = 100 × √[½ Σ<sub>s</sub>(x′<sub>s</sub> − x<sub>s</sub>)²], `+
+    `avec x<sub>s</sub> = D<sub>s</sub>/ρ. La densité est retirée : 0 % signifie une forme identique.`;
 }
 function symmetryPairs(axis){
   const fixed=[],pairs=[],seen=new Set();
@@ -898,7 +927,7 @@ function renderSymmetryGuide(){
   };
 }
 function applySynthMotif(motif,message){
-  clearLibrarySelection();
+  clearLibrarySelection(state.synthVoice);
   state.synthData[synthKey()]=synthDataFromMotif(motif);
   state.synthEnabled=true;
   state.transformMessage=message;
@@ -1076,11 +1105,8 @@ function renderSynthVoicePicker(){
     b.textContent=`éditer ${voice}`;
     b.onclick=()=>{
       state.synthVoice=voice;
-      state.libraryVoice=voice;
-      state.libraryLoaded=null;
       state.transformMessage="";
       renderSynthControls();
-      renderSymmetryLibrary();
       syncSynthModeButtons();
     };
     box.appendChild(b);
@@ -1101,8 +1127,7 @@ function renderSynthControls(){
     ensureSynthData(state.piece,state.synthVoice);
     state.synthEnabled=true;
     state.libraryPiece=state.piece;
-    state.libraryVoice=state.synthVoice;
-    state.libraryLoaded=libraryVariantKey(state.piece,state.synthVoice,null);
+    state.libraryLoaded[state.synthVoice]=libraryVariantKey(state.piece,state.synthVoice,null);
     state.transformMessage=`<b>${state.synthVoice}</b> revenu à ses coefficients observés`;
     renderSynthControls();
     renderSymmetryLibrary();
@@ -1131,7 +1156,7 @@ function renderSynthControls(){
     input.oninput=()=>{
       const d=ensureSynthData(), kind=input.dataset.kind, k=Number(input.dataset.k), value=Number(input.value);
       state.synthEnabled=true;
-      clearLibrarySelection();
+      clearLibrarySelection(state.synthVoice);
       state.transformMessage="";
       if(kind==="density"){
         d.density=value;
@@ -1188,7 +1213,7 @@ function renderTabs(){
     b.onclick=()=>{
       state.piece=r.piece;
       state.libraryPiece=r.piece;
-      state.libraryLoaded=null;
+      state.libraryLoaded={D1:null,D2:null};
       state.transformMessage="";
       render();
     };
@@ -1560,7 +1585,7 @@ function drawMap(){
     if(best&&bd<1100){
       state.piece=best.piece;
       state.libraryPiece=best.piece;
-      state.libraryLoaded=null;
+      state.libraryLoaded={D1:null,D2:null};
       render();
     }
   };

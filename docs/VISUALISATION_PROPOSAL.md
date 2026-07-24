@@ -207,6 +207,8 @@ synthétiseur à droite, puis courbes temporelles en dessous. La lecture fonctio
 en boucle continue. Un ordonnanceur audio ne prépare qu'une courte fenêtre
 d'avance ; une modification de `ρ`, `|ck|` ou `arg(ck)` est donc prise en compte
 sur la prochaine subdivision non encore programmée, sans relancer le cycle.
+Le panneau du synthétiseur est repliable afin de libérer l'espace vertical
+lorsque les coefficients ne sont pas en cours d'édition.
 
 ## Transformations automatiques
 
@@ -234,8 +236,11 @@ la densité totale est conservée.
 ## Dossier des variantes symétriques
 
 Le laboratoire contient un catalogue repliable pour Manjanin, Maraka et
-Woloso, séparément pour D1 et D2. Il présente l'orbite finie du motif sous les
-six réflexions disponibles :
+Woloso. D1 et D2 sont affichés dans deux colonnes parallèles afin de construire
+rapidement une combinaison : charger une variante D1 ne modifie pas D2, et
+inversement. Cette structure pourra ensuite recevoir des colonnes de djembé.
+Chaque colonne présente l'orbite finie du motif sous les six réflexions
+disponibles :
 
 `O(x) = {x, M0(x), M1(x), ..., M5(x)}`.
 
@@ -243,6 +248,17 @@ Le dossier affiche donc sept configurations par couple rythme/voix, signale
 les éventuels doublons lorsqu'un motif est invariant sous une réflexion, puis
 permet de charger chaque configuration dans le synthétiseur. La variante est
 alors reconvertie en coefficients complexes et reste entièrement modifiable.
+
+L'écart affiché compare uniquement la **forme normalisée**, pas la densité.
+Pour l'original `x` et la variante `x'`, avec
+`xs = Ds/ρ`, il vaut :
+
+`Δ(x,x') = 100 sqrt[1/2 sum_s (x's - xs)^2]`.
+
+Les motifs non négatifs normalisés sont donc comparés sur une échelle de 0 à
+100 %. Zéro signifie que la disposition est identique ; la division par `ρ`
+garantit qu'une simple variation de volume ou de densité ne crée pas
+artificiellement de distance.
 
 Ce catalogue n'essaie pas d'énumérer toutes les sorties du synthétiseur : les
 valeurs continues de `ρ`, `|ck|` et `arg(ck)` définissent une infinité de
