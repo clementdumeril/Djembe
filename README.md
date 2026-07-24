@@ -18,7 +18,8 @@ Le projet est un prototype de recherche avancé :
 - caractérisation géométrique/Fourier des rythmes ;
 - boussole des rythmes avec trois équations LaTeX D1/D2 comparables, courbes
   de modèle, boucle audio continue, transformations orthogonale/symétrique et
-  écoute comparative du micro-timing.
+  comparaison interactive entre grille isochrone, mètre observé et
+  micro-asynchronie D1/D2.
 
 Les données brutes et sorties générées ne sont pas versionnées dans Git : elles
 sont lourdes, régénérables, et liées à la licence du corpus.

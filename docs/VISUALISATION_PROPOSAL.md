@@ -235,7 +235,29 @@ la densité totale est conservée.
 
 Le motif répond à **où** une frappe existe dans les 12 subdivisions. Le
 micro-timing répond à **quand**, en millisecondes, elle tombe autour de cette
-position. Pour chaque voix et subdivision, la page calcule sur les prises
+position.
+
+La page sépare maintenant deux niveaux temporels :
+
+- le **mètre non isochrone de l'ensemble**, estimé pour chaque subdivision par
+  la position moyenne des annotations J1, J2, D1 et D2 sur les prises D1/D2
+  appariées ;
+- la **micro-asynchronie des voix**, c'est-à-dire l'écart propre de D1 ou D2
+  autour de ce mètre collectif.
+
+Si `ps` est la position moyenne de la subdivision `s`, la durée observée de
+l'intervalle est `ds = p(s+1) - ps`. Le mode **Isochrone** impose
+`ds = 1/12`. Le mode **Mètre observé** interpole
+`ds(α) = 1/12 + α(ds - 1/12)`, puis normalise les douze durées. Le curseur
+`α`, entre 0 et 2, permet de passer continûment de la grille régulière au
+profil mesuré, puis de l'exagérer.
+
+Sur le cercle, les traits pointillés restent aux douze positions isochrones,
+tandis que les frappes et les numéros suivent les positions mesurées. Le
+curseur de lecture et l'ordonnanceur audio utilisent les mêmes durées : la
+déformation visible est donc réellement entendue.
+
+Pour chaque voix et subdivision, la page calcule aussi sur les prises
 appariées :
 
 - l'écart moyen à la grille
@@ -246,12 +268,11 @@ appariées :
 
 Dans le graphique, le cercle vide et sa barre représentent la moyenne observée
 et sa dispersion. Le point plein indique le placement réellement envoyé au
-moteur audio. Le mode **Grille** impose `δs = 0`. Le mode **Feel observé** joue
-`tfrappe = tgrille + αδs`, où le curseur d'impact `α` varie de 0 à 2. On peut
-ainsi comparer le même motif et les mêmes amplitudes avec ou sans micro-timing,
-sans confondre cet effet avec une modification des coefficients. Le décalage
-audio est plafonné à ±60 ms pour éviter qu'une frappe ne traverse la
-subdivision voisine quand l'effet est exagéré.
+moteur audio. Pour ne pas compter deux fois la déformation métrique, le moteur
+joue d'abord la subdivision au temps du mètre collectif, puis ajoute le résidu
+de la voix `rv,s = δv,s - (ps - s/12)T`. On retrouve ainsi exactement
+`tfrappe = tgrille + αδv,s`, tout en conservant une roue commune lisible.
+Le décalage total est plafonné à ±100 ms lorsque l'effet est exagéré.
 
 Le notebook `06_dunun_microtiming_avance_V2.ipynb` reste une étape de
 validation, pas une dépendance graphique lourde de la page. Ses distributions
