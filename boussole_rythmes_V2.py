@@ -824,7 +824,6 @@ canvas{display:block;width:100%;height:auto}
         </div>
         <div class="metricPicker" aria-label="Temporalité du cercle">
           <button class="smallBtn" id="circleRecordingBtn">Enregistrement</button>
-          <button class="smallBtn" id="circleObservedBtn">Modèle 12 · samples</button>
           <button class="smallBtn" id="circleReferenceBtn">Référence externe</button>
         </div>
       </div>
@@ -850,8 +849,8 @@ canvas{display:block;width:100%;height:auto}
   <details class="synthPanel surface" id="synthPanel" open>
     <summary class="synthIntro">
       <div>
-        <h2>Synthétiseur de coefficients</h2>
-        <p class="caption">Outil d’édition du <b>cycle 12 moyen</b> : \(|c_k|\) règle la force de la répétition ; \(\varphi_k\) déplace cette forme.</p>
+        <h2>Analyse des coefficients</h2>
+        <p class="caption">Lecture mathématique du <b>cycle 12 Polak</b>. L’écoute musicale principale se fait maintenant avec l’enregistrement ou la référence externe.</p>
       </div>
       <div class="synthSummaryState">
         <span class="modeTag" id="synthLiveTag">Prêt</span>
@@ -920,7 +919,7 @@ canvas{display:block;width:100%;height:auto}
     <span class="swatch d1"><i></i>bleu D1 · dunun grave</span>
     <span class="swatch d2"><i></i>orange D2 · dunun réponse</span>
   </div>
-  <p class="caption">Abscisse : subdivision Polak 1–12. Ordonnée : stabilité/intensité. Pour l’écoute du modèle, seules les frappes les plus stables sont jouées afin d’éviter les fausses frappes.</p>
+  <p class="caption">Abscisse : subdivision Polak 1–12. Ordonnée : stabilité/intensité. Les carrés indiquent les frappes stables détectées, mais le player musical utilise l’enregistrement ou la référence externe.</p>
 </section>
 
 <section class="referencePanel surface">
@@ -956,7 +955,6 @@ canvas{display:block;width:100%;height:auto}
       <div><h2>Temporalité observée</h2></div>
       <div class="microControls">
         <button class="smallBtn" id="recordingTimingBtn">Enregistrement</button>
-        <button class="smallBtn" id="observedTimingBtn">Modèle 12 · samples</button>
         <button class="smallBtn" id="referenceTimingBtn">Référence externe</button>
         <label class="microScale">impact
           <input type="range" id="timingStrength" min="0" max="2" step="0.05" value="1">
@@ -2701,7 +2699,7 @@ function timingModeLabel(){
     return `enregistrement · prise ${selectedRecording()?.take??"—"} · ${selectedCycleLabel()}`;
   }
   if(state.listeningMode==="model"){
-    return "modèle 12 · samples DjembeLoops";
+    return `référence externe · ${selectedDjembeloopsPattern()?.name||"—"}`;
   }
   if(state.listeningMode==="reference"){
     return `référence externe · ${selectedDjembeloopsPattern()?.name||"—"}`;
@@ -2709,6 +2707,7 @@ function timingModeLabel(){
   return "modèle 12";
 }
 async function setListeningMode(mode){
+  if(mode==="model")mode="reference";
   const wasPlaying=playback.active;
   if(wasPlaying)stopPlayback();
   if(referencePlayback.active)stopReferencePlayback();
@@ -2722,17 +2721,14 @@ async function setListeningMode(mode){
   if(wasPlaying)await startPlayback();
 }
 function renderTimingControls(){
-  const observed=document.getElementById("observedTimingBtn");
   const recording=document.getElementById("recordingTimingBtn");
   const reference=document.getElementById("referenceTimingBtn");
-  const circleObserved=document.getElementById("circleObservedBtn");
   const circleRecording=document.getElementById("circleRecordingBtn");
   const circleReference=document.getElementById("circleReferenceBtn");
   const slider=document.getElementById("timingStrength");
   const output=document.getElementById("timingStrengthOut");
   [
     ["recording",[recording,circleRecording]],
-    ["model",[observed,circleObserved]],
     ["reference",[reference,circleReference]]
   ].forEach(([mode,buttons])=>{
     buttons.forEach(button=>{
@@ -2762,15 +2758,12 @@ function renderTimingControls(){
     note.innerHTML=
       `<b>Enregistrement réel.</b> Prise ${recordingInfo?.take??"—"}, ${selectedCycleLabel(recordingInfo)} : vrais timbres, `+
       `non-isochronie et asynchronie de l’ensemble. La boucle suit les bornes annotées du cycle sélectionné.`;
-  }else if(state.listeningMode==="model"){
-    note.innerHTML=
-      `<b>Modèle 12.</b> Le motif moyen de Polak est joué sur douze subdivisions régulières avec les samples locaux de DjembeLoops.`;
   }else if(state.listeningMode==="reference"){
     note.innerHTML=
       `<b>Référence externe.</b> Le player lit le rythme DjembeLoops jugé proche, dans la table de référence externe.`;
   }else{
     note.innerHTML=
-      `<b>Modèle 12.</b> Cycle régulier en douze subdivisions.`;
+      `<b>Référence externe.</b> Le player lit le rythme DjembeLoops sélectionné.`;
   }
 }
 function drawMicroTiming(){
@@ -3043,9 +3036,9 @@ function syncPlaybackUI(){
       ?"■ Arrêter l’écoute"
       :state.listeningMode==="recording"
         ?"▶ Lire l’enregistrement"
-        :state.listeningMode==="reference"
+        :["reference","model"].includes(state.listeningMode)
           ?"▶ Lire la référence externe"
-        :"▶ Lire le modèle 12";
+        :"▶ Lire la référence externe";
     btn.className="play"+(active?" playing":"");
   }
   if(status){
@@ -3058,14 +3051,12 @@ function syncPlaybackUI(){
       caption.textContent=playback.active
         ? `Lecture réelle · ${playVoiceLabel()} · prise ${selectedRecording()?.take??"—"} · ${selectedCycleLabel()} · pistes synchronisées.`
         : `Référence réelle · ${playVoiceLabel()} · prise ${selectedRecording()?.take??"—"} · ${selectedCycleLabel()}.`;
-    }else if(state.listeningMode==="reference"){
+    }else if(["reference","model"].includes(state.listeningMode)){
       caption.textContent=referencePlayback.active
         ? `Référence externe en lecture · ${selectedDjembeloopsPattern()?.name||"—"}.`
         : `Référence externe similaire · ${selectedDjembeloopsPattern()?.name||"—"}.`;
     }else{
-      caption.textContent=playback.active
-        ? `Boucle synthétique · ${playVoiceLabel()} · ${timingModeLabel()} · réglages audibles au prochain pas.`
-        : `Écoute synthétique · ${playVoiceLabel()} · ${timingModeLabel()}.`;
+      caption.textContent=`Référence externe similaire · ${selectedDjembeloopsPattern()?.name||"—"}.`;
     }
   }
   syncSynthModeButtons();
@@ -3226,11 +3217,11 @@ async function startPlayback(){
   if(referencePlayback.active)stopReferencePlayback();
   if(state.listeningMode==="recording")await startCorpusPlayback(AudioCtx);
   else if(state.listeningMode==="reconstruction")await startReconstructionPlayback(AudioCtx);
-  else await startSyntheticPlayback(AudioCtx);
+  else startReferencePlayback();
 }
 
 async function togglePlayback(){
-  if(state.listeningMode==="reference"){
+  if(["reference","model"].includes(state.listeningMode)){
     if(referencePlayback.active){stopReferencePlayback();syncPlaybackUI();return;}
     if(playback.active)stopPlayback();
     startReferencePlayback();
