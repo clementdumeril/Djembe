@@ -684,10 +684,11 @@ canvas{display:block;width:100%;height:auto}
 .transformFeedback{margin:-2px 2px 8px;color:var(--muted);font-size:.74rem}
 .transformFeedback:empty{display:none}
 .transformFeedback b{color:var(--ink)}
-.synthThresholdControl{display:grid;grid-template-columns:132px minmax(160px,1fr) 54px;align-items:center;gap:9px;border:1px solid var(--line2);background:var(--soft);border-radius:12px;padding:9px 10px;margin:0 0 8px;color:var(--muted);font-size:.74rem}
+.synthThresholdControl{display:grid;grid-template-columns:132px minmax(160px,1fr) 84px;align-items:center;gap:9px;border:1px solid var(--line2);background:var(--soft);border-radius:12px;padding:9px 10px;margin:0 0 8px;color:var(--muted);font-size:.74rem}
 .synthThresholdControl b{display:block;color:var(--ink);font-size:.82rem}.synthThresholdControl small{display:block;color:var(--muted);font-size:.64rem;line-height:1.2}
 .synthThresholdControl input{width:100%;accent-color:var(--accent)}
 .synthThresholdControl output{color:var(--ink);text-align:right;font-variant-numeric:tabular-nums}
+.quantizeBadge{display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:999px;background:var(--paper);color:var(--ink);font-size:.72rem;font-weight:850;padding:6px 10px;text-align:center}
 .coefControls{display:grid;gap:6px}
 .coefRow{display:grid;grid-template-columns:92px 28px minmax(90px,1fr) 45px 24px minmax(90px,1fr) 43px;gap:7px;align-items:center;background:var(--soft);border:1px solid transparent;border-radius:11px;padding:8px 9px;font-size:.76rem;color:var(--muted)}
 .coefRow:hover{border-color:var(--line)}
@@ -782,7 +783,7 @@ canvas{display:block;width:100%;height:auto}
   .wheelBody{grid-template-columns:1fr}.wheelVoiceRail{border-left:0;border-top:1px solid var(--line2);padding:10px 0 0}.voicePicker.vertical{grid-template-columns:repeat(4,1fr)}
   .transformBar{grid-template-columns:1fr}
   .synthPipeline{grid-template-columns:1fr;overflow:visible}
-  .synthThresholdControl{grid-template-columns:1fr 1fr 48px}
+  .synthThresholdControl{grid-template-columns:1fr 1fr 84px}
   .coefRow,.coefRow.density{grid-template-columns:78px 1fr 46px}.coefRow span{display:none}
   .coefRow input[data-kind="phase"]{grid-column:2}.coefRow output[data-out^="phase"]{grid-column:3}
   .metaGrid{grid-template-columns:1fr 1fr}.theoryBody{padding:13px}
@@ -940,7 +941,7 @@ canvas{display:block;width:100%;height:auto}
     <span class="swatch d1"><i></i>bleu D1 · dunun grave</span>
     <span class="swatch d2"><i></i>orange D2 · dunun réponse</span>
   </div>
-  <p class="caption">Abscisse : position cyclique. Ordonnée : présence/intensité estimée depuis Polak. En mode synthèse, la courbe reconstruite par les coefficients est convertie en frappes par le seuil, puis jouée avec les samples DjembeLoops.</p>
+  <p class="caption">Abscisse : position cyclique. Ordonnée : présence/intensité estimée depuis Polak. En mode synthèse, la courbe reconstruite par les coefficients est quantifiée en pics principaux, à densité conservée, puis jouée avec les samples DjembeLoops.</p>
 </section>
 
 <section class="referencePanel surface">
@@ -1033,7 +1034,7 @@ const DJEMBELOOPS_DUNUN=["Kenkeni","Sangban","Doundoun"];
 const DJEMBELOOPS_JEMBE=["DjembeOne","DjembeTwo","DjembeThree","DjembeFive","DjembeSix","DjembeSeven","DjembeSolo"];
 const state={
   piece:DATA.pieces[0],scope:"ensemble",playVoice:"ensemble",selectedVoiceSet:{J1:false,J2:false,D1:true,D2:true},synthEnabled:false,synthVoice:"D1",
-  synthData:{},synthThreshold:.28,listeningMode:"recording",timingMode:"observed",timingStrength:1,volume:1.3,reconstructionMix:.5,transformMessage:"",symmetryAxis:0,
+  synthData:{},listeningMode:"recording",timingMode:"observed",timingStrength:1,volume:1.3,reconstructionMix:.5,transformMessage:"",symmetryAxis:0,
   phraseMode:"mean12",djembeloopsPatternByPiece:{},referenceTempoByPattern:{},
   libraryPiece:DATA.pieces[0],libraryLoaded:{D1:null,D2:null},
   recordingCycleByKey:{},
@@ -1544,10 +1545,37 @@ function synthMotif(voice,piece=state.piece){
   const data=ensureSynthData(piece,voice), coeffs=synthCoeffArray(data);
   return Array.from({length:12},(_,s)=>curveValueFromCoeffs(coeffs,data.density,s,true));
 }
+function synthTargetHitCount(voice=state.synthVoice,piece=state.piece){
+  const data=ensureSynthData(piece,voice);
+  return Math.max(0,Math.min(12,Math.round(Number(data.density)||0)));
+}
+function quantizedSynthMotif(voice,piece=state.piece){
+  const values=synthMotif(voice,piece);
+  const target=synthTargetHitCount(voice,piece);
+  if(target<=0)return values.map(()=>0);
+  const candidates=values
+    .map((value,index)=>{
+      const previous=values[(index+values.length-1)%values.length];
+      const next=values[(index+1)%values.length];
+      return {value,index,peak:value>=previous&&value>=next};
+    })
+    .sort((a,b)=>b.value-a.value);
+  const selected=[];
+  const add=item=>{
+    if(selected.length>=target||selected.includes(item.index))return;
+    selected.push(item.index);
+  };
+  candidates.filter(item=>item.peak&&item.value>.015).forEach(add);
+  candidates.filter(item=>item.value>.015).forEach(add);
+  candidates.forEach(add);
+  const maxSelected=Math.max(.001,...selected.map(index=>values[index]||0));
+  const keep=new Set(selected.slice(0,target));
+  return values.map((value,index)=>keep.has(index)?Math.max(.82,Math.min(1,value/maxSelected)):0);
+}
 function voiceView(voice,piece=state.piece){
   if(!state.synthEnabled) return rhythm(piece).voices[voice];
   const data=ensureSynthData(piece,voice);
-  return {voice,density:data.density,motif:synthMotif(voice,piece),takes:rhythm(piece).voices[voice].takes,coeffs:synthCoeffArray(data),synthetic:true};
+  return {voice,density:data.density,motif:quantizedSynthMotif(voice,piece),takes:rhythm(piece).voices[voice].takes,coeffs:synthCoeffArray(data),synthetic:true};
 }
 function curveValueForVoice(voice,t){
   if(!state.synthEnabled) return curveValue(rhythm().voices[voice],t);
@@ -1555,7 +1583,7 @@ function curveValueForVoice(voice,t){
   return curveValueFromCoeffs(coeffs,data.density,t,true);
 }
 function motifForPlayback(voice){
-  if(state.synthEnabled)return synthMotif(voice).map(value=>value>=state.synthThreshold?value:0);
+  if(state.synthEnabled)return quantizedSynthMotif(voice);
   const it=rhythm().voices[voice];
   const motif=it.motif.slice();
   const target=Math.max(1,Math.min(12,Math.round(it.density||motif.reduce((a,b)=>a+b,0))));
@@ -1815,7 +1843,7 @@ function syncSynthModeButtons(){
   }
   if(curveMode){
     curveMode.textContent=state.phraseMode==="mean12"
-      ? (state.synthEnabled?"Courbe reconstruite + seuil":"Signal Polak observé")
+      ? (state.synthEnabled?"Courbe reconstruite + pics":"Signal Polak observé")
       : phraseModeLabel();
     curveMode.className="modeTag"+(state.synthEnabled&&state.phraseMode==="mean12"?" live":"");
   }
@@ -1908,24 +1936,11 @@ function renderSynthControls(){
   document.getElementById("transformFeedback").innerHTML=
     state.transformMessage||synthScopeNote;
 
-  const thresholdBox=document.getElementById("synthThresholdControl");
-  thresholdBox.innerHTML=
-    `<div><b>seuil de frappe</b><small>courbe \u2192 partition jouable</small></div>`+
-    `<input type="range" min="0.05" max="1.00" step="0.01" value="${state.synthThreshold}" aria-label="Seuil de frappe synthétique">`+
-    `<output>${state.synthThreshold.toFixed(2)}</output>`;
-  const thresholdInput=thresholdBox.querySelector("input");
-  const thresholdOut=thresholdBox.querySelector("output");
-  thresholdInput.oninput=()=>{
-    state.synthThreshold=Number(thresholdInput.value);
-    state.synthEnabled=true;
-    state.listeningMode="synthesis";
-    state.timingMode="observed";
-    thresholdOut.textContent=state.synthThreshold.toFixed(2);
-    if(playback.active&&playback.kind!=="synthetic")stopPlayback();
-    renderTimingControls();
-    refreshSynthViews();
-    syncPlaybackUI();
-  };
+  const quantizeBox=document.getElementById("synthThresholdControl");
+  quantizeBox.innerHTML=
+    `<div><b>quantification</b><small>courbe \u2192 partition jouable</small></div>`+
+    `<span class="quantizeBadge">pics principaux</span>`+
+    `<output>${synthTargetHitCount()} frappes</output>`;
 
   const data=ensureSynthData();
   const rows=[];
@@ -1948,6 +1963,7 @@ function renderSynthControls(){
       if(kind==="density"){
         d.density=value;
         document.querySelector('[data-out="density"]').textContent=value.toFixed(2);
+        document.querySelector("#synthThresholdControl output").textContent=`${synthTargetHitCount()} frappes`;
       }else if(kind==="mag"){
         d.coeffs[k].mag=value;
         document.querySelector(`[data-out="mag-${k}"]`).textContent=value.toFixed(3);
@@ -3023,7 +3039,7 @@ function timingModeLabel(){
     return `enregistrement · prise ${selectedRecording()?.take??"—"} · ${selectedCycleLabel()}`;
   }
   if(state.listeningMode==="synthesis"){
-    return `synthèse complexe · coefficients Polak · seuil ${state.synthThreshold.toFixed(2)}`;
+    return `synthèse complexe · coefficients Polak · ${synthTargetHitCount()} pics`;
   }
   if(state.listeningMode==="model"){
     return `référence externe · ${selectedDjembeloopsPattern()?.name||"—"}`;
@@ -3097,7 +3113,7 @@ function renderTimingControls(){
   }else if(state.listeningMode==="synthesis"){
     note.innerHTML=
       `<b>Synthèse complexe.</b> Les motifs V_v(s) et les coefficients c_k viennent de Polak ; `+
-      `le seuil transforme la courbe reconstruite en frappes, puis les sons DjembeLoops servent de timbre. `+
+      `les pics principaux de la courbe reconstruite deviennent les frappes, en conservant la densité Polak, puis les sons DjembeLoops servent de timbre. `+
       `Le curseur d’impact règle la quantité de micro-timing observé appliquée à la boucle synthétique.`;
   }else if(state.listeningMode==="reference"){
     note.innerHTML=
@@ -3397,7 +3413,7 @@ function syncPlaybackUI(){
         : `Référence réelle · ${playVoiceLabel()} · prise ${selectedRecording()?.take??"—"} · ${selectedCycleLabel()}.`;
     }else if(state.listeningMode==="synthesis"){
       caption.textContent=playback.active
-        ? `Synthèse complexe en lecture · ${playVoiceLabel()} · coefficients Polak · seuil ${state.synthThreshold.toFixed(2)} · samples DjembeLoops.`
+        ? `Synthèse complexe en lecture · ${playVoiceLabel()} · coefficients Polak · pics principaux · samples DjembeLoops.`
         : `Synthèse complexe prête · ${playVoiceLabel()} · coefficients Polak transformables en direct.`;
     }else if(["reference","model"].includes(state.listeningMode)){
       caption.textContent=referencePlayback.active
