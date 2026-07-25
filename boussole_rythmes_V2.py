@@ -58,13 +58,52 @@ def _profile_from_takes(piece: str, code: str, takes: list[int]):
     return np.mean(vals, axis=0), used
 
 
+def _profile24_from_takes(piece: str, code: str, takes: list[int]):
+    """Profil moyen sur deux cycles Polak successifs : A(12) + B(12)."""
+    vals = []
+    used = []
+    for take in sorted(set(takes)):
+        selected = u.load_selected(piece, int(take))
+        if selected is None or code not in selected or not {"Label SD", "SD"}.issubset(selected.columns):
+            continue
+
+        selected = selected.copy()
+        selected["cycle_id"] = (
+            selected["Label SD"].astype(str).str.split("|", regex=False).str[0]
+        )
+        cycles = [cycle for _, cycle in selected.groupby("cycle_id", sort=False)]
+        take_vals = []
+        for idx in range(0, len(cycles) - 1, 2):
+            phrase = np.zeros(24, dtype=float)
+            for half, cycle in enumerate((cycles[idx], cycles[idx + 1])):
+                for row in cycle.itertuples(index=False):
+                    sd = int(getattr(row, "SD"))
+                    if not 1 <= sd <= 12:
+                        continue
+                    value = getattr(row, code)
+                    if pd.notna(value):
+                        phrase[half * 12 + sd - 1] = 1.0
+            if phrase.sum() > 0:
+                take_vals.append(phrase)
+
+        if take_vals:
+            vals.extend(take_vals)
+            used.append(int(take))
+
+    if not vals:
+        return np.zeros(24, dtype=float), []
+    return np.mean(vals, axis=0), used
+
+
 def _coefficients(motif: np.ndarray):
-    """Coefficients Ck = Σ x_s exp(-i k θ_s), k=0..6, x normalisé."""
+    """Coefficients Ck = Σ x_s exp(-i k θ_s), k=0..N/2, x normalisé."""
+    motif = np.asarray(motif, dtype=float)
+    n = int(len(motif))
     density = float(motif.sum())
     x = motif / density if density > 0 else motif.copy()
     coeffs = []
-    for k in range(7):
-        z = sum(x[s] * np.exp(-2j * np.pi * k * s / 12) for s in range(12))
+    for k in range(n // 2 + 1):
+        z = sum(x[s] * np.exp(-2j * np.pi * k * s / n) for s in range(n))
         coeffs.append({
             "k": k,
             "re": round(float(z.real), 8),
@@ -370,6 +409,18 @@ def _corpus_recordings(rhythms):
     return out
 
 
+def _load_djembeloops_reference(path="data/djembeloops_reference.json"):
+    if not os.path.exists(path):
+        return {
+            "source": "https://www.djembeloops.com",
+            "patterns": [],
+            "matrices": {},
+            "samples": [],
+        }
+    with open(path, "r", encoding="utf-8") as handle:
+        return json.load(handle)
+
+
 def build_data():
     rhythms = []
 
@@ -396,10 +447,22 @@ def build_data():
             comparable_takes = sorted(
                 set.intersection(*[set(voices[voice]["takes"]) for voice in ENSEMBLE_VOICES])
             )
+            phrase24 = {}
+            for code in ENSEMBLE_VOICES:
+                motif24, used24 = _profile24_from_takes(piece, code, comparable_takes)
+                coeffs24, density24 = _coefficients(motif24)
+                phrase24[code] = {
+                    "voice": code,
+                    "motif": [round(float(x), 4) for x in motif24],
+                    "takes": used24,
+                    "density": round(density24, 6),
+                    "coeffs": coeffs24,
+                }
             rhythms.append({
                 "piece": piece,
                 "takes": comparable_takes,
                 "voices": voices,
+                "phrase24": phrase24,
             })
 
     return {
@@ -410,6 +473,7 @@ def build_data():
         "microtiming": _microtiming_profiles(rhythms),
         "metricTiming": _metric_timing_profiles(rhythms),
         "recordings": _corpus_recordings(rhythms),
+        "djembeloops": _load_djembeloops_reference(),
         "voices": list(ENSEMBLE_VOICES),
         "dununVoices": list(DUNUN_VOICES),
         "jembeVoices": list(JEMBE_VOICES),
@@ -483,15 +547,15 @@ h1{font-family:Georgia,Times,serif;font-size:clamp(2.2rem,4vw,3.65rem);line-heig
 .liveStatus.on{color:var(--live);font-weight:850}.liveStatus.on i{background:var(--live);box-shadow:0 0 0 5px color-mix(in srgb,var(--live) 14%,transparent)}
 .playCaption{width:100%;text-align:right;color:var(--muted);font-size:.75rem}
 .studioGrid{display:grid;grid-template-columns:minmax(520px,1.06fr) minmax(490px,.94fr);gap:16px;align-items:stretch}
-.wheelPanel,.synthPanel,.curvePanel,.microPanel,.mapPanel{padding:18px}
+.wheelPanel,.synthPanel,.curvePanel,.microPanel,.mapPanel,.referencePanel{padding:18px}
 .panelHead{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:4px}
-.panelHead h2,.synthPanel h2,.curvePanel h2,.microPanel h2,.mapPanel h2{font-family:Georgia,Times,serif;font-size:1.35rem;margin:0;letter-spacing:-.025em}
+.panelHead h2,.synthPanel h2,.curvePanel h2,.microPanel h2,.mapPanel h2,.referencePanel h2{font-family:Georgia,Times,serif;font-size:1.35rem;margin:0;letter-spacing:-.025em}
 .modeTag{border:1px solid var(--line);background:var(--soft);border-radius:999px;color:var(--muted);padding:5px 9px;font-size:.72rem;font-weight:800}
 .modeTag.live{border-color:color-mix(in srgb,var(--live) 45%,var(--line));color:var(--live);background:color-mix(in srgb,var(--live) 7%,var(--paper))}
 .metricControlGroup{display:flex;align-items:center;justify-content:flex-end;gap:7px;flex-wrap:wrap}
-.metricPicker{display:flex;align-items:center;gap:3px;padding:3px;border:1px solid var(--line);border-radius:10px;background:var(--soft)}
-.metricPicker .smallBtn{border:0;background:transparent;padding:5px 8px;color:var(--muted)}
-.metricPicker .smallBtn.on{background:var(--ink);color:var(--paper)}
+.metricPicker,.phrasePicker{display:flex;align-items:center;gap:3px;padding:3px;border:1px solid var(--line);border-radius:10px;background:var(--soft)}
+.metricPicker .smallBtn,.phrasePicker .smallBtn{border:0;background:transparent;padding:5px 8px;color:var(--muted)}
+.metricPicker .smallBtn.on,.phrasePicker .smallBtn.on{background:var(--ink);color:var(--paper)}
 canvas{display:block;width:100%;height:auto}
 .wheelPanel #circle{max-width:590px;margin:0 auto}
 .caption,.note{font-size:.85rem;color:var(--muted)}
@@ -582,6 +646,15 @@ canvas{display:block;width:100%;height:auto}
 .coefTable th:first-child,.coefTable td:first-child{text-align:left}
 .coefTable tr:last-child td{border-bottom:0}
 .coefTable th{color:var(--muted);font-weight:800;background:var(--soft)}
+.referencePanel{margin-top:16px}
+.referencePanel .panelHead{align-items:flex-end}
+.referenceTools{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.referenceTools select{border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:9px;padding:7px 9px;font-size:.78rem;max-width:260px}
+.referenceStats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;margin:12px 0}
+.referenceStat{border:1px solid var(--line2);background:var(--soft);border-radius:11px;padding:9px;font-size:.82rem}
+.referenceStat span{display:block;color:var(--muted);font-size:.68rem;text-transform:uppercase;letter-spacing:.08em}
+.referenceStat b{font-size:.98rem}
+.referencePanel #djembeloopsCompare{max-height:330px}
 .theory{margin-top:16px;padding:0;overflow:hidden}
 .theory summary{cursor:pointer;list-style:none;padding:16px 18px;font-family:Georgia,Times,serif;font-size:1.1rem;font-weight:700}
 .theory summary::-webkit-details-marker{display:none}
@@ -599,7 +672,7 @@ canvas{display:block;width:100%;height:auto}
 @media(max-width:720px){
   .page{padding:18px 12px 34px}.masthead{display:block}.titleBlock{min-width:0}.abstract{margin-top:12px}
   .toolbar{align-items:flex-start;flex-direction:column}.transport{justify-content:flex-start}.playCaption{text-align:left}
-  .studioGrid{grid-template-columns:minmax(0,1fr)}.wheelPanel,.synthPanel,.curvePanel,.microPanel,.mapPanel{padding:13px}
+  .studioGrid{grid-template-columns:minmax(0,1fr)}.wheelPanel,.synthPanel,.curvePanel,.microPanel,.mapPanel,.referencePanel{padding:13px}
   .panelHead{display:block}.metricControlGroup{justify-content:flex-start;margin-top:10px}
   .transformBar{grid-template-columns:1fr}
   .coefRow,.coefRow.density{grid-template-columns:78px 1fr 46px}.coefRow span{display:none}
@@ -649,8 +722,14 @@ canvas{display:block;width:100%;height:auto}
 <section class="studioGrid">
   <article class="wheelPanel surface">
     <div class="panelHead">
-      <div><h2>Cercle métrique · 12 subdivisions</h2></div>
+      <div><h2 id="wheelTitle">Cercle métrique · 12 subdivisions</h2></div>
       <div class="metricControlGroup">
+        <div class="phrasePicker" id="phraseModePicker" aria-label="Fenêtre d'analyse">
+          <button class="smallBtn" data-phrase-mode="mean12">12 moyen</button>
+          <button class="smallBtn" data-phrase-mode="cycleA">cycle A</button>
+          <button class="smallBtn" data-phrase-mode="cycleB">cycle B</button>
+          <button class="smallBtn" data-phrase-mode="phrase24">phrase 24</button>
+        </div>
         <div class="metricPicker" aria-label="Temporalité du cercle">
           <button class="smallBtn" id="circleRecordingBtn">Enregistrement</button>
           <button class="smallBtn" id="circleReconstructionBtn">Reconstruction</button>
@@ -740,6 +819,22 @@ canvas{display:block;width:100%;height:auto}
   <p class="caption">Abscisse : subdivision Polak du cycle. Ordonnée : intensité de frappe. En mode synthé, les carrés montrent les valeurs réellement jouées.</p>
 </section>
 
+<section class="referencePanel surface">
+  <div class="panelHead">
+    <div>
+      <h2>Référence DjembeLoops</h2>
+      <p class="caption">Comparaison externe : les matrices publiques du site sont ramenées dans la même fenêtre 12 ou 24 que la boussole.</p>
+    </div>
+    <div class="referenceTools">
+      <select id="djembeloopsPattern" aria-label="Rythme DjembeLoops de référence"></select>
+      <span class="modeTag" id="djembeloopsMode">référence</span>
+    </div>
+  </div>
+  <div class="referenceStats" id="djembeloopsStats"></div>
+  <canvas id="djembeloopsCompare" width="1260" height="330"></canvas>
+  <p class="caption" id="djembeloopsCaption"></p>
+</section>
+
 <section class="lowerGrid">
   <article class="microPanel surface">
     <div class="panelHead">
@@ -795,9 +890,17 @@ const TAU=Math.PI*2;
 const ALL_VOICES=DATA.voices||["J1","J2","D1","D2"];
 const DUNUN_VOICES=DATA.dununVoices||["D1","D2"];
 const JEMBE_VOICES=DATA.jembeVoices||["J1","J2"];
+const DJEMBELOOPS_CANDIDATES={
+  Manjanin:["mandiani","mendiani","mendianiII"],
+  Maraka:["marakadonII","marakadonI"],
+  Woloso:["wolesedon","wolesedonII"],
+};
+const DJEMBELOOPS_DUNUN=["Kenkeni","Sangban","Doundoun"];
+const DJEMBELOOPS_JEMBE=["DjembeOne","DjembeTwo","DjembeThree","DjembeFive","DjembeSix","DjembeSeven","DjembeSolo"];
 const state={
   piece:DATA.pieces[0],scope:"ensemble",playVoice:"ensemble",synthEnabled:false,synthVoice:"D1",
   synthData:{},listeningMode:"recording",timingMode:"observed",timingStrength:1,volume:1.3,reconstructionMix:.5,transformMessage:"",symmetryAxis:0,
+  phraseMode:"mean12",djembeloopsPatternByPiece:{},
   libraryPiece:DATA.pieces[0],libraryLoaded:{D1:null,D2:null},
   recordingCycleByKey:{},
   recordingTakeByPiece:Object.fromEntries(DATA.pieces.map(piece=>[
@@ -855,6 +958,11 @@ function signed(x,digits=2){return (x>=0?"+":"") + x.toFixed(digits);}
 function phaseTex(rad){return signed(rad,2);}
 function texVector(it){
   return String.raw`\left(${it.coeffs.slice(1).map(c=>`${c.mag.toFixed(2)}e^{${phaseTex(c.phase)}i}`).join(String.raw`,\; `)}\right)`;
+}
+function coefficientName(k,n=displayStepCount()){
+  if(n===12&&DATA.coefNames[String(k)])return DATA.coefNames[String(k)];
+  if(k===Math.floor(n/2))return "alternance maximale";
+  return `${k} oscillations / fenêtre`;
 }
 function color(voice){return css(`--${voice.toLowerCase()}`)||css("--accent");}
 function visibleVoices(){
@@ -1311,6 +1419,94 @@ function curveValueForVoice(voice,t){
 function motifForPlayback(voice){
   return state.synthEnabled ? synthMotif(voice) : rhythm().voices[voice].motif;
 }
+function phraseModeLabel(mode=state.phraseMode){
+  return {
+    mean12:"cycle 12 moyen",
+    cycleA:"cycle A · 12",
+    cycleB:"cycle B · 12",
+    phrase24:"phrase A+B · 24"
+  }[mode]||"cycle 12 moyen";
+}
+function displayStepCount(){
+  return state.phraseMode==="phrase24" ? 24 : 12;
+}
+function phrase24Motif(voice,piece=state.piece){
+  const motif=rhythm(piece).phrase24?.[voice]?.motif;
+  return Array.isArray(motif)&&motif.length>=24 ? motif.slice(0,24) : null;
+}
+function displayMotif(voice,piece=state.piece){
+  if(state.phraseMode==="mean12")return voiceView(voice,piece).motif.slice();
+  const phrase=phrase24Motif(voice,piece);
+  if(!phrase)return rhythm(piece).voices[voice].motif.slice();
+  if(state.phraseMode==="cycleA")return phrase.slice(0,12);
+  if(state.phraseMode==="cycleB")return phrase.slice(12,24);
+  return phrase;
+}
+function coefficientsFromMotif(motif){
+  const clean=motif.map(value=>Math.max(0,Number(value)||0));
+  const n=clean.length, density=clean.reduce((sum,value)=>sum+value,0);
+  const x=density>1e-10 ? clean.map(value=>value/density) : clean.map(()=>0);
+  const coeffs=[];
+  for(let k=0;k<=Math.floor(n/2);k++){
+    let re=0,im=0;
+    x.forEach((value,s)=>{
+      const angle=TAU*k*s/n;
+      re+=value*Math.cos(angle);
+      im-=value*Math.sin(angle);
+    });
+    coeffs.push({k,re,im,mag:Math.hypot(re,im),phase:Math.atan2(im,re)});
+  }
+  return {coeffs,density};
+}
+function displayVoiceView(voice,piece=state.piece){
+  if(state.phraseMode==="mean12")return voiceView(voice,piece);
+  const motif=displayMotif(voice,piece);
+  const {coeffs,density}=coefficientsFromMotif(motif);
+  return {
+    voice,
+    motif,
+    density,
+    coeffs,
+    takes:rhythm(piece).phrase24?.[voice]?.takes||rhythm(piece).voices[voice].takes,
+    phrase:true
+  };
+}
+function displayDurations(piece=state.piece){
+  const base=metricDurations(piece);
+  if(displayStepCount()===12)return base;
+  return base.map(value=>value/2).concat(base.map(value=>value/2));
+}
+function displayPositions(piece=state.piece){
+  const base=metricPositions(piece);
+  if(displayStepCount()===12)return base;
+  return base.map(value=>value/2).concat(base.map(value=>.5+value/2));
+}
+function displayPhaseAtSubdivision(position,piece=state.piece){
+  const steps=displayStepCount();
+  if(steps===12)return metricPhaseAtSubdivision(position,piece);
+  const step=((Math.floor(position)%steps)+steps)%steps;
+  const fraction=position-Math.floor(position);
+  const positions=displayPositions(piece),durations=displayDurations(piece);
+  return positions[step]+fraction*durations[step];
+}
+function curveValueFromCoeffArray(coeffs,density,t,n){
+  const theta=TAU*t/n;
+  let y=coeffs[0]?.re??1;
+  const half=Math.floor(n/2);
+  for(let k=1;k<half;k++){
+    const c=coeffs[k]||{re:0,im:0};
+    y += 2*(c.re*Math.cos(k*theta)-c.im*Math.sin(k*theta));
+  }
+  if(n%2===0){
+    const c=coeffs[half]||{re:0,im:0};
+    y += c.re*Math.cos(half*theta)-c.im*Math.sin(half*theta);
+  }
+  return Math.max(0,y/n*(density??1));
+}
+function displayCurveValue(voice,t){
+  const view=displayVoiceView(voice);
+  return curveValueFromCoeffArray(view.coeffs,view.density,t,view.motif.length);
+}
 function subdivisionAtMetricPhase(phase){
   return subdivisionAtPositions(phase,metricPositions(),metricDurations());
 }
@@ -1320,8 +1516,9 @@ function subdivisionAtPositions(phase,positions,durations=null){
     return Math.max(1e-6,next-position);
   });
   const wrapped=((phase%1)+1)%1;
-  let step=11;
-  for(let s=0;s<12;s++){
+  const n=positions.length;
+  let step=n-1;
+  for(let s=0;s<n;s++){
     if(wrapped>=positions[s]&&wrapped<positions[s]+resolvedDurations[s]){
       step=s;
       break;
@@ -1373,29 +1570,54 @@ function playheadCirclePhase(position){
   if(phase!==null)return phase;
   return position===null ? null : metricPhaseAtSubdivision(position);
 }
+function playheadDisplayPosition(){
+  const position=playheadPosition();
+  if(position===null)return null;
+  if(displayStepCount()===12)return position;
+  if((playback.kind==="recording"||playback.kind==="reconstruction")&&corpusPlaybackPhase()!==null){
+    const cycle=playback.cycle||selectedCycle();
+    const half=((cycle?.index??selectedCycleIndex())%2+2)%2;
+    return half*12+position;
+  }
+  if(playback.kind==="synthetic"&&playback.ctx){
+    const cycleDuration=12*playback.step;
+    const elapsed=Math.max(0,playback.ctx.currentTime-playback.startTime);
+    const half=Math.floor(elapsed/cycleDuration)%2;
+    return half*12+(position%12);
+  }
+  return position%24;
+}
+function playheadDisplayPhase(){
+  const position=playheadDisplayPosition();
+  return position===null ? null : displayPhaseAtSubdivision(position);
+}
 
 function latexForRhythm(r){
+  const n=displayStepCount();
+  const maxK=Math.floor(n/2);
   const voices=visibleVoices();
   const vectorRows=voices.map(voice=>String.raw`\operatorname{${voice}}_{\mathrm{${r.piece}}}(s)`).join(String.raw`\\`);
-  const coefficientRows=voices.map(voice=>String.raw`\mathbf{c}_{${voice}} &= ${texVector(voiceView(voice,r.piece))}`).join(String.raw`\\`);
+  const coefficientRows=voices.map(voice=>String.raw`\mathbf{c}_{${voice}}^{(${n})} &= ${texVector(displayVoiceView(voice,r.piece))}`).join(String.raw`\\`);
   return String.raw`
 \[
 \begin{aligned}
+\text{fenêtre:}\quad
+N &= ${n}\quad(\text{${phraseModeLabel()}})\\
 \text{points du cercle:}\quad
-z_s &= e^{2\pi i s/12}\\
+z_s &= e^{2\pi i s/N}\\
 \text{motif normalisé:}\quad
 x_{v,s} &= \frac{\operatorname{V}_{v}(s)}{\rho_v},
-\qquad \rho_v=\sum_{s=0}^{11}\operatorname{V}_{v}(s)\\
+\qquad \rho_v=\sum_{s=0}^{N-1}\operatorname{V}_{v}(s)\\
 \text{coefficients:}\quad
-c_{v,k} &= \sum_{s=0}^{11}x_{v,s}\,z_s^{-k},
-\qquad k=0,\ldots,6\\
+c_{v,k}^{(N)} &= \sum_{s=0}^{N-1}x_{v,s}\,z_s^{-k},
+\qquad k=0,\ldots,${maxK}\\
 \operatorname{Rythme}_{\mathrm{${r.piece}}}(s)
   &= \begin{bmatrix}${vectorRows}\end{bmatrix},
-  \qquad s\in\{0,\ldots,11\}\\
-\operatorname{V}_{v,\mathrm{${r.piece}}}(s)
-  &= \frac{\rho_v}{12}\left[
-      1+2\,\Re\!\left(\sum_{k=1}^{5}c_{v,k}z_s^k\right)
-      + c_{v,6}(-1)^s
+  \qquad s\in\{0,\ldots,${n-1}\}\\
+\operatorname{V}_{v,\mathrm{${r.piece}}}^{(${n})}(s)
+  &= \frac{\rho_v}{N}\left[
+      1+2\,\Re\!\left(\sum_{k=1}^{${maxK-1}}c_{v,k}^{(N)}z_s^k\right)
+      + c_{v,${maxK}}^{(N)}(-1)^s
     \right]\\
 ${coefficientRows}
 \end{aligned}
@@ -1411,6 +1633,24 @@ function queueMath(){
   }
 }
 
+function renderPhraseModeControls(){
+  document.querySelectorAll("[data-phrase-mode]").forEach(button=>{
+    const mode=button.dataset.phraseMode;
+    button.className="smallBtn"+(state.phraseMode===mode?" on":"");
+    button.onclick=()=>{
+      state.phraseMode=mode;
+      renderPhraseModeControls();
+      syncSynthModeButtons();
+      drawCircle();
+      drawCurve();
+      renderEquation();
+      renderCoefTable();
+      renderDjembeLoopsReference();
+      queueMath();
+    };
+  });
+}
+
 function syncSynthModeButtons(){
   const original=document.getElementById("originalModeBtn"), synth=document.getElementById("synthModeBtn");
   if(!original||!synth)return;
@@ -1424,8 +1664,10 @@ function syncSynthModeButtons(){
     circleMode.className="modeTag"+(state.synthEnabled?" live":"");
   }
   if(curveMode){
-    curveMode.textContent=state.synthEnabled?"Courbe et pas synthétisés":"Points observés + modèle";
-    curveMode.className="modeTag"+(state.synthEnabled?" live":"");
+    curveMode.textContent=state.phraseMode==="mean12"
+      ? (state.synthEnabled?"Courbe et pas synthétisés":"Points observés + modèle")
+      : phraseModeLabel();
+    curveMode.className="modeTag"+(state.synthEnabled&&state.phraseMode==="mean12"?" live":"");
   }
   if(liveTag){
     liveTag.textContent=state.synthEnabled
@@ -1449,6 +1691,7 @@ function refreshSynthViews(){
   syncSynthModeButtons();
   drawCircle();
   drawCurve();
+  renderDjembeLoopsReference();
   scheduleEquationRefresh();
 }
 
@@ -1554,6 +1797,7 @@ function renderScopePicker(){
       renderRecordingCycleControl();
       drawCircle();
       drawCurve();
+      renderDjembeLoopsReference();
       drawMicroTiming();
       renderEquation();
       renderCoefTable();
@@ -1623,8 +1867,9 @@ function drawCircle(){
   const ringMap=new Map(voices.map((voice,index)=>[voice,outer-index*gap]));
   const radii=[...ringMap.values()];
   const inner=Math.min(...radii);
-  const p=playheadPosition(), currentStep=p===null?null:Math.floor(p)%12;
-  const positions=metricPositions(),durations=metricDurations();
+  const steps=displayStepCount();
+  const p=playheadDisplayPosition(), currentStep=p===null?null:Math.floor(p)%steps;
+  const positions=displayPositions(),durations=displayDurations();
   const observedMode=state.timingMode==="observed";
   const audibleVoices=new Set(selectedVoices());
   document.querySelectorAll("[data-voice-legend]").forEach(item=>{
@@ -1644,8 +1889,8 @@ function drawCircle(){
     g.globalAlpha=.32;
     g.lineWidth=1.2;
     g.setLineDash([3,4]);
-    for(let s=0;s<12;s++){
-      const a=s/12*TAU-Math.PI/2,ca=Math.cos(a),sa=Math.sin(a);
+    for(let s=0;s<steps;s++){
+      const a=s/steps*TAU-Math.PI/2,ca=Math.cos(a),sa=Math.sin(a);
       g.beginPath();
       g.moveTo((inner-23)*ca,(inner-23)*sa);
       g.lineTo((outer+17)*ca,(outer+17)*sa);
@@ -1658,7 +1903,7 @@ function drawCircle(){
   g.strokeStyle=css("--line2");
   g.globalAlpha=.85;
   g.lineWidth=1;
-  for(let s=0;s<12;s++){
+  for(let s=0;s<steps;s++){
     const a=positions[s]*TAU-Math.PI/2,ca=Math.cos(a),sa=Math.sin(a);
     g.beginPath();
     g.moveTo((inner-20)*ca,(inner-20)*sa);
@@ -1667,28 +1912,30 @@ function drawCircle(){
   }
   g.restore();
 
-  const axisAngle=positions[state.symmetryAxis]*TAU-Math.PI/2;
-  const axisX=Math.cos(axisAngle),axisY=Math.sin(axisAngle),axisRadius=outer+34;
-  g.save();
-  g.setLineDash([7,6]);
-  g.strokeStyle=css("--accent");
-  g.globalAlpha=.48;
-  g.lineWidth=1.7;
-  g.beginPath();
-  g.moveTo(-axisRadius*axisX,-axisRadius*axisY);
-  g.lineTo(axisRadius*axisX,axisRadius*axisY);
-  g.stroke();
-  g.restore();
-  g.fillStyle=css("--accent");
-  g.globalAlpha=.78;
-  g.font="700 11px Inter, system-ui, sans-serif";
-  g.textAlign="center";g.textBaseline="middle";
-  g.fillText(`A ${state.symmetryAxis+1}–${state.symmetryAxis+7}`,0,24);
+  if(steps===12){
+    const axisAngle=positions[state.symmetryAxis]*TAU-Math.PI/2;
+    const axisX=Math.cos(axisAngle),axisY=Math.sin(axisAngle),axisRadius=outer+34;
+    g.save();
+    g.setLineDash([7,6]);
+    g.strokeStyle=css("--accent");
+    g.globalAlpha=.48;
+    g.lineWidth=1.7;
+    g.beginPath();
+    g.moveTo(-axisRadius*axisX,-axisRadius*axisY);
+    g.lineTo(axisRadius*axisX,axisRadius*axisY);
+    g.stroke();
+    g.restore();
+    g.fillStyle=css("--accent");
+    g.globalAlpha=.78;
+    g.font="700 11px Inter, system-ui, sans-serif";
+    g.textAlign="center";g.textBaseline="middle";
+    g.fillText(`A ${state.symmetryAxis+1}–${state.symmetryAxis+7}`,0,24);
+  }
 
-  for(let s=0;s<12;s++){
+  for(let s=0;s<steps;s++){
     const a=positions[s]*TAU-Math.PI/2;
     const ca=Math.cos(a), sa=Math.sin(a);
-    const fixed=s===state.symmetryAxis||s===state.symmetryAxis+6;
+    const fixed=steps===12&&(s===state.symmetryAxis||s===state.symmetryAxis+6);
     g.fillStyle=fixed?css("--accent"):css("--muted");
     g.globalAlpha=fixed ? .9 : .55;
     g.beginPath();g.arc((outer+30)*ca,(outer+30)*sa,fixed?4:2.2,0,TAU);g.fill();
@@ -1701,7 +1948,7 @@ function drawCircle(){
 
   voices.forEach(voice=>{
     const rad=ringMap.get(voice);
-    const it=voiceView(voice,r.piece), values=it.motif, mx=Math.max(...values,0.001);
+    const it=displayVoiceView(voice,r.piece), values=it.motif, mx=Math.max(...values,0.001);
     const audible=audibleVoices.has(voice);
     g.strokeStyle=color(voice);
     g.globalAlpha=audible ? .72 : .2;
@@ -1731,7 +1978,7 @@ function drawCircle(){
   });
 
   if(p!==null){
-    const a=playheadCirclePhase(p)*TAU-Math.PI/2, ca=Math.cos(a), sa=Math.sin(a);
+    const a=playheadDisplayPhase()*TAU-Math.PI/2, ca=Math.cos(a), sa=Math.sin(a);
     let from=inner-42, to=outer+28;
     if(ALL_VOICES.includes(state.playVoice)&&ringMap.has(state.playVoice)){
       const rad=ringMap.get(state.playVoice);
@@ -1754,38 +2001,50 @@ function drawCircle(){
   const tripletText=triplet.map(value=>(value/tripletTotal*100).toFixed(1)+" %").join(" / ");
   const key=document.getElementById("metricKey");
   key.style.display=observedMode?"inline-flex":"none";
+  const title=document.getElementById("wheelTitle");
+  if(title)title.textContent=`Cercle métrique · ${steps} subdivisions`;
   const temporalCaption=["recording","reconstruction"].includes(state.listeningMode)
-    ? `La barre noire suit ${selectedCycleLabel()} de la prise ${selectedRecording()?.take??"—"} ; les points restent le motif moyen des voix visibles.`
+    ? `La barre noire suit ${selectedCycleLabel()} de la prise ${selectedRecording()?.take??"—"} ; les points montrent ${phraseModeLabel()}.`
     : observedMode
       ? "Les traits pointillés conservent la grille isochrone ; les points suivent les positions moyennes mesurées dans l’ensemble."
-      : "Les douze positions sont espacées régulièrement.";
+      : `Les ${steps} positions sont espacées régulièrement dans la fenêtre.`;
+  const phraseCaption=state.phraseMode==="mean12"
+    ? "Polak 12 : un cycle moyen."
+    : state.phraseMode==="phrase24"
+      ? "Phrase 24 : deux cycles Polak successifs A+B."
+      : `${phraseModeLabel()} : moitié extraite de la phrase A+B.`;
+  const synthCaption=state.synthEnabled&&state.phraseMode!=="mean12"
+    ? " Le synthé 12 reste audible, mais cette lecture affiche les profils A/B observés."
+    : "";
   document.getElementById("circleCaption").innerHTML =
     `<b>${r.piece}</b> — prises appariées ensemble : ${r.takes.join(", ")}. `+
-    `${temporalCaption} `+
+    `${phraseCaption} ${temporalCaption}${synthCaption} `+
     `Proportions temporelles moyennes : ${tripletText}. `+
-    `${state.synthEnabled?"Densités synthétisées":"Densités moyennes"} : ${
-      voices.map(voice=>`${voice} ${voiceView(voice).density.toFixed(2)}`).join(", ")
-    } frappes/cycle.`;
+    `${state.synthEnabled&&state.phraseMode==="mean12"?"Densités synthétisées":"Densités affichées"} : ${
+      voices.map(voice=>`${voice} ${displayVoiceView(voice).density.toFixed(2)}`).join(", ")
+    } frappes/fenêtre.`;
 }
 
 function drawCurve(){
-  const r=rhythm(), cv=document.getElementById("curve"), g=cv.getContext("2d");
+  const cv=document.getElementById("curve"), g=cv.getContext("2d");
   const W=cv.width,H=cv.height,left=50,right=20,top=18,bottom=42,span=W-left-right;
+  const steps=displayStepCount();
   g.clearRect(0,0,W,H);
   const samples=[];
   visibleVoices().forEach(voice=>{
-    const it=r.voices[voice];
-    for(let i=0;i<=180;i++) samples.push(curveValueForVoice(voice,i/180*12));
-    samples.push(...it.motif,...motifForPlayback(voice));
+    const it=displayVoiceView(voice);
+    for(let i=0;i<=240;i++) samples.push(curveValueFromCoeffArray(it.coeffs,it.density,i/240*steps,steps));
+    samples.push(...it.motif);
+    if(state.synthEnabled&&state.phraseMode==="mean12")samples.push(...motifForPlayback(voice));
   });
   const ymax=Math.max(...samples,0.05)*1.14;
-  const xOf=t=>left+(t/12)*span;
+  const xOf=t=>left+(t/steps)*span;
   const yOf=v=>H-bottom-(v/ymax)*(H-top-bottom);
 
   g.strokeStyle=css("--line");g.lineWidth=1;
   g.beginPath();g.moveTo(left,top);g.lineTo(left,H-bottom);g.lineTo(W-right,H-bottom);g.stroke();
   g.fillStyle=css("--muted");g.font="11px Inter, system-ui";g.textAlign="center";g.textBaseline="top";
-  for(let s=0;s<12;s++){
+  for(let s=0;s<steps;s++){
     const x=xOf(s);
     g.globalAlpha=.45;g.strokeStyle=css("--line2");g.beginPath();g.moveTo(x,top);g.lineTo(x,H-bottom);g.stroke();
     g.globalAlpha=1;g.fillStyle=css("--muted");g.fillText(String(s+1),x,H-bottom+10);
@@ -1796,16 +2055,16 @@ function drawCurve(){
   g.fillText("probabilité de frappe",0,0);
   g.restore();
   g.textAlign="center";g.textBaseline="bottom";g.fillStyle=css("--muted");
-  g.fillText("subdivision du cycle (1–12)",left+span/2,H-5);
+  g.fillText(steps===24?"subdivision de la phrase A+B (1–24)":"subdivision du cycle (1–12)",left+span/2,H-5);
 
   visibleVoices().forEach(voice=>{
-    const it=r.voices[voice], col=color(voice);
+    const it=displayVoiceView(voice), col=color(voice);
     const audible=selectedVoices().includes(voice);
     g.strokeStyle=col;g.lineWidth=2.6;g.globalAlpha=audible ? .92 : .25;
-    if(state.synthEnabled){g.setLineDash([8,5]);}else{g.setLineDash([]);}
+    if(state.synthEnabled&&state.phraseMode==="mean12"){g.setLineDash([8,5]);}else{g.setLineDash([]);}
     g.beginPath();
-    for(let i=0;i<=180;i++){
-      const t=i/180*12, x=xOf(t), y=yOf(curveValueForVoice(voice,t));
+    for(let i=0;i<=240;i++){
+      const t=i/240*steps, x=xOf(t), y=yOf(curveValueFromCoeffArray(it.coeffs,it.density,t,steps));
       if(i===0)g.moveTo(x,y);else g.lineTo(x,y);
     }
     g.stroke();
@@ -1815,7 +2074,7 @@ function drawCurve(){
       g.beginPath();g.arc(xOf(s),yOf(v),5.2,0,TAU);g.fill();
       g.strokeStyle=css("--paper");g.lineWidth=1.4;g.stroke();
     });
-    if(state.synthEnabled){
+    if(state.synthEnabled&&state.phraseMode==="mean12"){
       motifForPlayback(voice).forEach((v,s)=>{
         g.globalAlpha=audible ? .72 : .2;g.strokeStyle=col;g.lineWidth=2;
         g.beginPath();g.rect(xOf(s)-4,yOf(v)-4,8,8);g.stroke();
@@ -1823,9 +2082,9 @@ function drawCurve(){
     }
   });
 
-  const p=playheadPosition();
+  const p=playheadDisplayPosition();
   if(p!==null){
-    const x=xOf(p);
+    const x=xOf(p%steps);
     g.globalAlpha=1;
     g.strokeStyle=css("--ink");
     g.lineWidth=2;
@@ -1834,6 +2093,267 @@ function drawCurve(){
     g.beginPath();g.arc(x,top+7,4.5,0,TAU);g.fill();
   }
   g.globalAlpha=1;
+}
+
+function djembeloopsData(){
+  return DATA.djembeloops||{patterns:[],matrices:{},samples:[],source:"https://www.djembeloops.com"};
+}
+function djembeloopsPatternByKey(key){
+  return (djembeloopsData().patterns||[]).find(pattern=>pattern.key===key)||null;
+}
+function djembeloopsMatrix(pattern){
+  return pattern ? djembeloopsData().matrices?.[pattern.matrix]||null : null;
+}
+function candidateDjembeloopsPatterns(piece=state.piece){
+  const patterns=djembeloopsData().patterns||[];
+  const keys=DJEMBELOOPS_CANDIDATES[piece]||[];
+  return keys.map(key=>djembeloopsPatternByKey(key)).filter(Boolean);
+}
+function selectedDjembeloopsPattern(piece=state.piece){
+  const patterns=djembeloopsData().patterns||[];
+  if(!patterns.length)return null;
+  const candidates=candidateDjembeloopsPatterns(piece);
+  const stored=state.djembeloopsPatternByPiece[piece];
+  const selected=patterns.find(pattern=>pattern.key===stored)
+    || candidates[0]
+    || patterns[0];
+  state.djembeloopsPatternByPiece[piece]=selected.key;
+  return selected;
+}
+function familyOfInstrument(instrument){
+  return String(instrument||"").split("_")[0];
+}
+function referenceColor(instrument){
+  const family=familyOfInstrument(instrument);
+  if(family==="Doundoun")return color("D1");
+  if(family==="Sangban")return color("D2");
+  if(family==="Kenkeni")return css("--live");
+  if(family==="DjembeOne"||family==="DjembeTwo"||family==="DjembeThree")return color("J1");
+  if(family.startsWith("Djembe"))return color("J2");
+  return css("--accent");
+}
+function resampleReference(values,target){
+  if(!values.length)return Array.from({length:target},()=>0);
+  return Array.from({length:target},(_,s)=>values[Math.min(values.length-1,Math.floor(s*values.length/target))]||0);
+}
+function normalizeReferenceWindow(values){
+  const target=displayStepCount();
+  const source=values.length;
+  if(source===target)return values.slice();
+  if(target===12&&source>=24&&source%12===0){
+    if(state.phraseMode==="cycleA")return values.slice(0,12);
+    if(state.phraseMode==="cycleB")return values.slice(12,24);
+    const cycles=Math.floor(source/12);
+    return Array.from({length:12},(_,s)=>{
+      let sum=0,count=0;
+      for(let cycle=0;cycle<cycles;cycle++){
+        const index=cycle*12+s;
+        if(index<source){sum+=values[index];count++;}
+      }
+      return count ? sum/count : 0;
+    });
+  }
+  if(target===24){
+    if(source===12)return values.concat(values);
+    if(source>24&&source%24===0){
+      const phrases=Math.floor(source/24);
+      return Array.from({length:24},(_,s)=>{
+        let sum=0,count=0;
+        for(let phrase=0;phrase<phrases;phrase++){
+          const index=phrase*24+s;
+          if(index<source){sum+=values[index];count++;}
+        }
+        return count ? sum/count : 0;
+      });
+    }
+    if(source>24&&source%12===0)return values.slice(0,24);
+  }
+  return resampleReference(values,target);
+}
+function referenceRows(pattern){
+  const matrix=djembeloopsMatrix(pattern);
+  if(!matrix?.rows)return [];
+  return matrix.rows.map(row=>{
+    const raw=(row.notes||[]).map(value=>value ? 1 : 0);
+    return {
+      instrument:row.instrument,
+      family:familyOfInstrument(row.instrument),
+      values:normalizeReferenceWindow(raw),
+      rawSteps:raw.length,
+    };
+  });
+}
+function compatibleRowsForVoice(rows,voice){
+  const isDunun=DUNUN_VOICES.includes(voice);
+  const filtered=rows.filter(row=>{
+    if(String(row.instrument).includes("Bell"))return false;
+    if(isDunun)return DJEMBELOOPS_DUNUN.includes(row.family);
+    return DJEMBELOOPS_JEMBE.includes(row.family);
+  });
+  return filtered.length ? filtered : rows;
+}
+function referenceDistance(a,b){
+  const n=Math.min(a.length,b.length);
+  if(!n)return 1;
+  let sum=0;
+  for(let i=0;i<n;i++){
+    sum+=Math.abs(Math.max(0,Math.min(1,a[i]||0))-Math.max(0,Math.min(1,b[i]||0)));
+  }
+  return sum/n;
+}
+function bestReferenceMatches(pattern){
+  const rows=referenceRows(pattern);
+  return visibleVoices().map(voice=>{
+    const motif=displayMotif(voice).map(value=>Math.max(0,Math.min(1,value||0)));
+    let best=null,bestDistance=Infinity;
+    compatibleRowsForVoice(rows,voice).forEach(row=>{
+      const distance=referenceDistance(motif,row.values);
+      if(distance<bestDistance){bestDistance=distance;best=row;}
+    });
+    return {voice,best,distance:Number.isFinite(bestDistance)?bestDistance:null};
+  });
+}
+function renderDjembeLoopsPatternControl(){
+  const select=document.getElementById("djembeloopsPattern");
+  if(!select)return;
+  const data=djembeloopsData();
+  const all=(data.patterns||[]).slice().sort((a,b)=>a.name.localeCompare(b.name));
+  const candidates=candidateDjembeloopsPatterns();
+  const selected=selectedDjembeloopsPattern();
+  select.innerHTML="";
+  const addOption=(parent,pattern,prefix="")=>{
+    const option=document.createElement("option");
+    option.value=pattern.key;
+    option.textContent=`${prefix}${pattern.name} · ${pattern.matrixSteps||pattern.steps} pas`;
+    option.selected=selected?.key===pattern.key;
+    parent.appendChild(option);
+  };
+  if(candidates.length){
+    const group=document.createElement("optgroup");
+    group.label=`Proches de ${state.piece}`;
+    candidates.forEach(pattern=>addOption(group,pattern));
+    select.appendChild(group);
+  }
+  const allGroup=document.createElement("optgroup");
+  allGroup.label="Tous les rythmes extraits";
+  all.forEach(pattern=>addOption(allGroup,pattern));
+  select.appendChild(allGroup);
+  select.onchange=()=>{
+    state.djembeloopsPatternByPiece[state.piece]=select.value;
+    renderDjembeLoopsReference();
+  };
+}
+function sampleStats(){
+  const samples=djembeloopsData().samples||[];
+  const counts=samples.reduce((acc,sample)=>{
+    acc[sample.family]=(acc[sample.family]||0)+1;
+    return acc;
+  },{});
+  const dunun=DJEMBELOOPS_DUNUN.reduce((sum,family)=>sum+(counts[family]||0),0);
+  const djembe=Object.entries(counts)
+    .filter(([family])=>family.startsWith("Djembe"))
+    .reduce((sum,[,count])=>sum+count,0);
+  return {total:samples.length,dunun,djembe,counts};
+}
+function drawDjembeLoopsComparison(pattern,matches){
+  const cv=document.getElementById("djembeloopsCompare");
+  if(!cv)return;
+  const g=cv.getContext("2d"),W=cv.width,H=cv.height;
+  const left=138,right=18,top=24,bottom=38,steps=displayStepCount(),span=W-left-right;
+  g.clearRect(0,0,W,H);
+  if(!pattern){
+    g.fillStyle=css("--muted");g.font="13px Inter, system-ui";g.textAlign="center";
+    g.fillText("Référence DjembeLoops indisponible. Lance import_djembeloops_reference.py pour régénérer le JSON.",W/2,H/2);
+    return;
+  }
+  const sourceRows=referenceRows(pattern)
+    .filter(row=>!String(row.instrument).includes("Bell"))
+    .filter(row=>state.scope==="dunun" ? DJEMBELOOPS_DUNUN.includes(row.family) : DJEMBELOOPS_DUNUN.includes(row.family)||DJEMBELOOPS_JEMBE.includes(row.family));
+  const polakRows=visibleVoices().map(voice=>({
+    label:`Polak ${voice}`,
+    values:displayMotif(voice),
+    color:color(voice),
+    kind:"polak"
+  }));
+  const rows=polakRows.concat(sourceRows.map(row=>({
+    label:`DL ${row.instrument}`,
+    values:row.values,
+    color:referenceColor(row.instrument),
+    kind:"dl"
+  })));
+  const rowGap=Math.min(26,Math.max(16,(H-top-bottom)/(rows.length||1)));
+  const yOf=index=>top+index*rowGap;
+  const xOf=s=>left+(steps===1?0:s/(steps-1))*span;
+  g.strokeStyle=css("--line2");g.lineWidth=1;g.globalAlpha=.55;
+  for(let s=0;s<steps;s++){
+    const x=xOf(s);
+    g.beginPath();g.moveTo(x,top-8);g.lineTo(x,Math.min(H-bottom,yOf(rows.length-1)+10));g.stroke();
+  }
+  g.globalAlpha=1;
+  g.fillStyle=css("--muted");g.font="10px Inter, system-ui";g.textAlign="center";g.textBaseline="top";
+  for(let s=0;s<steps;s++)g.fillText(String(s+1),xOf(s),H-bottom+10);
+  rows.forEach((row,index)=>{
+    const y=yOf(index);
+    if(index===polakRows.length){
+      g.strokeStyle=css("--line");g.lineWidth=1.4;g.globalAlpha=.9;
+      g.beginPath();g.moveTo(12,y-rowGap*.48);g.lineTo(W-12,y-rowGap*.48);g.stroke();
+      g.globalAlpha=1;
+    }
+    const max=Math.max(...row.values,.001);
+    g.fillStyle=row.kind==="polak"?css("--ink"):css("--muted");
+    g.font=row.kind==="polak"?"700 12px Inter, system-ui":"12px Inter, system-ui";
+    g.textAlign="right";g.textBaseline="middle";
+    g.fillText(row.label,left-12,y);
+    row.values.forEach((value,s)=>{
+      if(value<=.035)return;
+      const x=xOf(s), size=row.kind==="polak" ? 3.5+7.5*Math.sqrt(value/max) : 5.5;
+      g.fillStyle=row.color;g.globalAlpha=row.kind==="polak" ? .95 : .76;
+      g.beginPath();g.arc(x,y,size,0,TAU);g.fill();
+      g.strokeStyle=css("--paper");g.lineWidth=1.1;g.stroke();
+    });
+  });
+  g.globalAlpha=1;
+  const p=playheadDisplayPosition();
+  if(p!==null){
+    const x=xOf((p%steps+steps)%steps);
+    g.strokeStyle=css("--ink");g.lineWidth=2;g.globalAlpha=.72;
+    g.beginPath();g.moveTo(x,top-12);g.lineTo(x,H-bottom);g.stroke();
+    g.globalAlpha=1;
+  }
+}
+function renderDjembeLoopsReference(){
+  renderDjembeLoopsPatternControl();
+  const pattern=selectedDjembeloopsPattern();
+  const matrix=djembeloopsMatrix(pattern);
+  const matches=pattern ? bestReferenceMatches(pattern) : [];
+  const stats=sampleStats();
+  const modeTag=document.getElementById("djembeloopsMode");
+  if(modeTag)modeTag.textContent=phraseModeLabel();
+  const statsBox=document.getElementById("djembeloopsStats");
+  if(statsBox){
+    const candidateText=candidateDjembeloopsPatterns().map(pattern=>pattern.name).join(" / ")||"—";
+    statsBox.innerHTML=[
+      ["site",`${(djembeloopsData().patterns||[]).length} rythmes · ${(djembeloopsData().matrices&&Object.keys(djembeloopsData().matrices).length)||0} matrices`],
+      ["sélection",pattern?`${pattern.name} · ${matrix?.steps||pattern.steps} pas · ${pattern.tempo||"—"} bpm`:"—"],
+      ["candidats proches",candidateText],
+      ["sons",`${stats.total} URLs · djembe ${stats.djembe} · dunun ${stats.dunun}`],
+    ].map(([k,v])=>`<div class="referenceStat"><span>${k}</span><b>${v}</b></div>`).join("");
+  }
+  drawDjembeLoopsComparison(pattern,matches);
+  const caption=document.getElementById("djembeloopsCaption");
+  if(caption){
+    if(!pattern){
+      caption.textContent="Aucune donnée DjembeLoops chargée.";
+      return;
+    }
+    const matchText=matches.map(match=>
+      `${match.voice} ≈ ${match.best?.instrument||"—"} (Δ ${match.distance===null?"—":(match.distance*100).toFixed(1)+" %"})`
+    ).join(" · ");
+    caption.innerHTML=
+      `<b>Lecture.</b> Δ est la différence absolue moyenne entre le motif Polak affiché et la ligne DjembeLoops ramenée à ${displayStepCount()} positions. `+
+      `${matchText}. Source : <a href="${djembeloopsData().source}" target="_blank" rel="noreferrer">djembeloops.com</a>. `+
+      `Les MP3 ne sont pas copiés : seules leurs URLs et familles d’instruments sont indexées.`;
+  }
 }
 
 function microProfile(voice,piece=state.piece){
@@ -2050,25 +2570,25 @@ function renderEquation(){
   const r=rhythm();
   document.getElementById("mainEquation").textContent=latexForRhythm(r);
   const densityText=visibleVoices()
-    .map(voice=>`${voice} ${voiceView(voice).density.toFixed(2)}`)
+    .map(voice=>`${voice} ${displayVoiceView(voice).density.toFixed(2)}`)
     .join(" · ");
   document.getElementById("metrics").innerHTML=[
     ["prises",r.takes.join(", ")],
     ["vue",state.scope==="ensemble"?"ensemble complet":"dunun"],
-    ["mode",state.synthEnabled?"synthé":"original"],
+    ["fenêtre",`${phraseModeLabel()}${state.synthEnabled&&state.phraseMode==="mean12"?" · synthé":""}`],
     ["densités",densityText]
   ].map(([k,v])=>`<div class="metric"><span>${k}</span><b>${v}</b></div>`).join("");
 }
 
 function renderCoefTable(){
-  const r=rhythm();
   const rows=[];
   const voices=visibleVoices();
-  for(let k=1;k<=6;k++){
-    const name=DATA.coefNames[String(k)];
+  const maxK=Math.floor(displayStepCount()/2);
+  for(let k=1;k<=maxK;k++){
+    const name=coefficientName(k);
     rows.push(`<tr><td>c${k}<br><small>${name}</small></td>${
       voices.map(voice=>{
-        const c=voiceView(voice).coeffs[k];
+        const c=displayVoiceView(voice).coeffs[k];
         return `<td>${c.mag.toFixed(3)}<br><small>${phaseDeg(c.phase).toFixed(0)}°</small></td>`;
       }).join("")
     }</tr>`);
@@ -2399,11 +2919,13 @@ function render(){
   renderScopePicker();
   renderVoicePicker();
   renderVolumeControl();
+  renderPhraseModeControls();
   renderSynthControls();
   renderSymmetryLibrary();
   renderTimingControls();
   drawCircle();
   drawCurve();
+  renderDjembeLoopsReference();
   drawMicroTiming();
   drawMap();
   renderEquation();
