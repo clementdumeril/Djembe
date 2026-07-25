@@ -1026,8 +1026,8 @@ const playback={
   cycle:null,nextEventIndex:0
 };
 const referencePlayback={
-  active:false,timer:null,stepIndex:0,nextStepAt:0,events:[],patternKey:null,tempo:120,
-  pending:[]
+  active:false,loadingAudio:false,timer:null,stepIndex:0,nextStepAt:0,events:[],patternKey:null,tempo:120,
+  pending:[],ctx:null,master:null,buffers:new Map(),loading:new Map(),sources:[],webAudioReady:false,fallbackReason:""
 };
 const sampleAudioCache=new Map();
 
@@ -2411,9 +2411,14 @@ function renderReferencePlayerControls(){
   playBtn.textContent=referencePlayback.active ? "■ Référence en cours" : "▶ Lire référence";
   playBtn.className="smallBtn"+(referencePlayback.active?" on":"");
   status.className="referenceStatus"+(referencePlayback.active?" live":"");
-  status.textContent=referencePlayback.active
-    ? `lecture externe · ${pattern?.name||"—"}`
-    : `samples locaux prêts · ${(djembeloopsData().samples||[]).length} sons`;
+  if(referencePlayback.active&&referencePlayback.loadingAudio){
+    status.textContent=`chargement audio · ${pattern?.name||"—"}`;
+  }else if(referencePlayback.active){
+    const engine=referencePlayback.webAudioReady ? "WebAudio local" : `fallback HTMLAudio${referencePlayback.fallbackReason ? " · "+referencePlayback.fallbackReason : ""}`;
+    status.textContent=`lecture externe · ${pattern?.name||"—"} · ${engine}`;
+  }else{
+    status.textContent=`samples locaux prêts · ${(djembeloopsData().samples||[]).length} sons`;
+  }
   slider.oninput=()=>{
     const value=Number(slider.value);
     if(pattern)state.referenceTempoByPattern[pattern.key]=value;
@@ -2436,20 +2441,41 @@ function articulationForNote(instrument,note){
   const text=String(note||"");
   if(String(instrument||"").includes("Bell"))return "Bell_Open";
   if(text.includes("Muffled"))return "Muffled";
+  if(text.includes("Mute"))return "Mute";
   if(text.includes("Bass"))return "Bass";
   if(text.includes("Slap"))return "Slap";
-  if(text.includes("Mute"))return "Mute";
   if(text.includes("Open"))return "Open";
   return "Open";
 }
-function sampleForNote(instrument,note){
+function articulationCandidates(family,articulation){
+  const values=[articulation];
+  if(articulation==="Muffled")values.push("Mute");
+  if(articulation==="Mute")values.push("Muffled");
+  if(articulation==="Bell_Open")values.push("Open");
+  if(!values.includes("Open"))values.push("Open");
+  return values;
+}
+function sampleForArticulation(instrument,articulation,variant=""){
   const family=familyOfInstrument(instrument);
-  const articulation=articulationForNote(instrument,note);
   const samples=djembeloopsData().samples||[];
-  return samples.find(sample=>sample.family===family&&sample.articulation===articulation&&sample.variant==="")
-    || samples.find(sample=>sample.family===family&&sample.articulation===articulation)
+  const variants=variant ? [variant,""] : [""];
+  for(const art of articulationCandidates(family,articulation)){
+    for(const candidateVariant of variants){
+      const sample=samples.find(item=>item.family===family&&item.articulation===art&&item.variant===candidateVariant);
+      if(sample)return sample;
+    }
+    const sample=samples.find(item=>item.family===family&&item.articulation===art);
+    if(sample)return sample;
+  }
+  return samples.find(sample=>sample.family===family&&sample.articulation==="Open"&&sample.variant==="")
     || samples.find(sample=>sample.family===family&&sample.articulation==="Open")
-    || samples.find(sample=>sample.family===family);
+    || samples.find(sample=>sample.family===family)
+    || null;
+}
+function sampleForNote(instrument,note,rowIndex=99,step=0){
+  const family=familyOfInstrument(instrument);
+  const variant=family.startsWith("Djembe")&&rowIndex<3&&((step+1)%2===0) ? "L" : "";
+  return sampleForArticulation(instrument,articulationForNote(instrument,note),variant);
 }
 function sampleForPolakVoice(voice){
   const samples=djembeloopsData().samples||[];
@@ -2482,6 +2508,45 @@ function cachedAudioForHref(href){
 function preloadDjembeLoopSamples(){
   (djembeloopsData().samples||[]).forEach(sample=>cachedAudioForHref(sampleHref(sample)));
 }
+function ensureReferenceAudioContext(){
+  const AudioCtor=window.AudioContext||window.webkitAudioContext;
+  if(!AudioCtor)return null;
+  if(!referencePlayback.ctx){
+    referencePlayback.ctx=new AudioCtor();
+    referencePlayback.master=referencePlayback.ctx.createGain();
+    referencePlayback.master.gain.value=.95;
+    referencePlayback.master.connect(referencePlayback.ctx.destination);
+  }
+  return referencePlayback.ctx;
+}
+function loadReferenceBuffer(sample){
+  const href=sampleHref(sample);
+  const ctx=ensureReferenceAudioContext();
+  if(!href||!ctx)return Promise.resolve(null);
+  if(referencePlayback.buffers.has(href))return Promise.resolve(referencePlayback.buffers.get(href));
+  if(referencePlayback.loading.has(href))return referencePlayback.loading.get(href);
+  const promise=new Promise(resolve=>{
+    const request=new XMLHttpRequest();
+    request.open("GET",href,true);
+    request.responseType="arraybuffer";
+    request.timeout=5000;
+    request.onload=()=>{
+      if(request.status&&request.status>=400){resolve(null);return;}
+      const data=request.response;
+      const done=buffer=>{referencePlayback.buffers.set(href,buffer);resolve(buffer);};
+      const fail=()=>resolve(null);
+      try{
+        const decodeResult=ctx.decodeAudioData(data,done,fail);
+        if(decodeResult&&typeof decodeResult.then==="function")decodeResult.then(done).catch(fail);
+      }catch(error){fail();}
+    };
+    request.onerror=()=>resolve(null);
+    request.ontimeout=()=>resolve(null);
+    request.send();
+  }).finally(()=>referencePlayback.loading.delete(href));
+  referencePlayback.loading.set(href,promise);
+  return promise;
+}
 function playSampleHref(href,delayMs,volume=.82,bag=null){
   if(!href)return;
   const template=cachedAudioForHref(href);
@@ -2497,32 +2562,221 @@ function playSampleHref(href,delayMs,volume=.82,bag=null){
   if(bag)bag.push(timeout);
   return timeout;
 }
+function referenceGroupMetronome(pattern=selectedDjembeloopsPattern()){
+  const raw=String(pattern?.rawSteps??pattern?.declaredSteps??"");
+  if(raw==="4812")return 3;
+  const declared=Number(raw)||(djembeloopsMatrix(pattern)?.steps||pattern?.steps||24);
+  if([12,24,36,60,72,84].includes(declared))return 3;
+  return 4;
+}
 function referenceStepMs(pattern=selectedDjembeloopsPattern()){
   const tempo=Math.max(40,referencePlayback.tempo||referenceTempo(pattern));
-  const steps=djembeloopsMatrix(pattern)?.steps||pattern?.steps||24;
-  const subdivisionsPerBeat=steps%12===0 ? 3 : 4;
-  return 60000/tempo/subdivisionsPerBeat;
+  return 60000/tempo/referenceGroupMetronome(pattern);
+}
+function referenceSwingAltValues(pattern=selectedDjembeloopsPattern()){
+  const tempo=Math.max(40,referencePlayback.tempo||referenceTempo(pattern));
+  const reference=Number(pattern?.tempo)||tempo;
+  const swing=pattern?.swing||{};
+  const factor=Number.isFinite(Number(swing.swingFactor)) ? Number(swing.swingFactor) : 10;
+  const raw=["swingA","swingB","swingC","swingD"].map(key=>Number(swing[key])||0);
+  return raw.map(value=>{
+    if(value===0)return 0;
+    if(Number(tempo)<reference+1)return value;
+    const sign=value>0 ? -1 : 1;
+    const slope=(factor*sign)/250;
+    const intercept=value-slope*reference;
+    let adjusted=slope*Number(tempo)+intercept;
+    if((adjusted<0)===(value>0))adjusted=0;
+    return adjusted;
+  });
+}
+function referenceSwingIndex(step,pattern=selectedDjembeloopsPattern()){
+  const group=referenceGroupMetronome(pattern);
+  const local=((step%group)+group)%group;
+  if(group===3)return local===0 ? 0 : (local===2 ? 2 : 1);
+  return local===0 ? 0 : (local===3 ? 3 : (local===2 ? 2 : 1));
+}
+function referenceSwingValuesMs(pattern=selectedDjembeloopsPattern()){
+  const stepMs=referenceStepMs(pattern);
+  return referenceSwingAltValues(pattern).map(value=>stepMs*(value/100));
+}
+function referenceRollValuesMs(pattern=selectedDjembeloopsPattern()){
+  const stepMs=referenceStepMs(pattern);
+  const swing=referenceSwingValuesMs(pattern);
+  return [
+    (stepMs+swing[1]-swing[0])/2,
+    (stepMs+swing[2]-swing[1])/2,
+    (stepMs+swing[3]-swing[2])/2,
+    (stepMs+swing[0]-swing[3])/2,
+  ];
+}
+function referenceTripletValuesMs(pattern=selectedDjembeloopsPattern()){
+  const stepMs=referenceStepMs(pattern);
+  const swing=referenceSwingValuesMs(pattern);
+  return [
+    ((2*stepMs)+swing[2]-swing[0])/3,
+    ((2*stepMs)+swing[3]-swing[1])/3,
+    ((2*stepMs)+swing[0]-swing[2])/3,
+    ((2*stepMs)+swing[1]-swing[3])/3,
+  ];
+}
+function referenceTimingTerms(step,pattern=selectedDjembeloopsPattern()){
+  const index=referenceSwingIndex(step,pattern);
+  const stepMs=referenceStepMs(pattern);
+  const swingMs=referenceSwingValuesMs(pattern);
+  const rollMs=referenceRollValuesMs(pattern);
+  const tripletMs=referenceTripletValuesMs(pattern);
+  return {
+    stepMs,
+    swingOffsetMs:swingMs[index]||0,
+    rollDelayMs:Math.max(18,rollMs[index]||stepMs/2),
+    tripletDelayMs:Math.max(18,tripletMs[index]||(2*stepMs/3)),
+    flamDelayMs:Math.max(18,stepMs*.25),
+  };
 }
 function referenceSwingOffsetMs(step,pattern=selectedDjembeloopsPattern()){
-  const swing=pattern?.swing||{};
-  const labels=["swingA","swingB","swingC","swingD"];
-  const value=Number(swing[labels[step%4]])||0;
-  return value/100*referenceStepMs(pattern);
+  return referenceTimingTerms(step,pattern).swingOffsetMs;
 }
-function playReferenceSample(sample,delayMs,volume=.82){
-  const href=sampleHref(sample);
-  playSampleHref(href,delayMs,volume,referencePlayback.pending);
+function referenceStopDurationMs(row,step,pattern=selectedDjembeloopsPattern()){
+  const notes=row?.notes||[];
+  const steps=notes.length||(djembeloopsMatrix(pattern)?.steps||pattern?.steps||24);
+  let noteToStop=1;
+  let nextStep=(step+1)%steps;
+  for(let t=1;t<7;t++){
+    const index=(step+t)%steps;
+    nextStep=index;
+    if(!notes[index])noteToStop+=1;
+    else break;
+  }
+  const currentSwing=referenceSwingOffsetMs(step,pattern);
+  const nextSwing=referenceSwingOffsetMs(nextStep,pattern);
+  return Math.max(24,noteToStop*referenceStepMs(pattern)+nextSwing-currentSwing);
+}
+function noteTokens(note){
+  const matches=String(note||"").match(/Bass|Open|Slap|Muffled|Mute/g);
+  return matches&&matches.length ? matches : ["Open"];
+}
+function planHit(instrument,articulation,offsetMs=0,variant="",durationMs=null){
+  const sample=sampleForArticulation(instrument,articulation,variant);
+  return sample ? {sample,offsetMs,durationMs,articulation,variant} : null;
+}
+function referenceNotePlan(row,note,rowIndex,step,pattern=selectedDjembeloopsPattern()){
+  const instrument=row.instrument;
+  const family=familyOfInstrument(instrument);
+  const text=String(note||"");
+  const terms=referenceTimingTerms(step,pattern);
+  const stopMs=referenceStopDurationMs(row,step,pattern);
+  const simpleVariant=family.startsWith("Djembe")&&rowIndex<3&&((step+1)%2===0) ? "L" : "";
+  if(String(instrument||"").includes("Bell")){
+    return [planHit(instrument,"Bell_Open",0,"",stopMs)].filter(Boolean);
+  }
+  if(text.endsWith("Triplet")){
+    const tokens=noteTokens(text.replace("Triplet",""));
+    const sequence=tokens.length>=3 ? tokens.slice(0,3) : [tokens[0]||"Open",tokens[1]||tokens[0]||"Open",tokens[2]||tokens[0]||"Open"];
+    return [
+      planHit(instrument,sequence[0],0,"",terms.tripletDelayMs),
+      planHit(instrument,sequence[1],terms.tripletDelayMs,"L",terms.tripletDelayMs),
+      planHit(instrument,sequence[2],2*terms.tripletDelayMs,"",Math.max(24,stopMs-2*terms.tripletDelayMs)),
+    ].filter(Boolean);
+  }
+  if(text.endsWith("Roll")){
+    const tokens=noteTokens(text.replace("Roll",""));
+    const first=tokens[0]||"Open";
+    const second=tokens[1]||first;
+    return [
+      planHit(instrument,first,0,"",terms.rollDelayMs),
+      planHit(instrument,second,terms.rollDelayMs,"L",Math.max(24,stopMs-terms.rollDelayMs)),
+    ].filter(Boolean);
+  }
+  if(text.endsWith("Flam")){
+    const tokens=noteTokens(text.replace("Flam",""));
+    const first=tokens[0]||"Open";
+    const second=tokens[1]||first;
+    return [
+      planHit(instrument,first,0,"",terms.flamDelayMs),
+      planHit(instrument,second,terms.flamDelayMs,"L",Math.max(24,stopMs-terms.flamDelayMs)),
+    ].filter(Boolean);
+  }
+  return [planHit(instrument,articulationForNote(instrument,note),0,simpleVariant,stopMs)].filter(Boolean);
+}
+function referenceSamplesForPattern(pattern=selectedDjembeloopsPattern()){
+  const matrix=djembeloopsMatrix(pattern);
+  if(!matrix)return [];
+  const byHref=new Map();
+  const rows=referencePlayableRows(pattern);
+  for(let step=0;step<matrix.steps;step++){
+    rows.forEach((row,rowIndex)=>{
+      const note=row.notes?.[step];
+      if(!note)return;
+      referenceNotePlan(row,note,rowIndex,step,pattern).forEach(part=>{
+        const href=sampleHref(part.sample);
+        if(href&&!byHref.has(href))byHref.set(href,part.sample);
+      });
+    });
+  }
+  return Array.from(byHref.values());
+}
+async function warmReferenceBuffers(pattern=selectedDjembeloopsPattern()){
+  const ctx=ensureReferenceAudioContext();
+  if(!ctx){referencePlayback.webAudioReady=false;referencePlayback.fallbackReason="AudioContext indisponible";return false;}
+  try{if(ctx.state==="suspended")await ctx.resume();}catch(error){}
+  const samples=referenceSamplesForPattern(pattern);
+  const results=await Promise.allSettled(samples.map(sample=>loadReferenceBuffer(sample)));
+  const loaded=results.filter(result=>result.status==="fulfilled"&&result.value).length;
+  referencePlayback.webAudioReady=loaded>0;
+  referencePlayback.fallbackReason=loaded>0 ? "" : "décodage MP3 bloqué en file://";
+  return referencePlayback.webAudioReady;
+}
+function scheduleReferenceEvent(event,targetMs,volume=.82){
+  const href=sampleHref(event.sample);
+  const ctx=referencePlayback.ctx;
+  const buffer=href ? referencePlayback.buffers.get(href) : null;
+  if(ctx&&referencePlayback.master&&buffer){
+    const when=Math.max(ctx.currentTime+.004,ctx.currentTime+((targetMs-performance.now())/1000));
+    const source=ctx.createBufferSource();
+    const gain=ctx.createGain();
+    const safeVolume=Math.max(0,Math.min(1.35,volume));
+    source.buffer=buffer;
+    gain.gain.setValueAtTime(safeVolume,when);
+    source.connect(gain);
+    gain.connect(referencePlayback.master);
+    try{
+      source.start(when);
+      if(Number.isFinite(event.durationMs)&&event.durationMs>20)source.stop(when+event.durationMs/1000);
+      referencePlayback.sources.push(source);
+      source.onended=()=>{
+        const index=referencePlayback.sources.indexOf(source);
+        if(index>=0)referencePlayback.sources.splice(index,1);
+        try{source.disconnect();gain.disconnect();}catch(error){}
+      };
+    }catch(error){
+      try{source.disconnect();gain.disconnect();}catch(disconnectError){}
+      playSampleHref(href,targetMs-performance.now(),Math.min(1,safeVolume),referencePlayback.pending);
+    }
+    return;
+  }
+  playSampleHref(href,targetMs-performance.now(),Math.min(1,volume),referencePlayback.pending);
 }
 function referenceEventsForStep(step,pattern=selectedDjembeloopsPattern()){
   const rows=referencePlayableRows(pattern);
   const events=[];
-  rows.forEach(row=>{
+  rows.forEach((row,rowIndex)=>{
     const note=row.notes?.[step];
     if(!note)return;
-    const sample=sampleForNote(row.instrument,note);
-    if(sample)events.push({instrument:row.instrument,note,sample});
+    referenceNotePlan(row,note,rowIndex,step,pattern).forEach((part,partIndex)=>{
+      events.push({instrument:row.instrument,note,rowIndex,partIndex,...part});
+    });
   });
   return events;
+}
+function referenceVolumeForInstrument(instrument){
+  const family=familyOfInstrument(instrument);
+  const master=Math.max(.1,Math.min(1.6,Number(state.volume)||1));
+  if(String(instrument||"").includes("Bell"))return .15*master;
+  if(family==="DjembeSolo")return 1*master;
+  if(family.startsWith("Djembe"))return .5*master;
+  if(DJEMBELOOPS_DUNUN.includes(family))return .5*master;
+  return .5*master;
 }
 function referenceScheduler(){
   if(!referencePlayback.active)return;
@@ -2535,15 +2789,13 @@ function referenceScheduler(){
     const step=referencePlayback.stepIndex%matrix.steps;
     const swingOffset=referenceSwingOffsetMs(step,pattern);
     referenceEventsForStep(step,pattern).forEach(event=>{
-      const family=familyOfInstrument(event.instrument);
-      const volume=family.startsWith("Djembe") ? .62 : .86;
-      playReferenceSample(event.sample,referencePlayback.nextStepAt-now+swingOffset,volume);
+      scheduleReferenceEvent(event,referencePlayback.nextStepAt+swingOffset+(event.offsetMs||0),referenceVolumeForInstrument(event.instrument));
     });
     referencePlayback.stepIndex=(referencePlayback.stepIndex+1)%matrix.steps;
     referencePlayback.nextStepAt+=stepMs;
   }
 }
-function startReferencePlayback(){
+async function startReferencePlayback(){
   const pattern=selectedDjembeloopsPattern();
   const matrix=djembeloopsMatrix(pattern);
   if(!pattern||!matrix){
@@ -2552,10 +2804,16 @@ function startReferencePlayback(){
   }
   stopReferencePlayback();
   referencePlayback.active=true;
+  referencePlayback.loadingAudio=true;
   referencePlayback.patternKey=pattern.key;
   referencePlayback.tempo=referenceTempo(pattern);
   referencePlayback.stepIndex=0;
-  referencePlayback.nextStepAt=performance.now()+80;
+  referencePlayback.webAudioReady=false;
+  renderReferencePlayerControls();
+  await warmReferenceBuffers(pattern);
+  if(!referencePlayback.active||referencePlayback.patternKey!==pattern.key)return;
+  referencePlayback.loadingAudio=false;
+  referencePlayback.nextStepAt=performance.now()+90;
   referenceScheduler();
   referencePlayback.timer=setInterval(referenceScheduler,35);
   renderReferencePlayerControls();
@@ -2564,9 +2822,12 @@ function startReferencePlayback(){
 function stopReferencePlayback(){
   if(referencePlayback.timer)clearInterval(referencePlayback.timer);
   referencePlayback.pending.forEach(timeout=>clearTimeout(timeout));
+  referencePlayback.sources.forEach(source=>{try{source.stop(0);}catch(error){}});
   referencePlayback.active=false;
+  referencePlayback.loadingAudio=false;
   referencePlayback.timer=null;
   referencePlayback.pending=[];
+  referencePlayback.sources=[];
   referencePlayback.stepIndex=0;
   renderReferencePlayerControls();
   syncPlaybackUI();
