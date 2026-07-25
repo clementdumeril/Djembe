@@ -636,7 +636,14 @@ h1{font-family:Georgia,Times,serif;font-size:clamp(2.2rem,4vw,3.65rem);line-heig
 .metricPicker .smallBtn,.phrasePicker .smallBtn{border:0;background:transparent;padding:5px 8px;color:var(--muted)}
 .metricPicker .smallBtn.on,.phrasePicker .smallBtn.on{background:var(--ink);color:var(--paper)}
 canvas{display:block;width:100%;height:auto}
+.wheelBody{display:grid;grid-template-columns:minmax(0,1fr) 118px;gap:14px;align-items:center}
 .wheelPanel #circle{max-width:590px;margin:0 auto}
+.wheelVoiceRail{align-self:stretch;display:flex;flex-direction:column;justify-content:center;gap:9px;border-left:1px solid var(--line2);padding-left:12px}
+.wheelVoiceRail h3{margin:0;color:var(--muted);font-size:.7rem;text-transform:uppercase;letter-spacing:.12em}
+.voicePicker.vertical{display:grid;gap:7px;border:0;background:transparent;padding:0}
+.voicePicker.vertical .voiceBtn{border:1px solid var(--line);background:var(--paper);color:var(--ink);padding:9px 10px;text-align:left}
+.voicePicker.vertical .voiceBtn.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.voicePicker.vertical .voiceBtn.off{opacity:.45}
 .caption,.note{font-size:.85rem;color:var(--muted)}
 .caption b,.note b{color:var(--ink)}
 .legend{display:flex;gap:16px;flex-wrap:wrap;margin:6px 0 2px;color:var(--muted);font-size:.8rem}
@@ -762,6 +769,7 @@ canvas{display:block;width:100%;height:auto}
   .toolbar{align-items:flex-start;flex-direction:column}.transport{justify-content:flex-start}.playCaption{text-align:left}
   .studioGrid{grid-template-columns:minmax(0,1fr)}.wheelPanel,.synthPanel,.curvePanel,.microPanel,.mapPanel,.referencePanel{padding:13px}
   .panelHead{display:block}.metricControlGroup{justify-content:flex-start;margin-top:10px}
+  .wheelBody{grid-template-columns:1fr}.wheelVoiceRail{border-left:0;border-top:1px solid var(--line2);padding:10px 0 0}.voicePicker.vertical{grid-template-columns:repeat(4,1fr)}
   .transformBar{grid-template-columns:1fr}
   .coefRow,.coefRow.density{grid-template-columns:78px 1fr 46px}.coefRow span{display:none}
   .coefRow input[data-kind="phase"]{grid-column:2}.coefRow output[data-out^="phase"]{grid-column:3}
@@ -785,9 +793,8 @@ canvas{display:block;width:100%;height:auto}
 <section class="toolbar surface">
   <nav class="tabs" id="tabs"></nav>
   <div class="transport">
-    <div class="scopePicker" id="scopePicker" aria-label="Vue de la boussole"></div>
+    <div class="scopePicker" id="scopePicker" aria-label="Vue de la boussole" hidden></div>
     <button class="play" id="playBtn">▶ Lancer la boucle</button>
-    <div class="voicePicker" id="voicePicker"></div>
     <label class="takePicker" id="recordingTakeWrap">prise
       <select id="recordingTake" aria-label="Prise réelle du corpus"></select>
     </label>
@@ -813,20 +820,22 @@ canvas{display:block;width:100%;height:auto}
       <div><h2 id="wheelTitle">Cercle métrique · 12 subdivisions</h2></div>
       <div class="metricControlGroup">
         <div class="phrasePicker" id="phraseModePicker" aria-label="Fenêtre d'analyse">
-          <button class="smallBtn" data-phrase-mode="phrase24">phrase 24</button>
-          <button class="smallBtn" data-phrase-mode="cycleA">cycle A</button>
-          <button class="smallBtn" data-phrase-mode="cycleB">cycle B</button>
-          <button class="smallBtn" data-phrase-mode="mean12">12 moyen</button>
+          <button class="smallBtn on" data-phrase-mode="mean12">cycle 12 Polak</button>
         </div>
         <div class="metricPicker" aria-label="Temporalité du cercle">
           <button class="smallBtn" id="circleRecordingBtn">Enregistrement</button>
-          <button class="smallBtn" id="circleReconstructionBtn">Reconstruction</button>
-          <button class="smallBtn" id="circleObservedBtn">Modèle moyen</button>
-          <button class="smallBtn" id="circleGridBtn">Isochrone</button>
+          <button class="smallBtn" id="circleObservedBtn">Modèle 12 · samples</button>
+          <button class="smallBtn" id="circleReferenceBtn">Référence externe</button>
         </div>
       </div>
     </div>
-    <canvas id="circle" width="620" height="620"></canvas>
+    <div class="wheelBody">
+      <canvas id="circle" width="620" height="620"></canvas>
+      <aside class="wheelVoiceRail">
+        <h3>Voix à écouter</h3>
+        <div class="voicePicker vertical" id="voicePicker"></div>
+      </aside>
+    </div>
     <div class="legend">
       <span class="swatch j1" data-voice-legend="J1"><i></i>J1 · djembé 1</span>
       <span class="swatch j2" data-voice-legend="J2"><i></i>J2 · djembé 2</span>
@@ -918,7 +927,7 @@ canvas{display:block;width:100%;height:auto}
   <div class="panelHead">
     <div>
       <h2>Référence externe</h2>
-      <p class="caption">Comparaison avec les matrices et les samples publics de DjembeLoops, ramenés dans la même fenêtre 12 ou 24 que la boussole.</p>
+      <p class="caption">Table de rythme et player inspirés de DjembeLoops. Le rythme proposé par défaut est celui trouvé le plus proche.</p>
     </div>
     <div class="referenceTools">
       <select id="djembeloopsPattern" aria-label="Rythme DjembeLoops de référence"></select>
@@ -947,9 +956,8 @@ canvas{display:block;width:100%;height:auto}
       <div><h2>Temporalité observée</h2></div>
       <div class="microControls">
         <button class="smallBtn" id="recordingTimingBtn">Enregistrement</button>
-        <button class="smallBtn" id="reconstructionTimingBtn">Reconstruction</button>
-        <button class="smallBtn" id="observedTimingBtn">Modèle moyen</button>
-        <button class="smallBtn" id="gridTimingBtn">Isochrone</button>
+        <button class="smallBtn" id="observedTimingBtn">Modèle 12 · samples</button>
+        <button class="smallBtn" id="referenceTimingBtn">Référence externe</button>
         <label class="microScale">impact
           <input type="range" id="timingStrength" min="0" max="2" step="0.05" value="1">
           <output id="timingStrengthOut">×1.00</output>
@@ -1004,9 +1012,9 @@ const DJEMBELOOPS_CANDIDATES={
 const DJEMBELOOPS_DUNUN=["Kenkeni","Sangban","Doundoun"];
 const DJEMBELOOPS_JEMBE=["DjembeOne","DjembeTwo","DjembeThree","DjembeFive","DjembeSix","DjembeSeven","DjembeSolo"];
 const state={
-  piece:DATA.pieces[0],scope:"ensemble",playVoice:"ensemble",synthEnabled:false,synthVoice:"D1",
+  piece:DATA.pieces[0],scope:"ensemble",playVoice:"ensemble",selectedVoiceSet:{J1:true,J2:true,D1:true,D2:true},synthEnabled:false,synthVoice:"D1",
   synthData:{},listeningMode:"recording",timingMode:"observed",timingStrength:1,volume:1.3,reconstructionMix:.5,transformMessage:"",symmetryAxis:0,
-  phraseMode:"phrase24",djembeloopsPatternByPiece:{},referenceTempoByPattern:{},
+  phraseMode:"mean12",djembeloopsPatternByPiece:{},referenceTempoByPattern:{},
   libraryPiece:DATA.pieces[0],libraryLoaded:{D1:null,D2:null},
   recordingCycleByKey:{},
   recordingTakeByPiece:Object.fromEntries(DATA.pieces.map(piece=>[
@@ -1079,17 +1087,11 @@ function visibleVoices(){
   return state.scope==="dunun" ? DUNUN_VOICES.slice() : ALL_VOICES.slice();
 }
 function selectedVoices(){
-  if(state.playVoice==="ensemble")return ALL_VOICES.slice();
-  if(state.playVoice==="dunun")return DUNUN_VOICES.slice();
-  if(state.playVoice==="jembe")return JEMBE_VOICES.slice();
-  if(ALL_VOICES.includes(state.playVoice))return [state.playVoice];
-  return DUNUN_VOICES.slice();
+  const voices=ALL_VOICES.filter(voice=>state.selectedVoiceSet?.[voice]);
+  return voices.length ? voices : ALL_VOICES.slice();
 }
 function playVoiceLabel(){
-  if(state.playVoice==="ensemble")return "J1+J2+D1+D2";
-  if(state.playVoice==="dunun")return "D1+D2";
-  if(state.playVoice==="jembe")return "J1+J2";
-  return state.playVoice;
+  return selectedVoices().join("+");
 }
 function applyVolume(){
   if(!playback.master||!playback.ctx)return;
@@ -1179,8 +1181,8 @@ function renderVolumeControl(){
   };
 }
 function timingAmount(){
-  if(state.listeningMode==="recording"||state.listeningMode==="reconstruction")return 1;
-  return state.listeningMode==="model" ? state.timingStrength : 0;
+  if(state.listeningMode==="recording")return 1;
+  return 0;
 }
 function metricTiming(piece=state.piece){
   return DATA.metricTiming?.[piece]||null;
@@ -1926,15 +1928,22 @@ function renderScopePicker(){
 function renderVoicePicker(){
   const box=document.getElementById("voicePicker");
   box.innerHTML="";
-  const options=state.scope==="ensemble"
-    ? [["ensemble","Tout"],["jembe","J1+J2"],["dunun","D1+D2"],["J1","J1"],["J2","J2"],["D1","D1"],["D2","D2"]]
-    : [["dunun","D1+D2"],["D1","D1"],["D2","D2"]];
-  options.forEach(([value,label])=>{
+  const labels={
+    J1:"J1 · djembé 1",
+    J2:"J2 · djembé 2",
+    D1:"D1 · dunun grave",
+    D2:"D2 · dunun réponse",
+  };
+  ALL_VOICES.forEach(voice=>{
     const b=document.createElement("button");
-    b.className="voiceBtn"+(state.playVoice===value?" on":"");
-    b.textContent=label;
+    const selected=!!state.selectedVoiceSet[voice];
+    b.className="voiceBtn "+(selected?"on":"off");
+    b.textContent=labels[voice]||voice;
+    b.setAttribute("aria-pressed",selected?"true":"false");
     b.onclick=()=>{
-      state.playVoice=value;
+      const active=ALL_VOICES.filter(item=>state.selectedVoiceSet[item]);
+      if(selected&&active.length===1)return;
+      state.selectedVoiceSet[voice]=!selected;
       renderVoicePicker();
       syncCorpusVoiceGains();
       drawCircle();
@@ -1945,9 +1954,9 @@ function renderVoicePicker(){
     box.appendChild(b);
   });
   document.getElementById("playCaption").textContent =
-    playback.active
-      ? `Boucle continue · ${playVoiceLabel()} · ${timingModeLabel()} · les changements entrent au prochain pas.`
-      : `Écoute : ${playVoiceLabel()} · ${timingModeLabel()} · boucle continue jusqu'à l'arrêt.`;
+    playback.active||referencePlayback.active
+      ? `Lecture · ${playVoiceLabel()} · ${timingModeLabel()}.`
+      : `Voix actives : ${playVoiceLabel()}.`;
 }
 
 async function selectPiece(piece){
@@ -2096,8 +2105,9 @@ function drawCircle(){
   if(p!==null){
     const a=playheadDisplayPhase()*TAU-Math.PI/2, ca=Math.cos(a), sa=Math.sin(a);
     let from=inner-42, to=outer+28;
-    if(ALL_VOICES.includes(state.playVoice)&&ringMap.has(state.playVoice)){
-      const rad=ringMap.get(state.playVoice);
+    const activeSelection=selectedVoices();
+    if(activeSelection.length===1&&ringMap.has(activeSelection[0])){
+      const rad=ringMap.get(activeSelection[0]);
       from=rad-35;to=rad+30;
     }
     g.globalAlpha=1;
@@ -2431,10 +2441,38 @@ function sampleForNote(instrument,note){
     || samples.find(sample=>sample.family===family&&sample.articulation==="Open")
     || samples.find(sample=>sample.family===family);
 }
+function sampleForPolakVoice(voice){
+  const samples=djembeloopsData().samples||[];
+  const target={
+    J1:["DjembeOne","Open"],
+    J2:["DjembeTwo","Slap"],
+    D1:["Doundoun","Open"],
+    D2:["Sangban","Open"],
+  }[voice]||["DjembeOne","Open"];
+  return samples.find(sample=>sample.family===target[0]&&sample.articulation===target[1]&&sample.variant==="")
+    || samples.find(sample=>sample.family===target[0]&&sample.articulation===target[1])
+    || samples.find(sample=>sample.family===target[0])
+    || samples[0];
+}
 function sampleHref(sample){
   if(!sample)return null;
   if(sample.localPath)return new URL(`../${sample.localPath}`,location.href).href;
   return sample.url;
+}
+function playSampleHref(href,delayMs,volume=.82,bag=null){
+  if(!href)return;
+  const timeout=setTimeout(()=>{
+    if(bag){
+      const index=bag.indexOf(timeout);
+      if(index>=0)bag.splice(index,1);
+    }
+    const audio=new Audio(href);
+    audio.preload="auto";
+    audio.volume=Math.max(0,Math.min(1,volume));
+    audio.play().catch(()=>{});
+  },Math.max(0,delayMs));
+  if(bag)bag.push(timeout);
+  return timeout;
 }
 function referenceStepMs(pattern=selectedDjembeloopsPattern()){
   const tempo=Math.max(40,referencePlayback.tempo||referenceTempo(pattern));
@@ -2444,15 +2482,7 @@ function referenceStepMs(pattern=selectedDjembeloopsPattern()){
 }
 function playReferenceSample(sample,delayMs,volume=.82){
   const href=sampleHref(sample);
-  if(!href)return;
-  const timeout=setTimeout(()=>{
-    referencePlayback.pending=referencePlayback.pending.filter(item=>item!==timeout);
-    const audio=new Audio(href);
-    audio.preload="auto";
-    audio.volume=volume;
-    audio.play().catch(()=>{});
-  },Math.max(0,delayMs));
-  referencePlayback.pending.push(timeout);
+  playSampleHref(href,delayMs,volume,referencePlayback.pending);
 }
 function referenceEventsForStep(step,pattern=selectedDjembeloopsPattern()){
   const rows=referencePlayableRows(pattern);
@@ -2499,6 +2529,7 @@ function startReferencePlayback(){
   referenceScheduler();
   referencePlayback.timer=setInterval(referenceScheduler,35);
   renderReferencePlayerControls();
+  syncPlaybackUI();
 }
 function stopReferencePlayback(){
   if(referencePlayback.timer)clearInterval(referencePlayback.timer);
@@ -2508,6 +2539,7 @@ function stopReferencePlayback(){
   referencePlayback.pending=[];
   referencePlayback.stepIndex=0;
   renderReferencePlayerControls();
+  syncPlaybackUI();
 }
 function toggleReferencePlayback(){
   if(referencePlayback.active)stopReferencePlayback();
@@ -2517,29 +2549,20 @@ function drawDjembeLoopsComparison(pattern,matches){
   const cv=document.getElementById("djembeloopsCompare");
   if(!cv)return;
   const g=cv.getContext("2d"),W=cv.width,H=cv.height;
-  const left=138,right=18,top=24,bottom=38,steps=displayStepCount(),span=W-left-right;
+  const matrix=djembeloopsMatrix(pattern);
+  const left=150,right=18,top=24,bottom=38,steps=matrix?.steps||12,span=W-left-right;
   g.clearRect(0,0,W,H);
-  if(!pattern){
+  if(!pattern||!matrix){
     g.fillStyle=css("--muted");g.font="13px Inter, system-ui";g.textAlign="center";
     g.fillText("Référence externe indisponible. Lance import_djembeloops_reference.py pour régénérer le JSON.",W/2,H/2);
     return;
   }
-  const sourceRows=referenceRows(pattern)
-    .filter(row=>!String(row.instrument).includes("Bell"))
-    .filter(row=>state.scope==="dunun" ? DJEMBELOOPS_DUNUN.includes(row.family) : DJEMBELOOPS_DUNUN.includes(row.family)||DJEMBELOOPS_JEMBE.includes(row.family));
-  const polakRows=visibleVoices().map(voice=>({
-    label:`Polak ${voice}`,
-    values:displayMotif(voice),
-    color:color(voice),
-    kind:"polak"
-  }));
-  const rows=polakRows.concat(sourceRows.map(row=>({
-    label:`DL ${row.instrument}`,
-    values:row.values,
+  const rows=matrix.rows.map(row=>({
+    label:row.instrument,
+    notes:row.notes||[],
     color:referenceColor(row.instrument),
-    kind:"dl"
-  })));
-  const rowGap=Math.min(26,Math.max(16,(H-top-bottom)/(rows.length||1)));
+  }));
+  const rowGap=Math.min(30,Math.max(18,(H-top-bottom)/(rows.length||1)));
   const yOf=index=>top+index*rowGap;
   const xOf=s=>left+(steps===1?0:s/(steps-1))*span;
   g.strokeStyle=css("--line2");g.lineWidth=1;g.globalAlpha=.55;
@@ -2552,28 +2575,23 @@ function drawDjembeLoopsComparison(pattern,matches){
   for(let s=0;s<steps;s++)g.fillText(String(s+1),xOf(s),H-bottom+10);
   rows.forEach((row,index)=>{
     const y=yOf(index);
-    if(index===polakRows.length){
-      g.strokeStyle=css("--line");g.lineWidth=1.4;g.globalAlpha=.9;
-      g.beginPath();g.moveTo(12,y-rowGap*.48);g.lineTo(W-12,y-rowGap*.48);g.stroke();
-      g.globalAlpha=1;
-    }
-    const max=Math.max(...row.values,.001);
-    g.fillStyle=row.kind==="polak"?css("--ink"):css("--muted");
-    g.font=row.kind==="polak"?"700 12px Inter, system-ui":"12px Inter, system-ui";
+    g.fillStyle=css("--muted");
+    g.font="12px Inter, system-ui";
     g.textAlign="right";g.textBaseline="middle";
     g.fillText(row.label,left-12,y);
-    row.values.forEach((value,s)=>{
-      if(value<=.035)return;
-      const x=xOf(s), size=row.kind==="polak" ? 3.5+7.5*Math.sqrt(value/max) : 5.5;
-      g.fillStyle=row.color;g.globalAlpha=row.kind==="polak" ? .95 : .76;
+    row.notes.forEach((note,s)=>{
+      if(!note)return;
+      const x=xOf(s), size=5.8;
+      g.fillStyle=row.color;g.globalAlpha=.78;
       g.beginPath();g.arc(x,y,size,0,TAU);g.fill();
       g.strokeStyle=css("--paper");g.lineWidth=1.1;g.stroke();
+      g.fillStyle=css("--paper");g.globalAlpha=.95;g.font="700 7px Inter, system-ui";g.textAlign="center";g.textBaseline="middle";
+      g.fillText(String(note)[0],x,y+.2);
     });
   });
   g.globalAlpha=1;
-  const p=playheadDisplayPosition();
-  if(p!==null){
-    const x=xOf((p%steps+steps)%steps);
+  if(referencePlayback.active&&referencePlayback.patternKey===pattern.key){
+    const x=xOf((referencePlayback.stepIndex%steps+steps)%steps);
     g.strokeStyle=css("--ink");g.lineWidth=2;g.globalAlpha=.72;
     g.beginPath();g.moveTo(x,top-12);g.lineTo(x,H-bottom);g.stroke();
     g.globalAlpha=1;
@@ -2583,35 +2601,21 @@ function renderDjembeLoopsReference(){
   renderDjembeLoopsPatternControl();
   const pattern=selectedDjembeloopsPattern();
   const matrix=djembeloopsMatrix(pattern);
-  const matches=pattern ? bestReferenceMatches(pattern) : [];
-  const stats=sampleStats();
   renderReferencePlayerControls();
   const modeTag=document.getElementById("djembeloopsMode");
-  if(modeTag)modeTag.textContent=phraseModeLabel();
+  if(modeTag)modeTag.textContent="rythme similaire";
   const statsBox=document.getElementById("djembeloopsStats");
-  if(statsBox){
-    const candidateText=candidateDjembeloopsPatterns().map(pattern=>pattern.name).join(" / ")||"—";
-    statsBox.innerHTML=[
-      ["site",`${(djembeloopsData().patterns||[]).length} rythmes · ${(djembeloopsData().matrices&&Object.keys(djembeloopsData().matrices).length)||0} matrices`],
-      ["sélection",pattern?`${pattern.name} · ${matrix?.steps||pattern.steps} pas · ${pattern.tempo||"—"} bpm`:"—"],
-      ["candidats proches",candidateText],
-      ["sons",`${stats.total} MP3 locaux · djembe ${stats.djembe} · dunun ${stats.dunun}`],
-    ].map(([k,v])=>`<div class="referenceStat"><span>${k}</span><b>${v}</b></div>`).join("");
-  }
-  drawDjembeLoopsComparison(pattern,matches);
+  if(statsBox)statsBox.innerHTML="";
+  drawDjembeLoopsComparison(pattern,[]);
   const caption=document.getElementById("djembeloopsCaption");
   if(caption){
     if(!pattern){
       caption.textContent="Aucune donnée DjembeLoops chargée.";
       return;
     }
-    const matchText=matches.map(match=>
-      `${match.voice} ≈ ${match.best?.instrument||"—"} (Δ ${match.distance===null?"—":(match.distance*100).toFixed(1)+" %"})`
-    ).join(" · ");
     caption.innerHTML=
-      `<b>Lecture.</b> Δ est la différence absolue moyenne entre le motif Polak affiché et la ligne DjembeLoops ramenée à ${displayStepCount()} positions. `+
-      `${matchText}. Source : <a href="${djembeloopsData().source}" target="_blank" rel="noreferrer">djembeloops.com</a>. `+
-      `Les MP3 sont copiés dans <code>data/djembeloops_samples/</code> pour le player local.`;
+      `<b>${pattern.name}</b> · ${matrix?.steps||pattern.steps} pas · tempo ${referenceTempo(pattern)} bpm. `+
+      `Choisis un autre rythme dans le menu pour changer la table et le player.`;
   }
 }
 
@@ -2660,19 +2664,20 @@ function timingModeLabel(){
   if(state.listeningMode==="recording"){
     return `enregistrement · prise ${selectedRecording()?.take??"—"} · ${selectedCycleLabel()}`;
   }
-  if(state.listeningMode==="reconstruction"){
-    return `reconstruction annotée · prise ${selectedRecording()?.take??"—"} · ${selectedCycleLabel()}`;
-  }
   if(state.listeningMode==="model"){
-    return `modèle temporel moyen ×${state.timingStrength.toFixed(2)}`;
+    return "modèle 12 · samples DjembeLoops";
   }
-  return "contrôle isochrone";
+  if(state.listeningMode==="reference"){
+    return `référence externe · ${selectedDjembeloopsPattern()?.name||"—"}`;
+  }
+  return "modèle 12";
 }
 async function setListeningMode(mode){
   const wasPlaying=playback.active;
   if(wasPlaying)stopPlayback();
+  if(referencePlayback.active)stopReferencePlayback();
   state.listeningMode=mode;
-  state.timingMode=mode==="grid"?"grid":"observed";
+  state.timingMode=mode==="recording"?"observed":"grid";
   renderTimingControls();
   drawCircle();
   drawCurve();
@@ -2681,32 +2686,28 @@ async function setListeningMode(mode){
   if(wasPlaying)await startPlayback();
 }
 function renderTimingControls(){
-  const grid=document.getElementById("gridTimingBtn");
   const observed=document.getElementById("observedTimingBtn");
   const recording=document.getElementById("recordingTimingBtn");
-  const reconstruction=document.getElementById("reconstructionTimingBtn");
-  const circleGrid=document.getElementById("circleGridBtn");
+  const reference=document.getElementById("referenceTimingBtn");
   const circleObserved=document.getElementById("circleObservedBtn");
   const circleRecording=document.getElementById("circleRecordingBtn");
-  const circleReconstruction=document.getElementById("circleReconstructionBtn");
+  const circleReference=document.getElementById("circleReferenceBtn");
   const slider=document.getElementById("timingStrength");
   const output=document.getElementById("timingStrengthOut");
   [
     ["recording",[recording,circleRecording]],
-    ["reconstruction",[reconstruction,circleReconstruction]],
     ["model",[observed,circleObserved]],
-    ["grid",[grid,circleGrid]]
+    ["reference",[reference,circleReference]]
   ].forEach(([mode,buttons])=>{
     buttons.forEach(button=>{
+      if(!button)return;
       button.className="smallBtn"+(state.listeningMode===mode?" on":"");
       button.onclick=()=>setListeningMode(mode);
     });
   });
   slider.value=state.timingStrength;
-  slider.disabled=state.listeningMode!=="model";
-  output.textContent=state.listeningMode==="model"
-    ? `×${state.timingStrength.toFixed(2)}`
-    : "—";
+  slider.disabled=true;
+  output.textContent="12";
   slider.oninput=()=>{
     state.timingStrength=Number(slider.value);
     output.textContent=`×${state.timingStrength.toFixed(2)}`;
@@ -2725,17 +2726,15 @@ function renderTimingControls(){
     note.innerHTML=
       `<b>Enregistrement réel.</b> Prise ${recordingInfo?.take??"—"}, ${selectedCycleLabel(recordingInfo)} : vrais timbres, `+
       `non-isochronie et asynchronie de l’ensemble. La boucle suit les bornes annotées du cycle sélectionné.`;
-  }else if(state.listeningMode==="reconstruction"){
-    note.innerHTML=
-      `<b>Reconstruction annotée.</b> Même prise, même cycle (${cycleInfo?.duration?.toFixed(3)??"—"} s), mais les frappes sont rejouées `+
-      `par le synthé aux timestamps exacts des voix sélectionnées. Le mix A/B dose réel puis reconstruit.`;
   }else if(state.listeningMode==="model"){
     note.innerHTML=
-      `<b>Modèle temporel moyen.</b> Le laboratoire moyenne les motifs et les positions annotées sur les prises appariées, `+
-      `puis répète toujours ce même cycle de 12 subdivisions avec des sons synthétiques.`;
+      `<b>Modèle 12.</b> Le motif moyen de Polak est joué sur douze subdivisions régulières avec les samples locaux de DjembeLoops.`;
+  }else if(state.listeningMode==="reference"){
+    note.innerHTML=
+      `<b>Référence externe.</b> Le player lit le rythme DjembeLoops jugé proche, dans la table de référence externe.`;
   }else{
     note.innerHTML=
-      `<b>Contrôle isochrone.</b> Le même motif synthétique est replacé sur douze intervalles égaux pour isoler l’effet du timing humain.`;
+      `<b>Modèle 12.</b> Cycle régulier en douze subdivisions.`;
   }
 }
 function drawMicroTiming(){
@@ -2885,6 +2884,12 @@ function renderCoefTable(){
 }
 
 function hit(ctx,time,voice,amp){
+  const sample=sampleForPolakVoice(voice);
+  const href=sampleHref(sample);
+  if(href){
+    playSampleHref(href,(time-ctx.currentTime)*1000,Math.min(1,Math.max(.08,amp)*(DUNUN_VOICES.includes(voice) ? .92 : .68)));
+    return;
+  }
   const osc=ctx.createOscillator(), gain=ctx.createGain(), filter=ctx.createBiquadFilter();
   const params={
     J1:{type:"square",f0:310,f1:180,filter:1450,decay:.105,gain:.18},
@@ -2996,19 +3001,20 @@ function reconstructionScheduler(){
 function syncPlaybackUI(){
   const btn=document.getElementById("playBtn");
   const status=document.getElementById("liveStatus");
+  const active=playback.active||referencePlayback.active;
   if(btn){
-    btn.textContent=playback.active
+    btn.textContent=active
       ?"■ Arrêter l’écoute"
       :state.listeningMode==="recording"
         ?"▶ Lire l’enregistrement"
-        :state.listeningMode==="reconstruction"
-          ?"▶ Comparer A/B"
-        :"▶ Lancer la boucle";
-    btn.className="play"+(playback.active?" playing":"");
+        :state.listeningMode==="reference"
+          ?"▶ Lire la référence externe"
+        :"▶ Lire le modèle 12";
+    btn.className="play"+(active?" playing":"");
   }
   if(status){
-    status.className="liveStatus"+(playback.active?" on":"");
-    status.querySelector("span").textContent=playback.active?"LIVE":"Prêt";
+    status.className="liveStatus"+(active?" on":"");
+    status.querySelector("span").textContent=active?"LIVE":"Prêt";
   }
   const caption=document.getElementById("playCaption");
   if(caption){
@@ -3016,10 +3022,10 @@ function syncPlaybackUI(){
       caption.textContent=playback.active
         ? `Lecture réelle · ${playVoiceLabel()} · prise ${selectedRecording()?.take??"—"} · ${selectedCycleLabel()} · pistes synchronisées.`
         : `Référence réelle · ${playVoiceLabel()} · prise ${selectedRecording()?.take??"—"} · ${selectedCycleLabel()}.`;
-    }else if(state.listeningMode==="reconstruction"){
-      caption.textContent=playback.active
-        ? `Comparaison A/B · ${playVoiceLabel()} · ${selectedCycleLabel()} · réel ${Math.round((1-state.reconstructionMix)*100)} % / reconstruit ${Math.round(state.reconstructionMix*100)} %.`
-        : `Reconstruction annotée · ${playVoiceLabel()} · ${selectedCycleLabel()} · mix réel/reconstruit réglable.`;
+    }else if(state.listeningMode==="reference"){
+      caption.textContent=referencePlayback.active
+        ? `Référence externe en lecture · ${selectedDjembeloopsPattern()?.name||"—"}.`
+        : `Référence externe similaire · ${selectedDjembeloopsPattern()?.name||"—"}.`;
     }else{
       caption.textContent=playback.active
         ? `Boucle synthétique · ${playVoiceLabel()} · ${timingModeLabel()} · réglages audibles au prochain pas.`
@@ -3181,12 +3187,20 @@ async function startSyntheticPlayback(AudioCtx){
 async function startPlayback(){
   const AudioCtx=window.AudioContext||window.webkitAudioContext;
   if(!AudioCtx){alert("Audio Web non disponible dans ce navigateur.");return;}
+  if(referencePlayback.active)stopReferencePlayback();
   if(state.listeningMode==="recording")await startCorpusPlayback(AudioCtx);
   else if(state.listeningMode==="reconstruction")await startReconstructionPlayback(AudioCtx);
   else await startSyntheticPlayback(AudioCtx);
 }
 
 async function togglePlayback(){
+  if(state.listeningMode==="reference"){
+    if(referencePlayback.active){stopReferencePlayback();syncPlaybackUI();return;}
+    if(playback.active)stopPlayback();
+    startReferencePlayback();
+    syncPlaybackUI();
+    return;
+  }
   if(playback.active){stopPlayback();return;}
   await startPlayback();
 }
