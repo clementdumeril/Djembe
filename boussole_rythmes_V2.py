@@ -689,6 +689,14 @@ canvas{display:block;width:100%;height:auto}
 .synthThresholdControl input{width:100%;accent-color:var(--accent)}
 .synthThresholdControl output{color:var(--ink);text-align:right;font-variant-numeric:tabular-nums}
 .quantizeBadge{display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:999px;background:var(--paper);color:var(--ink);font-size:.72rem;font-weight:850;padding:6px 10px;text-align:center}
+.partitionEditor{border:1px solid var(--line2);background:var(--soft);border-radius:14px;padding:10px 11px;margin:0 0 10px}
+.partitionEditorHead{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin-bottom:9px}
+.partitionEditorHead h3{margin:0;font-size:.92rem;letter-spacing:-.01em}.partitionEditorHead p{margin:2px 0 0;color:var(--muted);font-size:.68rem;line-height:1.25}
+.partitionRows{display:grid;gap:7px}.partitionRow{display:grid;grid-template-columns:36px repeat(12,minmax(18px,1fr));gap:4px;align-items:center}
+.partitionRow b{font-size:.8rem;color:var(--ink)}.partitionStep{height:28px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--muted);font-size:.68rem;font-weight:850;cursor:pointer}
+.partitionStep.on{background:var(--ink);border-color:var(--ink);color:var(--paper);box-shadow:0 3px 9px rgba(32,29,24,.14)}
+.partitionRow[data-voice="D1"] .partitionStep.on{background:var(--d1);border-color:var(--d1)}.partitionRow[data-voice="D2"] .partitionStep.on{background:var(--d2);border-color:var(--d2)}
+.partitionActions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.partitionActions .smallBtn{padding:6px 8px;font-size:.68rem}
 .coefControls{display:grid;gap:6px}
 .coefRow{display:grid;grid-template-columns:92px 28px minmax(90px,1fr) 45px 24px minmax(90px,1fr) 43px;gap:7px;align-items:center;background:var(--soft);border:1px solid transparent;border-radius:11px;padding:8px 9px;font-size:.76rem;color:var(--muted)}
 .coefRow:hover{border-color:var(--line)}
@@ -784,6 +792,7 @@ canvas{display:block;width:100%;height:auto}
   .transformBar{grid-template-columns:1fr}
   .synthPipeline{grid-template-columns:1fr;overflow:visible}
   .synthThresholdControl{grid-template-columns:1fr 1fr 84px}
+  .partitionRow{grid-template-columns:28px repeat(12,minmax(14px,1fr));gap:3px}.partitionStep{height:24px;font-size:.62rem}
   .coefRow,.coefRow.density{grid-template-columns:78px 1fr 46px}.coefRow span{display:none}
   .coefRow input[data-kind="phase"]{grid-column:2}.coefRow output[data-out^="phase"]{grid-column:3}
   .metaGrid{grid-template-columns:1fr 1fr}.theoryBody{padding:13px}
@@ -837,7 +846,7 @@ canvas{display:block;width:100%;height:auto}
         </div>
         <div class="metricPicker" aria-label="Temporalité du cercle">
           <button class="smallBtn" id="circleRecordingBtn">Enregistrement</button>
-          <button class="smallBtn" id="circleSynthesisBtn">Synthèse complexe</button>
+          <button class="smallBtn" id="circleSynthesisBtn">Partition synthèse</button>
           <button class="smallBtn" id="circleReferenceBtn">Référence externe</button>
         </div>
       </div>
@@ -863,8 +872,8 @@ canvas{display:block;width:100%;height:auto}
   <details class="synthPanel surface" id="synthPanel" open>
     <summary class="synthIntro">
       <div>
-        <h2>Synthèse complexe Polak</h2>
-        <p class="caption">Les coefficients viennent des motifs observés chez Polak. DjembeLoops sert seulement de banque de sons pour rendre la synthèse audible.</p>
+        <h2>Synthèse partition + coefficients</h2>
+        <p class="caption">La partition de travail D1/D2 est la base jouée. Les coefficients complexes sont recalculés dessus pour analyser et transformer le rythme.</p>
       </div>
       <div class="synthSummaryState">
         <span class="modeTag" id="synthLiveTag">Prêt</span>
@@ -873,14 +882,15 @@ canvas{display:block;width:100%;height:auto}
     </summary>
     <div class="synthBody">
     <div class="synthPipeline" aria-label="Chaîne de synthèse">
-      <div class="pipelineStep"><span>1 · données</span><b>Polak audio</b><small>prises et cycles annotés</small></div>
-      <div class="pipelineStep"><span>2 · cercle</span><b>\(V_v(s)\)</b><small>fonction rythmique cyclique</small></div>
-      <div class="pipelineStep"><span>3 · calcul</span><b>\(c_k\)</b><small>racines complexes du cycle</small></div>
-      <div class="pipelineStep"><span>4 · édition</span><b>\(\tilde c_k\)</b><small>amplitude, phase, symétries</small></div>
+      <div class="pipelineStep"><span>1 · données</span><b>Polak</b><small>prises et cycles annotés</small></div>
+      <div class="pipelineStep"><span>2 · partition</span><b>D1/D2 · 12</b><small>base visible et corrigeable</small></div>
+      <div class="pipelineStep"><span>3 · calcul</span><b>\(c_k\)</b><small>signature complexe de la partition</small></div>
+      <div class="pipelineStep"><span>4 · édition</span><b>\(\tilde c_k\)</b><small>variations puis nouvelle partition</small></div>
       <div class="pipelineStep"><span>5 · écoute</span><b>samples</b><small>DjembeLoops comme timbre</small></div>
     </div>
+    <div class="partitionEditor" id="partitionEditor"></div>
     <div class="synthTop">
-      <button class="smallBtn" id="originalModeBtn">Coefficients Polak</button>
+      <button class="smallBtn" id="originalModeBtn">Signal Polak</button>
       <button class="smallBtn" id="synthModeBtn">Modifier \(c_k\)</button>
       <div class="voicePicker" id="synthVoicePicker"></div>
       <button class="smallBtn resetBtn" id="resetSynthBtn">Réinitialiser</button>
@@ -941,7 +951,7 @@ canvas{display:block;width:100%;height:auto}
     <span class="swatch d1"><i></i>bleu D1 · dunun grave</span>
     <span class="swatch d2"><i></i>orange D2 · dunun réponse</span>
   </div>
-  <p class="caption">Abscisse : position cyclique. Ordonnée : présence/intensité estimée depuis Polak. En mode synthèse, la courbe reconstruite par les coefficients est quantifiée en pics principaux, à densité conservée, puis jouée avec les samples DjembeLoops.</p>
+  <p class="caption">Abscisse : position cyclique. Ordonnée : présence/intensité estimée depuis Polak. En mode synthèse, les carrés indiquent la partition de travail réellement jouée ; la courbe montre sa signature complexe reconstruite.</p>
 </section>
 
 <section class="referencePanel surface">
@@ -977,7 +987,7 @@ canvas{display:block;width:100%;height:auto}
       <div><h2>Temporalité observée</h2></div>
       <div class="microControls">
         <button class="smallBtn" id="recordingTimingBtn">Enregistrement</button>
-        <button class="smallBtn" id="synthesisTimingBtn">Synthèse complexe</button>
+        <button class="smallBtn" id="synthesisTimingBtn">Partition synthèse</button>
         <button class="smallBtn" id="referenceTimingBtn">Référence externe</button>
         <label class="microScale">impact
           <input type="range" id="timingStrength" min="0" max="2" step="0.05" value="1">
@@ -1034,7 +1044,7 @@ const DJEMBELOOPS_DUNUN=["Kenkeni","Sangban","Doundoun"];
 const DJEMBELOOPS_JEMBE=["DjembeOne","DjembeTwo","DjembeThree","DjembeFive","DjembeSix","DjembeSeven","DjembeSolo"];
 const state={
   piece:DATA.pieces[0],scope:"ensemble",playVoice:"ensemble",selectedVoiceSet:{J1:false,J2:false,D1:true,D2:true},synthEnabled:false,synthVoice:"D1",
-  synthData:{},listeningMode:"recording",timingMode:"observed",timingStrength:1,volume:1.3,reconstructionMix:.5,transformMessage:"",symmetryAxis:0,
+  synthData:{},partitionData:{},listeningMode:"recording",timingMode:"observed",timingStrength:1,volume:1.3,reconstructionMix:.5,transformMessage:"",symmetryAxis:0,
   phraseMode:"mean12",djembeloopsPatternByPiece:{},referenceTempoByPattern:{},
   libraryPiece:DATA.pieces[0],libraryLoaded:{D1:null,D2:null},
   recordingCycleByKey:{},
@@ -1257,6 +1267,37 @@ function metricOffsetMs(stepIndex,piece=state.piece){
 }
 
 function synthKey(piece=state.piece,voice=state.synthVoice){return `${piece}:${voice}`;}
+function partitionKey(piece=state.piece,voice=state.synthVoice){return `${piece}:${voice}`;}
+function partitionFromMotif(motif,target=null){
+  const values=motif.map(value=>Math.max(0,Number(value)||0));
+  const count=Math.max(0,Math.min(values.length,Math.round(Number.isFinite(target)?target:values.reduce((sum,value)=>sum+value,0))));
+  if(count<=0)return values.map(()=>0);
+  const ranked=values
+    .map((value,index)=>({value,index}))
+    .sort((a,b)=>b.value-a.value||a.index-b.index)
+    .slice(0,count);
+  const keep=new Set(ranked.map(item=>item.index));
+  return values.map((_,index)=>keep.has(index)?1:0);
+}
+function ensurePartition(piece=state.piece,voice=state.synthVoice){
+  const key=partitionKey(piece,voice);
+  if(!state.partitionData[key]){
+    state.partitionData[key]=partitionFromMotif(rhythm(piece).voices[voice].motif);
+  }
+  return state.partitionData[key];
+}
+function partitionHitCount(voice=state.synthVoice,piece=state.piece){
+  return ensurePartition(piece,voice).reduce((sum,value)=>sum+(value>.5?1:0),0);
+}
+function setPartitionFromMotif(piece=state.piece,voice=state.synthVoice,motif,target=null){
+  const partition=partitionFromMotif(motif,target);
+  state.partitionData[partitionKey(piece,voice)]=partition;
+  state.synthData[synthKey(piece,voice)]=synthDataFromMotif(partition);
+  return partition;
+}
+function resetPartition(piece=state.piece,voice=state.synthVoice){
+  return setPartitionFromMotif(piece,voice,rhythm(piece).voices[voice].motif);
+}
 function cloneSynthData(it){
   const d={density:it.density, coeffs:{}};
   for(let k=1;k<=5;k++) d.coeffs[k]={mag:it.coeffs[k].mag, phase:it.coeffs[k].phase};
@@ -1265,7 +1306,7 @@ function cloneSynthData(it){
 }
 function ensureSynthData(piece=state.piece,voice=state.synthVoice){
   const key=synthKey(piece,voice);
-  if(!state.synthData[key]) state.synthData[key]=cloneSynthData(rhythm(piece).voices[voice]);
+  if(!state.synthData[key]) state.synthData[key]=synthDataFromMotif(ensurePartition(piece,voice));
   return state.synthData[key];
 }
 function synthDataFromMotif(motif){
@@ -1288,7 +1329,7 @@ function synthDataFromMotif(motif){
   return {density,coeffs};
 }
 function motifForTransform(voice){
-  return state.synthEnabled ? synthMotif(voice) : rhythm().voices[voice].motif.slice();
+  return state.synthEnabled ? ensurePartition(state.piece,voice).slice() : partitionFromMotif(rhythm().voices[voice].motif);
 }
 function centered(values){
   const mean=values.reduce((a,b)=>a+b,0)/values.length;
@@ -1335,7 +1376,7 @@ function normalizedMotifDistance(a,b){
   return Math.min(1,Math.sqrt(squared/2));
 }
 function libraryVariants(piece=state.libraryPiece,voice="D1"){
-  const base=rhythm(piece).voices[voice].motif.slice();
+  const base=partitionFromMotif(rhythm(piece).voices[voice].motif);
   const variants=[
     {axis:null,label:"Original",motif:base,distance:0},
     ...Array.from({length:6},(_,axis)=>({
@@ -1396,13 +1437,13 @@ function drawVariantPreview(canvas,motif,voice,axis){
 async function loadLibraryVariant(piece,voice,axis){
   const restartPlayback=playback.active&&piece!==state.piece;
   if(restartPlayback)stopPlayback();
-  const base=rhythm(piece).voices[voice].motif.slice();
+  const base=partitionFromMotif(rhythm(piece).voices[voice].motif);
   const motif=axis===null?base:mirroredMotif(base,axis);
   state.piece=piece;
   state.libraryPiece=piece;
   state.synthVoice=voice;
   state.symmetryAxis=axis===null?0:axis;
-  state.synthData[synthKey(piece,voice)]=synthDataFromMotif(motif);
+  setPartitionFromMotif(piece,voice,motif);
   state.synthEnabled=true;
   state.listeningMode="synthesis";
   state.timingMode="observed";
@@ -1504,7 +1545,7 @@ function renderSymmetryGuide(){
 }
 function applySynthMotif(motif,message){
   clearLibrarySelection(state.synthVoice);
-  state.synthData[synthKey()]=synthDataFromMotif(motif);
+  setPartitionFromMotif(state.piece,state.synthVoice,motif);
   state.synthEnabled=true;
   state.listeningMode="synthesis";
   state.timingMode="observed";
@@ -1572,30 +1613,12 @@ function synthTargetHitCount(voice=state.synthVoice,piece=state.piece){
 function quantizedSynthMotif(voice,piece=state.piece){
   const values=synthMotif(voice,piece);
   const target=synthTargetHitCount(voice,piece);
-  if(target<=0)return values.map(()=>0);
-  const candidates=values
-    .map((value,index)=>{
-      const previous=values[(index+values.length-1)%values.length];
-      const next=values[(index+1)%values.length];
-      return {value,index,peak:value>=previous&&value>=next};
-    })
-    .sort((a,b)=>b.value-a.value);
-  const selected=[];
-  const add=item=>{
-    if(selected.length>=target||selected.includes(item.index))return;
-    selected.push(item.index);
-  };
-  candidates.filter(item=>item.peak&&item.value>.015).forEach(add);
-  candidates.filter(item=>item.value>.015).forEach(add);
-  candidates.forEach(add);
-  const maxSelected=Math.max(.001,...selected.map(index=>values[index]||0));
-  const keep=new Set(selected.slice(0,target));
-  return values.map((value,index)=>keep.has(index)?Math.max(.82,Math.min(1,value/maxSelected)):0);
+  return partitionFromMotif(values,target);
 }
 function voiceView(voice,piece=state.piece){
   if(!state.synthEnabled) return rhythm(piece).voices[voice];
   const data=ensureSynthData(piece,voice);
-  return {voice,density:data.density,motif:quantizedSynthMotif(voice,piece),takes:rhythm(piece).voices[voice].takes,coeffs:synthCoeffArray(data),synthetic:true};
+  return {voice,density:ensurePartition(piece,voice).reduce((sum,value)=>sum+value,0),motif:ensurePartition(piece,voice).slice(),takes:rhythm(piece).voices[voice].takes,coeffs:synthCoeffArray(data),synthetic:true};
 }
 function curveValueForVoice(voice,t){
   if(!state.synthEnabled) return curveValue(rhythm().voices[voice],t);
@@ -1603,7 +1626,7 @@ function curveValueForVoice(voice,t){
   return curveValueFromCoeffs(coeffs,data.density,t,true);
 }
 function motifForPlayback(voice){
-  if(state.synthEnabled)return quantizedSynthMotif(voice);
+  if(state.synthEnabled)return ensurePartition(state.piece,voice).slice();
   const it=rhythm().voices[voice];
   const motif=it.motif.slice();
   const target=Math.max(1,Math.min(12,Math.round(it.density||motif.reduce((a,b)=>a+b,0))));
@@ -1858,18 +1881,18 @@ function syncSynthModeButtons(){
   const curveMode=document.getElementById("curveMode");
   const liveTag=document.getElementById("synthLiveTag");
   if(circleMode){
-    circleMode.textContent=state.synthEnabled?"Synthèse complexe":"Signal Polak";
+    circleMode.textContent=state.synthEnabled?"Partition synthèse":"Signal Polak";
     circleMode.className="modeTag"+(state.synthEnabled?" live":"");
   }
   if(curveMode){
     curveMode.textContent=state.phraseMode==="mean12"
-      ? (state.synthEnabled?"Courbe reconstruite + pics":"Signal Polak observé")
+      ? (state.synthEnabled?"Partition jouée + signature":"Signal Polak observé")
       : phraseModeLabel();
     curveMode.className="modeTag"+(state.synthEnabled&&state.phraseMode==="mean12"?" live":"");
   }
   if(liveTag){
     liveTag.textContent=state.synthEnabled
-      ? `${playback.active&&playback.kind==="synthetic"?"LIVE":"édition complexe"} · ${state.synthVoice}`
+      ? `${playback.active&&playback.kind==="synthetic"?"LIVE":"partition"} · ${state.synthVoice}`
       : "coefficients Polak";
     liveTag.className="modeTag"+(state.synthEnabled?" live":"");
   }
@@ -1910,8 +1933,64 @@ function renderSynthVoicePicker(){
   });
 }
 
+function renderPartitionEditor(){
+  const box=document.getElementById("partitionEditor");
+  if(!box)return;
+  ["D1","D2"].forEach(voice=>{
+    ensurePartition(state.piece,voice);
+    ensureSynthData(state.piece,voice);
+  });
+  const rows=["D1","D2"].map(voice=>{
+    const motif=ensurePartition(state.piece,voice);
+    return `<div class="partitionRow" data-voice="${voice}"><b>${voice}</b>${
+      motif.map((value,index)=>
+        `<button class="partitionStep${value>.5?" on":""}" data-partition-voice="${voice}" data-step="${index}" aria-pressed="${value>.5?"true":"false"}">${index+1}</button>`
+      ).join("")
+    }</div>`;
+  }).join("");
+  box.innerHTML=
+    `<div class="partitionEditorHead"><div><h3>Partition de travail</h3><p>Base jouée par le synthé : clique une case pour ajouter/enlever une frappe.</p></div>`+
+    `<div class="partitionActions"><button class="smallBtn" data-reset-partition="D1">réinit D1</button><button class="smallBtn" data-reset-partition="D2">réinit D2</button></div></div>`+
+    `<div class="partitionRows">${rows}</div>`;
+  box.querySelectorAll("[data-partition-voice]").forEach(button=>{
+    button.onclick=()=>{
+      const voice=button.dataset.partitionVoice;
+      const step=Number(button.dataset.step);
+      const motif=ensurePartition(state.piece,voice).slice();
+      motif[step]=motif[step]>.5?0:1;
+      state.partitionData[partitionKey(state.piece,voice)]=motif;
+      state.synthData[synthKey(state.piece,voice)]=synthDataFromMotif(motif);
+      state.synthEnabled=true;
+      state.listeningMode="synthesis";
+      state.timingMode="observed";
+      state.synthVoice=voice;
+      state.transformMessage=`<b>${voice}</b> modifié dans la partition de travail`;
+      renderSynthControls();
+      renderTimingControls();
+      refreshSynthViews();
+      syncPlaybackUI();
+    };
+  });
+  box.querySelectorAll("[data-reset-partition]").forEach(button=>{
+    button.onclick=()=>{
+      const voice=button.dataset.resetPartition;
+      resetPartition(state.piece,voice);
+      state.synthEnabled=true;
+      state.listeningMode="synthesis";
+      state.timingMode="observed";
+      state.synthVoice=voice;
+      state.transformMessage=`<b>${voice}</b> réinitialisé depuis les positions stables Polak`;
+      renderSynthControls();
+      renderTimingControls();
+      refreshSynthViews();
+      syncPlaybackUI();
+    };
+  });
+}
+
 function renderSynthControls(){
   renderSynthVoicePicker();
+  renderPartitionEditor();
   syncSynthModeButtons();
   document.getElementById("originalModeBtn").onclick=()=>{
     state.synthEnabled=false;
@@ -1931,14 +2010,13 @@ function renderSynthControls(){
     syncPlaybackUI();
   };
   document.getElementById("resetSynthBtn").onclick=()=>{
-    delete state.synthData[synthKey(state.piece,state.synthVoice)];
-    ensureSynthData(state.piece,state.synthVoice);
+    resetPartition(state.piece,state.synthVoice);
     state.synthEnabled=true;
     state.listeningMode="synthesis";
     state.timingMode="observed";
     state.libraryPiece=state.piece;
     state.libraryLoaded[state.synthVoice]=libraryVariantKey(state.piece,state.synthVoice,null);
-    state.transformMessage=`<b>${state.synthVoice}</b> revenu à ses coefficients observés`;
+    state.transformMessage=`<b>${state.synthVoice}</b> revenu à la partition Polak de travail`;
     renderSynthControls();
     renderTimingControls();
     renderSymmetryLibrary();
@@ -1958,9 +2036,9 @@ function renderSynthControls(){
 
   const quantizeBox=document.getElementById("synthThresholdControl");
   quantizeBox.innerHTML=
-    `<div><b>quantification</b><small>courbe \u2192 partition jouable</small></div>`+
-    `<span class="quantizeBadge">pics principaux</span>`+
-    `<output>${synthTargetHitCount()} frappes</output>`;
+    `<div><b>source jouée</b><small>partition de travail</small></div>`+
+    `<span class="quantizeBadge">cases D1/D2</span>`+
+    `<output>${partitionHitCount()} frappes</output>`;
 
   const data=ensureSynthData();
   const rows=[];
@@ -1983,7 +2061,7 @@ function renderSynthControls(){
       if(kind==="density"){
         d.density=value;
         document.querySelector('[data-out="density"]').textContent=value.toFixed(2);
-        document.querySelector("#synthThresholdControl output").textContent=`${synthTargetHitCount()} frappes`;
+        document.querySelector("#synthThresholdControl output").textContent=`${partitionHitCount()} frappes`;
       }else if(kind==="mag"){
         d.coeffs[k].mag=value;
         document.querySelector(`[data-out="mag-${k}"]`).textContent=value.toFixed(3);
@@ -1994,6 +2072,9 @@ function renderSynthControls(){
         d.coeffs[6].real=value;
         document.querySelector('[data-out="real6"]').textContent=value.toFixed(3);
       }
+      state.partitionData[partitionKey(state.piece,state.synthVoice)]=quantizedSynthMotif(state.synthVoice,state.piece);
+      document.querySelector("#synthThresholdControl output").textContent=`${partitionHitCount()} frappes`;
+      renderPartitionEditor();
       renderTimingControls();
       refreshSynthViews();
     };
@@ -3059,7 +3140,7 @@ function timingModeLabel(){
     return `enregistrement · prise ${selectedRecording()?.take??"—"} · ${selectedCycleLabel()}`;
   }
   if(state.listeningMode==="synthesis"){
-    return `synthèse complexe · ${synthesisCycleLabel()} · ${synthTargetHitCount()} pics`;
+    return `partition synthèse · ${synthesisCycleLabel()} · ${partitionHitCount()} frappes`;
   }
   if(state.listeningMode==="model"){
     return `référence externe · ${selectedDjembeloopsPattern()?.name||"—"}`;
@@ -3132,8 +3213,8 @@ function renderTimingControls(){
       `non-isochronie et asynchronie de l’ensemble. La boucle suit les bornes annotées du cycle sélectionné.`;
   }else if(state.listeningMode==="synthesis"){
     note.innerHTML=
-      `<b>Synthèse complexe.</b> Les motifs V_v(s) et les coefficients c_k viennent de Polak ; `+
-      `les pics principaux de la courbe reconstruite deviennent les frappes, en conservant la densité Polak, puis les sons DjembeLoops servent de timbre. `+
+      `<b>Partition synthèse.</b> La boucle joue la partition de travail D1/D2 visible dans le synthétiseur ; `+
+      `les coefficients c_k sont calculés depuis cette partition et servent à proposer des transformations. `+
       `La boucle est calée sur ${synthesisCycleLabel()} afin d’éviter les pauses trop longues des cycles atypiques. `+
       `Le curseur d’impact règle la quantité de micro-timing observé appliquée à la boucle synthétique.`;
   }else if(state.listeningMode==="reference"){
@@ -3267,7 +3348,7 @@ function renderEquation(){
   document.getElementById("metrics").innerHTML=[
     ["prises",r.takes.join(", ")],
     ["vue",state.scope==="ensemble"?"ensemble complet":"dunun"],
-    ["fenêtre",`${phraseModeLabel()}${state.synthEnabled&&state.phraseMode==="mean12"?" · synthèse complexe":""}`],
+    ["fenêtre",`${phraseModeLabel()}${state.synthEnabled&&state.phraseMode==="mean12"?" · partition synthèse":""}`],
     ["densités",densityText]
   ].map(([k,v])=>`<div class="metric"><span>${k}</span><b>${v}</b></div>`).join("");
 }
@@ -3416,10 +3497,10 @@ function syncPlaybackUI(){
       :state.listeningMode==="recording"
         ?"▶ Lire l’enregistrement"
         :state.listeningMode==="synthesis"
-          ?"▶ Lire la synthèse complexe"
+          ?"▶ Lire la partition synthèse"
         :["reference","model"].includes(state.listeningMode)
           ?"▶ Lire la référence externe"
-        :"▶ Lire la synthèse complexe";
+        :"▶ Lire la partition synthèse";
     btn.className="play"+(active?" playing":"");
   }
   if(status){
@@ -3434,8 +3515,8 @@ function syncPlaybackUI(){
         : `Référence réelle · ${playVoiceLabel()} · prise ${selectedRecording()?.take??"—"} · ${selectedCycleLabel()}.`;
     }else if(state.listeningMode==="synthesis"){
       caption.textContent=playback.active
-        ? `Synthèse complexe en lecture · ${playVoiceLabel()} · ${synthesisCycleLabel()} · pics principaux · samples DjembeLoops.`
-        : `Synthèse complexe prête · ${playVoiceLabel()} · ${synthesisCycleLabel()} · coefficients Polak transformables en direct.`;
+        ? `Partition synthèse en lecture · ${playVoiceLabel()} · ${synthesisCycleLabel()} · samples DjembeLoops.`
+        : `Partition synthèse prête · ${playVoiceLabel()} · ${synthesisCycleLabel()} · cases D1/D2 modifiables.`;
     }else if(["reference","model"].includes(state.listeningMode)){
       caption.textContent=referencePlayback.active
         ? `Référence externe en lecture · ${selectedDjembeloopsPattern()?.name||"—"}.`
