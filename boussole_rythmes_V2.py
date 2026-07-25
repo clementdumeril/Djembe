@@ -664,6 +664,11 @@ canvas{display:block;width:100%;height:auto}
 .foldState{color:var(--muted);font-size:.68rem;font-weight:850;text-transform:uppercase;letter-spacing:.08em}
 .foldState::before{content:"ouvrir"}
 .synthPanel[open] .foldState::before{content:"réduire"}
+.synthPipeline{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px;margin:0 0 11px}
+.pipelineStep{border:1px solid var(--line2);background:var(--soft);border-radius:11px;padding:8px 9px;min-height:58px}
+.pipelineStep span{display:block;color:var(--muted);font-size:.62rem;text-transform:uppercase;letter-spacing:.09em;font-weight:850}
+.pipelineStep b{display:block;color:var(--ink);font-size:.8rem;margin-top:2px}
+.pipelineStep small{display:block;color:var(--muted);font-size:.66rem;line-height:1.25;margin-top:1px}
 .synthTop{display:flex;gap:7px;align-items:center;flex-wrap:wrap;padding:10px 0 12px;border-top:1px solid var(--line2);border-bottom:1px solid var(--line2);margin-bottom:10px}
 .smallBtn{appearance:none;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:9px;padding:7px 10px;cursor:pointer;font-weight:800;font-size:.78rem}
 .smallBtn:hover{background:var(--soft)}
@@ -679,6 +684,10 @@ canvas{display:block;width:100%;height:auto}
 .transformFeedback{margin:-2px 2px 8px;color:var(--muted);font-size:.74rem}
 .transformFeedback:empty{display:none}
 .transformFeedback b{color:var(--ink)}
+.synthThresholdControl{display:grid;grid-template-columns:132px minmax(160px,1fr) 54px;align-items:center;gap:9px;border:1px solid var(--line2);background:var(--soft);border-radius:12px;padding:9px 10px;margin:0 0 8px;color:var(--muted);font-size:.74rem}
+.synthThresholdControl b{display:block;color:var(--ink);font-size:.82rem}.synthThresholdControl small{display:block;color:var(--muted);font-size:.64rem;line-height:1.2}
+.synthThresholdControl input{width:100%;accent-color:var(--accent)}
+.synthThresholdControl output{color:var(--ink);text-align:right;font-variant-numeric:tabular-nums}
 .coefControls{display:grid;gap:6px}
 .coefRow{display:grid;grid-template-columns:92px 28px minmax(90px,1fr) 45px 24px minmax(90px,1fr) 43px;gap:7px;align-items:center;background:var(--soft);border:1px solid transparent;border-radius:11px;padding:8px 9px;font-size:.76rem;color:var(--muted)}
 .coefRow:hover{border-color:var(--line)}
@@ -762,6 +771,7 @@ canvas{display:block;width:100%;height:auto}
 .researchNote div{border-left:3px solid var(--accent);padding:4px 0 4px 12px;color:var(--muted);font-size:.86rem}
 @media(max-width:1080px){
   .masthead{align-items:flex-start}.studioGrid,.lowerGrid,.theoryGrid{grid-template-columns:1fr}
+  .synthPipeline{grid-template-columns:repeat(5,minmax(120px,1fr));overflow-x:auto;padding-bottom:2px}
   .synthPanel{min-height:0}.wheelPanel #circle{max-width:620px}.curvePanel #curve{max-height:none}
 }
 @media(max-width:720px){
@@ -771,6 +781,8 @@ canvas{display:block;width:100%;height:auto}
   .panelHead{display:block}.metricControlGroup{justify-content:flex-start;margin-top:10px}
   .wheelBody{grid-template-columns:1fr}.wheelVoiceRail{border-left:0;border-top:1px solid var(--line2);padding:10px 0 0}.voicePicker.vertical{grid-template-columns:repeat(4,1fr)}
   .transformBar{grid-template-columns:1fr}
+  .synthPipeline{grid-template-columns:1fr;overflow:visible}
+  .synthThresholdControl{grid-template-columns:1fr 1fr 48px}
   .coefRow,.coefRow.density{grid-template-columns:78px 1fr 46px}.coefRow span{display:none}
   .coefRow input[data-kind="phase"]{grid-column:2}.coefRow output[data-out^="phase"]{grid-column:3}
   .metaGrid{grid-template-columns:1fr 1fr}.theoryBody{padding:13px}
@@ -824,6 +836,7 @@ canvas{display:block;width:100%;height:auto}
         </div>
         <div class="metricPicker" aria-label="Temporalité du cercle">
           <button class="smallBtn" id="circleRecordingBtn">Enregistrement</button>
+          <button class="smallBtn" id="circleSynthesisBtn">Synthèse complexe</button>
           <button class="smallBtn" id="circleReferenceBtn">Référence externe</button>
         </div>
       </div>
@@ -849,8 +862,8 @@ canvas{display:block;width:100%;height:auto}
   <details class="synthPanel surface" id="synthPanel" open>
     <summary class="synthIntro">
       <div>
-        <h2>Analyse des coefficients</h2>
-        <p class="caption">Lecture mathématique du <b>cycle 12 Polak</b>. L’écoute musicale principale se fait maintenant avec l’enregistrement ou la référence externe.</p>
+        <h2>Synthèse complexe Polak</h2>
+        <p class="caption">Les coefficients viennent des motifs observés chez Polak. DjembeLoops sert seulement de banque de sons pour rendre la synthèse audible.</p>
       </div>
       <div class="synthSummaryState">
         <span class="modeTag" id="synthLiveTag">Prêt</span>
@@ -858,9 +871,16 @@ canvas{display:block;width:100%;height:auto}
       </div>
     </summary>
     <div class="synthBody">
+    <div class="synthPipeline" aria-label="Chaîne de synthèse">
+      <div class="pipelineStep"><span>1 · données</span><b>Polak audio</b><small>prises et cycles annotés</small></div>
+      <div class="pipelineStep"><span>2 · cercle</span><b>\(V_v(s)\)</b><small>fonction rythmique cyclique</small></div>
+      <div class="pipelineStep"><span>3 · calcul</span><b>\(c_k\)</b><small>racines complexes du cycle</small></div>
+      <div class="pipelineStep"><span>4 · édition</span><b>\(\tilde c_k\)</b><small>amplitude, phase, symétries</small></div>
+      <div class="pipelineStep"><span>5 · écoute</span><b>samples</b><small>DjembeLoops comme timbre</small></div>
+    </div>
     <div class="synthTop">
-      <button class="smallBtn" id="originalModeBtn">Données observées</button>
-      <button class="smallBtn" id="synthModeBtn">Édition synthé 12</button>
+      <button class="smallBtn" id="originalModeBtn">Coefficients Polak</button>
+      <button class="smallBtn" id="synthModeBtn">Modifier \(c_k\)</button>
       <div class="voicePicker" id="synthVoicePicker"></div>
       <button class="smallBtn resetBtn" id="resetSynthBtn">Réinitialiser</button>
     </div>
@@ -884,6 +904,7 @@ canvas{display:block;width:100%;height:auto}
       </div>
     </div>
     <div class="transformFeedback" id="transformFeedback"></div>
+    <div class="synthThresholdControl" id="synthThresholdControl"></div>
     <div class="coefControls" id="synthControls"></div>
     </div>
   </details>
@@ -919,7 +940,7 @@ canvas{display:block;width:100%;height:auto}
     <span class="swatch d1"><i></i>bleu D1 · dunun grave</span>
     <span class="swatch d2"><i></i>orange D2 · dunun réponse</span>
   </div>
-  <p class="caption">Abscisse : subdivision Polak 1–12. Ordonnée : stabilité/intensité. Les carrés indiquent les frappes stables détectées, mais le player musical utilise l’enregistrement ou la référence externe.</p>
+  <p class="caption">Abscisse : position cyclique. Ordonnée : présence/intensité estimée depuis Polak. En mode synthèse, la courbe reconstruite par les coefficients est convertie en frappes par le seuil, puis jouée avec les samples DjembeLoops.</p>
 </section>
 
 <section class="referencePanel surface">
@@ -955,6 +976,7 @@ canvas{display:block;width:100%;height:auto}
       <div><h2>Temporalité observée</h2></div>
       <div class="microControls">
         <button class="smallBtn" id="recordingTimingBtn">Enregistrement</button>
+        <button class="smallBtn" id="synthesisTimingBtn">Synthèse complexe</button>
         <button class="smallBtn" id="referenceTimingBtn">Référence externe</button>
         <label class="microScale">impact
           <input type="range" id="timingStrength" min="0" max="2" step="0.05" value="1">
@@ -988,8 +1010,8 @@ canvas{display:block;width:100%;height:auto}
     </div>
     <div class="researchNote">
       <div><b>Ensemble comparable.</b><br>Les quatre voix sont calculées sur les mêmes prises appariées.</div>
-      <div><b>Six coefficients ≠ six temps.</b><br>Chaque coefficient regarde les 12 subdivisions et teste une répétition complète.</div>
-      <div><b>Calcul complexe.</b><br>\(z_s=e^{2\pi i s/12}\) et \(c_k\) additionne les frappes après rotation par \(z_s^{-k}\).</div>
+      <div><b>N = résolution du cercle.</b><br>Ici la boussole principale utilise \(N=12\), mais le calcul s’écrit pareil pour une autre résolution.</div>
+      <div><b>Calcul complexe.</b><br>\(z_s=e^{2\pi i s/N}\) et \(c_k\) additionne les frappes après rotation par \(z_s^{-k}\).</div>
       <div><b>Une couche = une onde test.</b><br>Pour \(k=3\), l'onde fait trois tours pendant le cycle.</div>
     </div>
   </div>
@@ -1011,7 +1033,7 @@ const DJEMBELOOPS_DUNUN=["Kenkeni","Sangban","Doundoun"];
 const DJEMBELOOPS_JEMBE=["DjembeOne","DjembeTwo","DjembeThree","DjembeFive","DjembeSix","DjembeSeven","DjembeSolo"];
 const state={
   piece:DATA.pieces[0],scope:"ensemble",playVoice:"ensemble",selectedVoiceSet:{J1:false,J2:false,D1:true,D2:true},synthEnabled:false,synthVoice:"D1",
-  synthData:{},listeningMode:"recording",timingMode:"observed",timingStrength:1,volume:1.3,reconstructionMix:.5,transformMessage:"",symmetryAxis:0,
+  synthData:{},synthThreshold:.28,listeningMode:"recording",timingMode:"observed",timingStrength:1,volume:1.3,reconstructionMix:.5,transformMessage:"",symmetryAxis:0,
   phraseMode:"mean12",djembeloopsPatternByPiece:{},referenceTempoByPattern:{},
   libraryPiece:DATA.pieces[0],libraryLoaded:{D1:null,D2:null},
   recordingCycleByKey:{},
@@ -1181,6 +1203,7 @@ function renderVolumeControl(){
 }
 function timingAmount(){
   if(state.listeningMode==="recording")return 1;
+  if(state.listeningMode==="synthesis"&&state.timingMode==="observed")return state.timingStrength;
   return 0;
 }
 function metricTiming(piece=state.piece){
@@ -1360,6 +1383,8 @@ async function loadLibraryVariant(piece,voice,axis){
   state.symmetryAxis=axis===null?0:axis;
   state.synthData[synthKey(piece,voice)]=synthDataFromMotif(motif);
   state.synthEnabled=true;
+  state.listeningMode="synthesis";
+  state.timingMode="observed";
   state.libraryLoaded[voice]=libraryVariantKey(piece,voice,axis);
   state.transformMessage=axis===null
     ? `<b>${piece} · ${voice}</b> original chargé · l’autre voix est conservée`
@@ -1460,6 +1485,8 @@ function applySynthMotif(motif,message){
   clearLibrarySelection(state.synthVoice);
   state.synthData[synthKey()]=synthDataFromMotif(motif);
   state.synthEnabled=true;
+  state.listeningMode="synthesis";
+  state.timingMode="observed";
   state.transformMessage=message;
   renderSynthControls();
   refreshSynthViews();
@@ -1528,7 +1555,7 @@ function curveValueForVoice(voice,t){
   return curveValueFromCoeffs(coeffs,data.density,t,true);
 }
 function motifForPlayback(voice){
-  if(state.synthEnabled)return synthMotif(voice).map(value=>value>=.28?value:0);
+  if(state.synthEnabled)return synthMotif(voice).map(value=>value>=state.synthThreshold?value:0);
   const it=rhythm().voices[voice];
   const motif=it.motif.slice();
   const target=Math.max(1,Math.min(12,Math.round(it.density||motif.reduce((a,b)=>a+b,0))));
@@ -1783,19 +1810,19 @@ function syncSynthModeButtons(){
   const curveMode=document.getElementById("curveMode");
   const liveTag=document.getElementById("synthLiveTag");
   if(circleMode){
-    circleMode.textContent=state.synthEnabled?"Synthèse":"Original";
+    circleMode.textContent=state.synthEnabled?"Synthèse complexe":"Signal Polak";
     circleMode.className="modeTag"+(state.synthEnabled?" live":"");
   }
   if(curveMode){
     curveMode.textContent=state.phraseMode==="mean12"
-      ? (state.synthEnabled?"Courbe et pas synthétisés":"Points observés + modèle")
+      ? (state.synthEnabled?"Courbe reconstruite + seuil":"Signal Polak observé")
       : phraseModeLabel();
     curveMode.className="modeTag"+(state.synthEnabled&&state.phraseMode==="mean12"?" live":"");
   }
   if(liveTag){
     liveTag.textContent=state.synthEnabled
-      ? `${playback.active&&playback.kind==="synthetic"?"LIVE":"Édition"} · ${state.synthVoice}`
-      : "Signal original";
+      ? `${playback.active&&playback.kind==="synthetic"?"LIVE":"édition complexe"} · ${state.synthVoice}`
+      : "coefficients Polak";
     liveTag.className="modeTag"+(state.synthEnabled?" live":"");
   }
 }
@@ -1843,15 +1870,29 @@ function renderSynthControls(){
     clearLibrarySelection();
     refreshSynthViews();
   };
-  document.getElementById("synthModeBtn").onclick=()=>{state.synthEnabled=true;refreshSynthViews();};
+  document.getElementById("synthModeBtn").onclick=()=>{
+    state.synthEnabled=true;
+    if(state.listeningMode!=="synthesis"){
+      if(playback.active)stopPlayback();
+      if(referencePlayback.active)stopReferencePlayback();
+      state.listeningMode="synthesis";
+      state.timingMode="observed";
+    }
+    renderTimingControls();
+    refreshSynthViews();
+    syncPlaybackUI();
+  };
   document.getElementById("resetSynthBtn").onclick=()=>{
     delete state.synthData[synthKey(state.piece,state.synthVoice)];
     ensureSynthData(state.piece,state.synthVoice);
     state.synthEnabled=true;
+    state.listeningMode="synthesis";
+    state.timingMode="observed";
     state.libraryPiece=state.piece;
     state.libraryLoaded[state.synthVoice]=libraryVariantKey(state.piece,state.synthVoice,null);
     state.transformMessage=`<b>${state.synthVoice}</b> revenu à ses coefficients observés`;
     renderSynthControls();
+    renderTimingControls();
     renderSymmetryLibrary();
     refreshSynthViews();
   };
@@ -1867,6 +1908,25 @@ function renderSynthControls(){
   document.getElementById("transformFeedback").innerHTML=
     state.transformMessage||synthScopeNote;
 
+  const thresholdBox=document.getElementById("synthThresholdControl");
+  thresholdBox.innerHTML=
+    `<div><b>seuil de frappe</b><small>courbe \u2192 partition jouable</small></div>`+
+    `<input type="range" min="0.05" max="1.00" step="0.01" value="${state.synthThreshold}" aria-label="Seuil de frappe synthétique">`+
+    `<output>${state.synthThreshold.toFixed(2)}</output>`;
+  const thresholdInput=thresholdBox.querySelector("input");
+  const thresholdOut=thresholdBox.querySelector("output");
+  thresholdInput.oninput=()=>{
+    state.synthThreshold=Number(thresholdInput.value);
+    state.synthEnabled=true;
+    state.listeningMode="synthesis";
+    state.timingMode="observed";
+    thresholdOut.textContent=state.synthThreshold.toFixed(2);
+    if(playback.active&&playback.kind!=="synthetic")stopPlayback();
+    renderTimingControls();
+    refreshSynthViews();
+    syncPlaybackUI();
+  };
+
   const data=ensureSynthData();
   const rows=[];
   rows.push(`<div class="coefRow density"><b>ρ<small>densité</small></b><span>val</span><input type="range" min="0" max="8" step="0.05" value="${data.density}" data-kind="density"><output data-out="density">${data.density.toFixed(2)}</output></div>`);
@@ -1881,6 +1941,8 @@ function renderSynthControls(){
     input.oninput=()=>{
       const d=ensureSynthData(), kind=input.dataset.kind, k=Number(input.dataset.k), value=Number(input.value);
       state.synthEnabled=true;
+      state.listeningMode="synthesis";
+      state.timingMode="observed";
       clearLibrarySelection(state.synthVoice);
       state.transformMessage="";
       if(kind==="density"){
@@ -1896,6 +1958,7 @@ function renderSynthControls(){
         d.coeffs[6].real=value;
         document.querySelector('[data-out="real6"]').textContent=value.toFixed(3);
       }
+      renderTimingControls();
       refreshSynthViews();
     };
   });
@@ -2959,6 +3022,9 @@ function timingModeLabel(){
   if(state.listeningMode==="recording"){
     return `enregistrement · prise ${selectedRecording()?.take??"—"} · ${selectedCycleLabel()}`;
   }
+  if(state.listeningMode==="synthesis"){
+    return `synthèse complexe · coefficients Polak · seuil ${state.synthThreshold.toFixed(2)}`;
+  }
   if(state.listeningMode==="model"){
     return `référence externe · ${selectedDjembeloopsPattern()?.name||"—"}`;
   }
@@ -2973,7 +3039,13 @@ async function setListeningMode(mode){
   if(wasPlaying)stopPlayback();
   if(referencePlayback.active)stopReferencePlayback();
   state.listeningMode=mode;
-  state.timingMode=mode==="recording"?"observed":"grid";
+  if(mode==="synthesis"){
+    state.synthEnabled=true;
+    state.timingMode="observed";
+  }else{
+    state.timingMode=mode==="recording"?"observed":"grid";
+  }
+  renderSynthControls();
   renderTimingControls();
   drawCircle();
   drawCurve();
@@ -2983,13 +3055,16 @@ async function setListeningMode(mode){
 }
 function renderTimingControls(){
   const recording=document.getElementById("recordingTimingBtn");
+  const synthesis=document.getElementById("synthesisTimingBtn");
   const reference=document.getElementById("referenceTimingBtn");
   const circleRecording=document.getElementById("circleRecordingBtn");
+  const circleSynthesis=document.getElementById("circleSynthesisBtn");
   const circleReference=document.getElementById("circleReferenceBtn");
   const slider=document.getElementById("timingStrength");
   const output=document.getElementById("timingStrengthOut");
   [
     ["recording",[recording,circleRecording]],
+    ["synthesis",[synthesis,circleSynthesis]],
     ["reference",[reference,circleReference]]
   ].forEach(([mode,buttons])=>{
     buttons.forEach(button=>{
@@ -2999,8 +3074,8 @@ function renderTimingControls(){
     });
   });
   slider.value=state.timingStrength;
-  slider.disabled=true;
-  output.textContent="12";
+  slider.disabled=state.listeningMode!=="synthesis";
+  output.textContent=state.listeningMode==="recording"?"×1 réel":state.listeningMode==="synthesis"?`×${state.timingStrength.toFixed(2)}`:"grille";
   slider.oninput=()=>{
     state.timingStrength=Number(slider.value);
     output.textContent=`×${state.timingStrength.toFixed(2)}`;
@@ -3019,6 +3094,11 @@ function renderTimingControls(){
     note.innerHTML=
       `<b>Enregistrement réel.</b> Prise ${recordingInfo?.take??"—"}, ${selectedCycleLabel(recordingInfo)} : vrais timbres, `+
       `non-isochronie et asynchronie de l’ensemble. La boucle suit les bornes annotées du cycle sélectionné.`;
+  }else if(state.listeningMode==="synthesis"){
+    note.innerHTML=
+      `<b>Synthèse complexe.</b> Les motifs V_v(s) et les coefficients c_k viennent de Polak ; `+
+      `le seuil transforme la courbe reconstruite en frappes, puis les sons DjembeLoops servent de timbre. `+
+      `Le curseur d’impact règle la quantité de micro-timing observé appliquée à la boucle synthétique.`;
   }else if(state.listeningMode==="reference"){
     note.innerHTML=
       `<b>Référence externe.</b> Le player lit le rythme DjembeLoops jugé proche, dans la table de référence externe.`;
@@ -3150,7 +3230,7 @@ function renderEquation(){
   document.getElementById("metrics").innerHTML=[
     ["prises",r.takes.join(", ")],
     ["vue",state.scope==="ensemble"?"ensemble complet":"dunun"],
-    ["fenêtre",`${phraseModeLabel()}${state.synthEnabled&&state.phraseMode==="mean12"?" · synthé":""}`],
+    ["fenêtre",`${phraseModeLabel()}${state.synthEnabled&&state.phraseMode==="mean12"?" · synthèse complexe":""}`],
     ["densités",densityText]
   ].map(([k,v])=>`<div class="metric"><span>${k}</span><b>${v}</b></div>`).join("");
 }
@@ -3177,7 +3257,8 @@ function hit(ctx,time,voice,amp){
   const sample=sampleForPolakVoice(voice);
   const href=sampleHref(sample);
   if(href){
-    playSampleHref(href,(time-ctx.currentTime)*1000,Math.min(1,Math.max(.08,amp)*(DUNUN_VOICES.includes(voice) ? .92 : .68)));
+    const sampleVolume=Math.min(1,Math.max(.08,amp)*(DUNUN_VOICES.includes(voice) ? .92 : .68)*(Number(state.volume)||1));
+    playSampleHref(href,(time-ctx.currentTime)*1000,sampleVolume);
     return;
   }
   const osc=ctx.createOscillator(), gain=ctx.createGain(), filter=ctx.createBiquadFilter();
@@ -3297,9 +3378,11 @@ function syncPlaybackUI(){
       ?"■ Arrêter l’écoute"
       :state.listeningMode==="recording"
         ?"▶ Lire l’enregistrement"
+        :state.listeningMode==="synthesis"
+          ?"▶ Lire la synthèse complexe"
         :["reference","model"].includes(state.listeningMode)
           ?"▶ Lire la référence externe"
-        :"▶ Lire la référence externe";
+        :"▶ Lire la synthèse complexe";
     btn.className="play"+(active?" playing":"");
   }
   if(status){
@@ -3312,6 +3395,10 @@ function syncPlaybackUI(){
       caption.textContent=playback.active
         ? `Lecture réelle · ${playVoiceLabel()} · prise ${selectedRecording()?.take??"—"} · ${selectedCycleLabel()} · pistes synchronisées.`
         : `Référence réelle · ${playVoiceLabel()} · prise ${selectedRecording()?.take??"—"} · ${selectedCycleLabel()}.`;
+    }else if(state.listeningMode==="synthesis"){
+      caption.textContent=playback.active
+        ? `Synthèse complexe en lecture · ${playVoiceLabel()} · coefficients Polak · seuil ${state.synthThreshold.toFixed(2)} · samples DjembeLoops.`
+        : `Synthèse complexe prête · ${playVoiceLabel()} · coefficients Polak transformables en direct.`;
     }else if(["reference","model"].includes(state.listeningMode)){
       caption.textContent=referencePlayback.active
         ? `Référence externe en lecture · ${selectedDjembeloopsPattern()?.name||"—"}.`
@@ -3477,6 +3564,7 @@ async function startPlayback(){
   if(!AudioCtx){alert("Audio Web non disponible dans ce navigateur.");return;}
   if(referencePlayback.active)stopReferencePlayback();
   if(state.listeningMode==="recording")await startCorpusPlayback(AudioCtx);
+  else if(state.listeningMode==="synthesis")await startSyntheticPlayback(AudioCtx);
   else if(state.listeningMode==="reconstruction")await startReconstructionPlayback(AudioCtx);
   else startReferencePlayback();
 }
