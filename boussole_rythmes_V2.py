@@ -1092,6 +1092,26 @@ function selectedCycleLabel(recording=selectedRecording(),piece=state.piece){
   const cycle=selectedCycle(recording,piece), index=selectedCycleIndex(recording,piece);
   return cycle ? `cycle ${index+1}` : "cycle —";
 }
+function validCycleDuration(value){
+  const duration=Number(value);
+  return Number.isFinite(duration)&&duration>.5&&duration<5 ? duration : null;
+}
+function typicalRecordingCycleDuration(piece=state.piece){
+  const durations=(DATA.recordings?.[piece]||[])
+    .flatMap(recording=>(recording.cycles||[]).map(cycle=>validCycleDuration(cycle.duration)))
+    .filter(duration=>duration!==null)
+    .sort((a,b)=>a-b);
+  if(!durations.length)return 12*playback.step;
+  const mid=durations.length/2;
+  return durations.length%2 ? durations[Math.floor(mid)] : (durations[mid-1]+durations[mid])/2;
+}
+function synthesisCycleDuration(piece=state.piece){
+  return typicalRecordingCycleDuration(piece);
+}
+function synthesisCycleLabel(piece=state.piece){
+  const duration=synthesisCycleDuration(piece);
+  return `${duration.toFixed(3)} s/cycle médian`;
+}
 function css(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
 function phaseDeg(rad){let d=rad*180/Math.PI;while(d>180)d-=360;while(d<=-180)d+=360;return d;}
 function signed(x,digits=2){return (x>=0?"+":"") + x.toFixed(digits);}
@@ -3039,7 +3059,7 @@ function timingModeLabel(){
     return `enregistrement · prise ${selectedRecording()?.take??"—"} · ${selectedCycleLabel()}`;
   }
   if(state.listeningMode==="synthesis"){
-    return `synthèse complexe · coefficients Polak · ${synthTargetHitCount()} pics`;
+    return `synthèse complexe · ${synthesisCycleLabel()} · ${synthTargetHitCount()} pics`;
   }
   if(state.listeningMode==="model"){
     return `référence externe · ${selectedDjembeloopsPattern()?.name||"—"}`;
@@ -3114,6 +3134,7 @@ function renderTimingControls(){
     note.innerHTML=
       `<b>Synthèse complexe.</b> Les motifs V_v(s) et les coefficients c_k viennent de Polak ; `+
       `les pics principaux de la courbe reconstruite deviennent les frappes, en conservant la densité Polak, puis les sons DjembeLoops servent de timbre. `+
+      `La boucle est calée sur ${synthesisCycleLabel()} afin d’éviter les pauses trop longues des cycles atypiques. `+
       `Le curseur d’impact règle la quantité de micro-timing observé appliquée à la boucle synthétique.`;
   }else if(state.listeningMode==="reference"){
     note.innerHTML=
@@ -3413,8 +3434,8 @@ function syncPlaybackUI(){
         : `Référence réelle · ${playVoiceLabel()} · prise ${selectedRecording()?.take??"—"} · ${selectedCycleLabel()}.`;
     }else if(state.listeningMode==="synthesis"){
       caption.textContent=playback.active
-        ? `Synthèse complexe en lecture · ${playVoiceLabel()} · coefficients Polak · pics principaux · samples DjembeLoops.`
-        : `Synthèse complexe prête · ${playVoiceLabel()} · coefficients Polak transformables en direct.`;
+        ? `Synthèse complexe en lecture · ${playVoiceLabel()} · ${synthesisCycleLabel()} · pics principaux · samples DjembeLoops.`
+        : `Synthèse complexe prête · ${playVoiceLabel()} · ${synthesisCycleLabel()} · coefficients Polak transformables en direct.`;
     }else if(["reference","model"].includes(state.listeningMode)){
       caption.textContent=referencePlayback.active
         ? `Référence externe en lecture · ${selectedDjembeloopsPattern()?.name||"—"}.`
@@ -3566,6 +3587,8 @@ async function startSyntheticPlayback(AudioCtx){
   configureMaster(ctx);
   playback.kind="synthetic";
   playback.active=true;
+  playback.cycle=selectedCycle(selectedRecording());
+  playback.step=synthesisCycleDuration()/12;
   playback.stepIndex=0;
   playback.startTime=ctx.currentTime+.13;
   playback.nextStepTime=playback.startTime;
