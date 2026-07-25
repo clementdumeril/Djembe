@@ -920,7 +920,7 @@ canvas{display:block;width:100%;height:auto}
     <span class="swatch d1"><i></i>bleu D1 · dunun grave</span>
     <span class="swatch d2"><i></i>orange D2 · dunun réponse</span>
   </div>
-  <p class="caption">Abscisse : subdivision affichée par la fenêtre active. Ordonnée : intensité de frappe. En mode synthé 12, les carrés montrent les valeurs réellement jouées.</p>
+  <p class="caption">Abscisse : subdivision Polak 1–12. Ordonnée : stabilité/intensité. Pour l’écoute du modèle, seules les frappes les plus stables sont jouées afin d’éviter les fausses frappes.</p>
 </section>
 
 <section class="referencePanel surface">
@@ -1012,7 +1012,7 @@ const DJEMBELOOPS_CANDIDATES={
 const DJEMBELOOPS_DUNUN=["Kenkeni","Sangban","Doundoun"];
 const DJEMBELOOPS_JEMBE=["DjembeOne","DjembeTwo","DjembeThree","DjembeFive","DjembeSix","DjembeSeven","DjembeSolo"];
 const state={
-  piece:DATA.pieces[0],scope:"ensemble",playVoice:"ensemble",selectedVoiceSet:{J1:true,J2:true,D1:true,D2:true},synthEnabled:false,synthVoice:"D1",
+  piece:DATA.pieces[0],scope:"ensemble",playVoice:"ensemble",selectedVoiceSet:{J1:false,J2:false,D1:true,D2:true},synthEnabled:false,synthVoice:"D1",
   synthData:{},listeningMode:"recording",timingMode:"observed",timingStrength:1,volume:1.3,reconstructionMix:.5,transformMessage:"",symmetryAxis:0,
   phraseMode:"mean12",djembeloopsPatternByPiece:{},referenceTempoByPattern:{},
   libraryPiece:DATA.pieces[0],libraryLoaded:{D1:null,D2:null},
@@ -1031,6 +1031,7 @@ const referencePlayback={
   active:false,timer:null,stepIndex:0,nextStepAt:0,events:[],patternKey:null,tempo:120,
   pending:[]
 };
+const sampleAudioCache=new Map();
 
 function rhythm(piece=state.piece){return DATA.rhythms.find(r=>r.piece===piece) || DATA.rhythms[0];}
 function recordingOptions(piece=state.piece){return DATA.recordings?.[piece]||[];}
@@ -1529,7 +1530,17 @@ function curveValueForVoice(voice,t){
   return curveValueFromCoeffs(coeffs,data.density,t,true);
 }
 function motifForPlayback(voice){
-  return state.synthEnabled ? synthMotif(voice) : rhythm().voices[voice].motif;
+  if(state.synthEnabled)return synthMotif(voice).map(value=>value>=.28?value:0);
+  const it=rhythm().voices[voice];
+  const motif=it.motif.slice();
+  const target=Math.max(1,Math.min(12,Math.round(it.density||motif.reduce((a,b)=>a+b,0))));
+  const ranked=motif
+    .map((value,index)=>({value,index}))
+    .filter(item=>item.value>=.18)
+    .sort((a,b)=>b.value-a.value)
+    .slice(0,target);
+  const keep=new Set(ranked.map(item=>item.index));
+  return motif.map((value,index)=>keep.has(index)?Math.max(.82,value):0);
 }
 function phraseModeLabel(mode=state.phraseMode){
   return {
@@ -2161,7 +2172,7 @@ function drawCurve(){
     const it=displayVoiceView(voice);
     for(let i=0;i<=240;i++) samples.push(curveValueFromCoeffArray(it.coeffs,it.density,i/240*steps,steps));
     samples.push(...it.motif);
-    if(state.synthEnabled&&state.phraseMode==="mean12")samples.push(...motifForPlayback(voice));
+    if(state.phraseMode==="mean12")samples.push(...motifForPlayback(voice));
   });
   const ymax=Math.max(...samples,0.05)*1.14;
   const xOf=t=>left+(t/steps)*span;
@@ -2200,8 +2211,9 @@ function drawCurve(){
       g.beginPath();g.arc(xOf(s),yOf(v),5.2,0,TAU);g.fill();
       g.strokeStyle=css("--paper");g.lineWidth=1.4;g.stroke();
     });
-    if(state.synthEnabled&&state.phraseMode==="mean12"){
+    if(state.phraseMode==="mean12"){
       motifForPlayback(voice).forEach((v,s)=>{
+        if(v<=.035)return;
         g.globalAlpha=audible ? .72 : .2;g.strokeStyle=col;g.lineWidth=2;
         g.beginPath();g.rect(xOf(s)-4,yOf(v)-4,8,8);g.stroke();
       });
@@ -2459,15 +2471,28 @@ function sampleHref(sample){
   if(sample.localPath)return new URL(`../${sample.localPath}`,location.href).href;
   return sample.url;
 }
+function cachedAudioForHref(href){
+  if(!href)return null;
+  if(!sampleAudioCache.has(href)){
+    const audio=new Audio(href);
+    audio.preload="auto";
+    audio.load();
+    sampleAudioCache.set(href,audio);
+  }
+  return sampleAudioCache.get(href);
+}
+function preloadDjembeLoopSamples(){
+  (djembeloopsData().samples||[]).forEach(sample=>cachedAudioForHref(sampleHref(sample)));
+}
 function playSampleHref(href,delayMs,volume=.82,bag=null){
   if(!href)return;
+  const template=cachedAudioForHref(href);
   const timeout=setTimeout(()=>{
     if(bag){
       const index=bag.indexOf(timeout);
       if(index>=0)bag.splice(index,1);
     }
-    const audio=new Audio(href);
-    audio.preload="auto";
+    const audio=template?.cloneNode ? template.cloneNode(true) : new Audio(href);
     audio.volume=Math.max(0,Math.min(1,volume));
     audio.play().catch(()=>{});
   },Math.max(0,delayMs));
@@ -2479,6 +2504,12 @@ function referenceStepMs(pattern=selectedDjembeloopsPattern()){
   const steps=djembeloopsMatrix(pattern)?.steps||pattern?.steps||24;
   const subdivisionsPerBeat=steps%12===0 ? 3 : 4;
   return 60000/tempo/subdivisionsPerBeat;
+}
+function referenceSwingOffsetMs(step,pattern=selectedDjembeloopsPattern()){
+  const swing=pattern?.swing||{};
+  const labels=["swingA","swingB","swingC","swingD"];
+  const value=Number(swing[labels[step%4]])||0;
+  return value/100*referenceStepMs(pattern);
 }
 function playReferenceSample(sample,delayMs,volume=.82){
   const href=sampleHref(sample);
@@ -2504,10 +2535,11 @@ function referenceScheduler(){
   const stepMs=referenceStepMs(pattern);
   while(referencePlayback.nextStepAt<now+140){
     const step=referencePlayback.stepIndex%matrix.steps;
+    const swingOffset=referenceSwingOffsetMs(step,pattern);
     referenceEventsForStep(step,pattern).forEach(event=>{
       const family=familyOfInstrument(event.instrument);
       const volume=family.startsWith("Djembe") ? .62 : .86;
-      playReferenceSample(event.sample,referencePlayback.nextStepAt-now,volume);
+      playReferenceSample(event.sample,referencePlayback.nextStepAt-now+swingOffset,volume);
     });
     referencePlayback.stepIndex=(referencePlayback.stepIndex+1)%matrix.steps;
     referencePlayback.nextStepAt+=stepMs;
@@ -2613,8 +2645,12 @@ function renderDjembeLoopsReference(){
       caption.textContent="Aucune donnée DjembeLoops chargée.";
       return;
     }
+    const swingValues=pattern.swing
+      ? ["swingA","swingB","swingC","swingD"].map(key=>pattern.swing[key]).filter(value=>Number.isFinite(value))
+      : [];
+    const swingText=swingValues.length ? ` · swing ${swingValues.join("/")}` : "";
     caption.innerHTML=
-      `<b>${pattern.name}</b> · ${matrix?.steps||pattern.steps} pas · tempo ${referenceTempo(pattern)} bpm. `+
+      `<b>${pattern.name}</b> · ${matrix?.steps||pattern.steps} pas · tempo ${referenceTempo(pattern)} bpm${swingText}. `+
       `Choisis un autre rythme dans le menu pour changer la table et le player.`;
   }
 }
@@ -3215,6 +3251,7 @@ function animatePlayback(){
 }
 
 function render(){
+  preloadDjembeLoopSamples();
   renderTabs();
   renderScopePicker();
   renderVoicePicker();

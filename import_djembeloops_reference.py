@@ -114,6 +114,11 @@ def extract_pattern_metadata(text: str):
         steps = re.search(r"\bsteps\s*:\s*([0-9]+)", block)
         matrix = re.search(r"\bmatrix\s*:\s*(['\"])(.*?)\1", block)
         tempo = re.search(r"\btempo\s*:\s*([0-9]+)", block)
+        swing = {
+            name: int(found.group(1))
+            for name in ("swingFactor", "swingA", "swingB", "swingC", "swingD")
+            if (found := re.search(r"\b" + name + r"\s*:\s*(-?[0-9]+)", block))
+        }
         if not steps or not matrix:
             continue
         metadata[key] = {
@@ -122,6 +127,7 @@ def extract_pattern_metadata(text: str):
             "rawSteps": steps.group(1),
             "matrix": matrix.group(2),
             "tempo": None if not tempo else int(tempo.group(1)),
+            "swing": swing,
         }
     return metadata
 
