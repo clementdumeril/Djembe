@@ -223,6 +223,84 @@ def _microtiming_profiles(rhythms):
     return out
 
 
+def _microtiming_phrase_profiles(rhythms):
+    """Écart à la grille séparé sur deux cycles successifs A(12)+B(12)."""
+    out = {}
+    for rhythm in rhythms:
+        piece = rhythm["piece"]
+        rows_by_voice = {voice: [] for voice in ENSEMBLE_VOICES}
+        for take in rhythm["takes"]:
+            selected = u.load_selected(piece, int(take))
+            if selected is None or "Label SD" not in selected:
+                continue
+            selected = selected.copy()
+            selected["cycle_id"] = (
+                selected["Label SD"].astype(str).str.split("|", regex=False).str[0]
+            )
+            time_cols = [c for c in ENSEMBLE_VOICES if c in selected.columns]
+            if not time_cols:
+                continue
+            selected["reference"] = selected[time_cols].mean(axis=1, skipna=True)
+            cycles = list(selected.groupby("cycle_id", sort=False))
+            for idx in range(len(cycles) - 1):
+                cycle = cycles[idx][1]
+                next_cycle = cycles[idx + 1][1]
+                start_values = cycle.loc[cycle["SD"] == 1, "reference"].dropna()
+                next_values = next_cycle.loc[
+                    next_cycle["SD"] == 1, "reference"
+                ].dropna()
+                if start_values.empty or next_values.empty:
+                    continue
+                start = float(start_values.iloc[0])
+                duration = float(next_values.iloc[0]) - start
+                if not 0.5 < duration < 5.0:
+                    continue
+                half = idx % 2
+                for row in cycle.itertuples(index=False):
+                    sd = int(getattr(row, "SD"))
+                    if not 1 <= sd <= 12:
+                        continue
+                    phrase_sd = half * 12 + sd
+                    for voice in ENSEMBLE_VOICES:
+                        if voice not in cycle.columns:
+                            continue
+                        value = getattr(row, voice)
+                        if pd.isna(value):
+                            continue
+                        rel = (float(value) - start) / duration
+                        if -0.05 <= rel < 1.05:
+                            dev_ms = (rel - (sd - 1.0) / 12.0) * duration * 1000.0
+                            rows_by_voice[voice].append((phrase_sd, dev_ms))
+
+        piece_data = {}
+        for voice, rows in rows_by_voice.items():
+            if not rows:
+                continue
+            s = pd.DataFrame(rows, columns=["SD", "dev_ms"])
+            grouped = s.groupby("SD")["dev_ms"]
+
+            def value_at(series, subdivision, digits):
+                value = series.get(subdivision, np.nan)
+                return None if not np.isfinite(value) else round(float(value), digits)
+
+            means = grouped.mean()
+            stds = grouped.std()
+            counts = grouped.size()
+            piece_data[voice] = {
+                "mean": [value_at(means, sd, 2) for sd in range(1, 25)],
+                "std": [value_at(stds, sd, 2) for sd in range(1, 25)],
+                "n": [int(counts.get(sd, 0)) for sd in range(1, 25)],
+                "precision": (
+                    None
+                    if s.empty or not np.isfinite(s["dev_ms"].std())
+                    else round(float(s["dev_ms"].std()), 2)
+                ),
+            }
+        if piece_data:
+            out[piece] = piece_data
+    return out
+
+
 def _metric_timing_profiles(rhythms):
     """Positions métriques moyennes des 12 subdivisions, estimées sur l'ensemble."""
     out = {}
@@ -471,6 +549,7 @@ def build_data():
         "rhythms": rhythms,
         "map": _pca_map(rhythms),
         "microtiming": _microtiming_profiles(rhythms),
+        "microtimingPhrase": _microtiming_phrase_profiles(rhythms),
         "metricTiming": _metric_timing_profiles(rhythms),
         "recordings": _corpus_recordings(rhythms),
         "djembeloops": _load_djembeloops_reference(),
@@ -561,6 +640,8 @@ canvas{display:block;width:100%;height:auto}
 .caption,.note{font-size:.85rem;color:var(--muted)}
 .caption b,.note b{color:var(--ink)}
 .legend{display:flex;gap:16px;flex-wrap:wrap;margin:6px 0 2px;color:var(--muted);font-size:.8rem}
+.colorLegend{border:1px solid var(--line2);background:var(--soft);border-radius:12px;padding:8px 10px;margin-top:10px}
+.colorLegend b{color:var(--ink)}
 .swatch{display:inline-flex;align-items:center;gap:7px}.swatch i{width:13px;height:13px;border-radius:99px;display:inline-block;border:2px solid currentColor}
 .j1{color:var(--j1)}.j2{color:var(--j2)}.d1{color:var(--d1)}.d2{color:var(--d2)}
 .metricKey{display:inline-flex;align-items:center;gap:7px}
@@ -650,6 +731,13 @@ canvas{display:block;width:100%;height:auto}
 .referencePanel .panelHead{align-items:flex-end}
 .referenceTools{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
 .referenceTools select{border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:9px;padding:7px 9px;font-size:.78rem;max-width:260px}
+.referencePlayer{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;border:1px solid var(--line2);background:var(--soft);border-radius:13px;padding:10px 11px;margin:12px 0}
+.referencePlayerLeft{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.referenceTempo{display:grid;grid-template-columns:auto 120px 44px;align-items:center;gap:7px;color:var(--muted);font-size:.72rem;font-weight:750}
+.referenceTempo input{width:120px;accent-color:var(--accent)}
+.referenceTempo output{color:var(--ink);font-variant-numeric:tabular-nums;text-align:right}
+.referenceStatus{font-size:.78rem;color:var(--muted)}
+.referenceStatus.live{color:var(--live);font-weight:850}
 .referenceStats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;margin:12px 0}
 .referenceStat{border:1px solid var(--line2);background:var(--soft);border-radius:11px;padding:9px;font-size:.82rem}
 .referenceStat span{display:block;color:var(--muted);font-size:.68rem;text-transform:uppercase;letter-spacing:.08em}
@@ -725,10 +813,10 @@ canvas{display:block;width:100%;height:auto}
       <div><h2 id="wheelTitle">Cercle métrique · 12 subdivisions</h2></div>
       <div class="metricControlGroup">
         <div class="phrasePicker" id="phraseModePicker" aria-label="Fenêtre d'analyse">
-          <button class="smallBtn" data-phrase-mode="mean12">12 moyen</button>
+          <button class="smallBtn" data-phrase-mode="phrase24">phrase 24</button>
           <button class="smallBtn" data-phrase-mode="cycleA">cycle A</button>
           <button class="smallBtn" data-phrase-mode="cycleB">cycle B</button>
-          <button class="smallBtn" data-phrase-mode="phrase24">phrase 24</button>
+          <button class="smallBtn" data-phrase-mode="mean12">12 moyen</button>
         </div>
         <div class="metricPicker" aria-label="Temporalité du cercle">
           <button class="smallBtn" id="circleRecordingBtn">Enregistrement</button>
@@ -740,10 +828,10 @@ canvas{display:block;width:100%;height:auto}
     </div>
     <canvas id="circle" width="620" height="620"></canvas>
     <div class="legend">
-      <span class="swatch j1" data-voice-legend="J1"><i></i>J1</span>
-      <span class="swatch j2" data-voice-legend="J2"><i></i>J2</span>
-      <span class="swatch d1" data-voice-legend="D1"><i></i>D1</span>
-      <span class="swatch d2" data-voice-legend="D2"><i></i>D2</span>
+      <span class="swatch j1" data-voice-legend="J1"><i></i>J1 · djembé 1</span>
+      <span class="swatch j2" data-voice-legend="J2"><i></i>J2 · djembé 2</span>
+      <span class="swatch d1" data-voice-legend="D1"><i></i>D1 · dunun grave</span>
+      <span class="swatch d2" data-voice-legend="D2"><i></i>D2 · dunun réponse</span>
       <span class="metricKey" id="metricKey"><i></i>repères isochrones</span>
     </div>
     <p class="caption" id="circleCaption"></p>
@@ -754,7 +842,7 @@ canvas{display:block;width:100%;height:auto}
     <summary class="synthIntro">
       <div>
         <h2>Synthétiseur de coefficients</h2>
-        <p class="caption">\(|c_k|\) règle la force de la répétition ; \(\varphi_k\) déplace cette forme dans le cycle.</p>
+        <p class="caption">Outil d’édition du <b>cycle 12 moyen</b> : \(|c_k|\) règle la force de la répétition ; \(\varphi_k\) déplace cette forme.</p>
       </div>
       <div class="synthSummaryState">
         <span class="modeTag" id="synthLiveTag">Prêt</span>
@@ -763,8 +851,8 @@ canvas{display:block;width:100%;height:auto}
     </summary>
     <div class="synthBody">
     <div class="synthTop">
-      <button class="smallBtn" id="originalModeBtn">Original</button>
-      <button class="smallBtn" id="synthModeBtn">Synthé</button>
+      <button class="smallBtn" id="originalModeBtn">Données observées</button>
+      <button class="smallBtn" id="synthModeBtn">Édition synthé 12</button>
       <div class="voicePicker" id="synthVoicePicker"></div>
       <button class="smallBtn resetBtn" id="resetSynthBtn">Réinitialiser</button>
     </div>
@@ -816,19 +904,37 @@ canvas{display:block;width:100%;height:auto}
     <span class="modeTag" id="curveMode">Points observés + modèle</span>
   </div>
   <canvas id="curve" width="1260" height="340"></canvas>
-  <p class="caption">Abscisse : subdivision Polak du cycle. Ordonnée : intensité de frappe. En mode synthé, les carrés montrent les valeurs réellement jouées.</p>
+  <div class="legend colorLegend">
+    <b>Couleurs des voix :</b>
+    <span class="swatch j1"><i></i>violet J1 · djembé</span>
+    <span class="swatch j2"><i></i>brun J2 · djembé</span>
+    <span class="swatch d1"><i></i>bleu D1 · dunun grave</span>
+    <span class="swatch d2"><i></i>orange D2 · dunun réponse</span>
+  </div>
+  <p class="caption">Abscisse : subdivision affichée par la fenêtre active. Ordonnée : intensité de frappe. En mode synthé 12, les carrés montrent les valeurs réellement jouées.</p>
 </section>
 
 <section class="referencePanel surface">
   <div class="panelHead">
     <div>
-      <h2>Référence DjembeLoops</h2>
-      <p class="caption">Comparaison externe : les matrices publiques du site sont ramenées dans la même fenêtre 12 ou 24 que la boussole.</p>
+      <h2>Référence externe</h2>
+      <p class="caption">Comparaison avec les matrices et les samples publics de DjembeLoops, ramenés dans la même fenêtre 12 ou 24 que la boussole.</p>
     </div>
     <div class="referenceTools">
       <select id="djembeloopsPattern" aria-label="Rythme DjembeLoops de référence"></select>
       <span class="modeTag" id="djembeloopsMode">référence</span>
     </div>
+  </div>
+  <div class="referencePlayer">
+    <div class="referencePlayerLeft">
+      <button class="smallBtn" id="referencePlayBtn">▶ Lire référence</button>
+      <button class="smallBtn" id="referenceStopBtn">■ Stop</button>
+      <label class="referenceTempo">tempo
+        <input type="range" id="referenceTempo" min="60" max="180" step="1" value="120">
+        <output id="referenceTempoOut">120</output>
+      </label>
+    </div>
+    <span class="referenceStatus" id="referenceStatus">samples locaux prêts</span>
   </div>
   <div class="referenceStats" id="djembeloopsStats"></div>
   <canvas id="djembeloopsCompare" width="1260" height="330"></canvas>
@@ -856,7 +962,7 @@ canvas{display:block;width:100%;height:auto}
   <article class="mapPanel surface">
     <div class="panelHead"><div><h2>Espace des signatures</h2></div></div>
     <canvas id="map" width="620" height="310"></canvas>
-    <p class="caption">Axes : PC1 et PC2. Deux points proches correspondent à deux signatures de coefficients proches.</p>
+    <p class="caption"><b>Légende PC.</b> PC1 est la direction qui explique le plus de différences entre signatures complexes ; PC2 est la deuxième direction indépendante. Deux points proches correspondent à deux rythmes dont les coefficients Fourier se ressemblent.</p>
   </article>
 </section>
 
@@ -900,7 +1006,7 @@ const DJEMBELOOPS_JEMBE=["DjembeOne","DjembeTwo","DjembeThree","DjembeFive","Dje
 const state={
   piece:DATA.pieces[0],scope:"ensemble",playVoice:"ensemble",synthEnabled:false,synthVoice:"D1",
   synthData:{},listeningMode:"recording",timingMode:"observed",timingStrength:1,volume:1.3,reconstructionMix:.5,transformMessage:"",symmetryAxis:0,
-  phraseMode:"mean12",djembeloopsPatternByPiece:{},
+  phraseMode:"phrase24",djembeloopsPatternByPiece:{},referenceTempoByPattern:{},
   libraryPiece:DATA.pieces[0],libraryLoaded:{D1:null,D2:null},
   recordingCycleByKey:{},
   recordingTakeByPiece:Object.fromEntries(DATA.pieces.map(piece=>[
@@ -912,6 +1018,10 @@ const playback={
   ctx:null,master:null,compressor:null,timer:null,nextStepTime:0,stepIndex:0,
   startTime:0,timeline:[],media:{},voiceGains:{},reconstructionGain:null,
   cycle:null,nextEventIndex:0
+};
+const referencePlayback={
+  active:false,timer:null,stepIndex:0,nextStepAt:0,events:[],patternKey:null,tempo:120,
+  pending:[]
 };
 
 function rhythm(piece=state.piece){return DATA.rhythms.find(r=>r.piece===piece) || DATA.rhythms[0];}
@@ -1640,9 +1750,11 @@ function renderPhraseModeControls(){
     button.onclick=()=>{
       state.phraseMode=mode;
       renderPhraseModeControls();
+      renderSynthControls();
       syncSynthModeButtons();
       drawCircle();
       drawCurve();
+      drawMicroTiming();
       renderEquation();
       renderCoefTable();
       renderDjembeLoopsReference();
@@ -1738,8 +1850,11 @@ function renderSynthControls(){
   orthogonalBtn.onclick=applyOrthogonalProjection;
   document.getElementById("mirrorBtn").onclick=applyMirrorSymmetry;
   renderSymmetryGuide();
+  const synthScopeNote=state.phraseMode==="mean12"
+    ? ""
+    : `<b>Note.</b> Les contrôles modifient le cycle 12 moyen. La fenêtre ${phraseModeLabel()} affiche les données observées A/B/24.`;
   document.getElementById("transformFeedback").innerHTML=
-    state.transformMessage||"";
+    state.transformMessage||synthScopeNote;
 
   const data=ensureSynthData();
   const rows=[];
@@ -1839,6 +1954,7 @@ async function selectPiece(piece){
   if(piece===state.piece)return;
   const wasPlaying=playback.active;
   if(wasPlaying)stopPlayback();
+  if(referencePlayback.active)stopReferencePlayback();
   state.piece=piece;
   state.libraryPiece=piece;
   state.libraryLoaded={D1:null,D2:null};
@@ -2239,6 +2355,7 @@ function renderDjembeLoopsPatternControl(){
   all.forEach(pattern=>addOption(allGroup,pattern));
   select.appendChild(allGroup);
   select.onchange=()=>{
+    stopReferencePlayback();
     state.djembeloopsPatternByPiece[state.piece]=select.value;
     renderDjembeLoopsReference();
   };
@@ -2255,6 +2372,147 @@ function sampleStats(){
     .reduce((sum,[,count])=>sum+count,0);
   return {total:samples.length,dunun,djembe,counts};
 }
+function referenceTempo(pattern=selectedDjembeloopsPattern()){
+  if(!pattern)return 120;
+  const stored=state.referenceTempoByPattern[pattern.key];
+  return Number.isFinite(stored) ? stored : (pattern.tempo||120);
+}
+function renderReferencePlayerControls(){
+  const pattern=selectedDjembeloopsPattern();
+  const playBtn=document.getElementById("referencePlayBtn");
+  const stopBtn=document.getElementById("referenceStopBtn");
+  const slider=document.getElementById("referenceTempo");
+  const output=document.getElementById("referenceTempoOut");
+  const status=document.getElementById("referenceStatus");
+  if(!playBtn||!stopBtn||!slider||!output||!status)return;
+  const tempo=referenceTempo(pattern);
+  slider.value=Math.round(tempo);
+  output.textContent=String(Math.round(tempo));
+  playBtn.textContent=referencePlayback.active ? "■ Référence en cours" : "▶ Lire référence";
+  playBtn.className="smallBtn"+(referencePlayback.active?" on":"");
+  status.className="referenceStatus"+(referencePlayback.active?" live":"");
+  status.textContent=referencePlayback.active
+    ? `lecture externe · ${pattern?.name||"—"}`
+    : `samples locaux prêts · ${(djembeloopsData().samples||[]).length} sons`;
+  slider.oninput=()=>{
+    const value=Number(slider.value);
+    if(pattern)state.referenceTempoByPattern[pattern.key]=value;
+    output.textContent=String(value);
+    referencePlayback.tempo=value;
+  };
+  playBtn.onclick=()=>toggleReferencePlayback();
+  stopBtn.onclick=()=>stopReferencePlayback();
+}
+function referencePlayableRows(pattern=selectedDjembeloopsPattern()){
+  const matrix=djembeloopsMatrix(pattern);
+  if(!matrix?.rows)return [];
+  return matrix.rows.filter(row=>{
+    const family=familyOfInstrument(row.instrument);
+    if(state.scope==="dunun")return DJEMBELOOPS_DUNUN.includes(family)||String(row.instrument).includes("Bell");
+    return DJEMBELOOPS_DUNUN.includes(family)||DJEMBELOOPS_JEMBE.includes(family)||String(row.instrument).includes("Bell");
+  });
+}
+function articulationForNote(instrument,note){
+  const text=String(note||"");
+  if(String(instrument||"").includes("Bell"))return "Bell_Open";
+  if(text.includes("Muffled"))return "Muffled";
+  if(text.includes("Bass"))return "Bass";
+  if(text.includes("Slap"))return "Slap";
+  if(text.includes("Mute"))return "Mute";
+  if(text.includes("Open"))return "Open";
+  return "Open";
+}
+function sampleForNote(instrument,note){
+  const family=familyOfInstrument(instrument);
+  const articulation=articulationForNote(instrument,note);
+  const samples=djembeloopsData().samples||[];
+  return samples.find(sample=>sample.family===family&&sample.articulation===articulation&&sample.variant==="")
+    || samples.find(sample=>sample.family===family&&sample.articulation===articulation)
+    || samples.find(sample=>sample.family===family&&sample.articulation==="Open")
+    || samples.find(sample=>sample.family===family);
+}
+function sampleHref(sample){
+  if(!sample)return null;
+  if(sample.localPath)return new URL(`../${sample.localPath}`,location.href).href;
+  return sample.url;
+}
+function referenceStepMs(pattern=selectedDjembeloopsPattern()){
+  const tempo=Math.max(40,referencePlayback.tempo||referenceTempo(pattern));
+  const steps=djembeloopsMatrix(pattern)?.steps||pattern?.steps||24;
+  const subdivisionsPerBeat=steps%12===0 ? 3 : 4;
+  return 60000/tempo/subdivisionsPerBeat;
+}
+function playReferenceSample(sample,delayMs,volume=.82){
+  const href=sampleHref(sample);
+  if(!href)return;
+  const timeout=setTimeout(()=>{
+    referencePlayback.pending=referencePlayback.pending.filter(item=>item!==timeout);
+    const audio=new Audio(href);
+    audio.preload="auto";
+    audio.volume=volume;
+    audio.play().catch(()=>{});
+  },Math.max(0,delayMs));
+  referencePlayback.pending.push(timeout);
+}
+function referenceEventsForStep(step,pattern=selectedDjembeloopsPattern()){
+  const rows=referencePlayableRows(pattern);
+  const events=[];
+  rows.forEach(row=>{
+    const note=row.notes?.[step];
+    if(!note)return;
+    const sample=sampleForNote(row.instrument,note);
+    if(sample)events.push({instrument:row.instrument,note,sample});
+  });
+  return events;
+}
+function referenceScheduler(){
+  if(!referencePlayback.active)return;
+  const pattern=selectedDjembeloopsPattern();
+  const matrix=djembeloopsMatrix(pattern);
+  if(!pattern||!matrix){stopReferencePlayback();return;}
+  const now=performance.now();
+  const stepMs=referenceStepMs(pattern);
+  while(referencePlayback.nextStepAt<now+140){
+    const step=referencePlayback.stepIndex%matrix.steps;
+    referenceEventsForStep(step,pattern).forEach(event=>{
+      const family=familyOfInstrument(event.instrument);
+      const volume=family.startsWith("Djembe") ? .62 : .86;
+      playReferenceSample(event.sample,referencePlayback.nextStepAt-now,volume);
+    });
+    referencePlayback.stepIndex=(referencePlayback.stepIndex+1)%matrix.steps;
+    referencePlayback.nextStepAt+=stepMs;
+  }
+}
+function startReferencePlayback(){
+  const pattern=selectedDjembeloopsPattern();
+  const matrix=djembeloopsMatrix(pattern);
+  if(!pattern||!matrix){
+    alert("Aucune référence externe jouable.");
+    return;
+  }
+  stopReferencePlayback();
+  referencePlayback.active=true;
+  referencePlayback.patternKey=pattern.key;
+  referencePlayback.tempo=referenceTempo(pattern);
+  referencePlayback.stepIndex=0;
+  referencePlayback.nextStepAt=performance.now()+80;
+  referenceScheduler();
+  referencePlayback.timer=setInterval(referenceScheduler,35);
+  renderReferencePlayerControls();
+}
+function stopReferencePlayback(){
+  if(referencePlayback.timer)clearInterval(referencePlayback.timer);
+  referencePlayback.pending.forEach(timeout=>clearTimeout(timeout));
+  referencePlayback.active=false;
+  referencePlayback.timer=null;
+  referencePlayback.pending=[];
+  referencePlayback.stepIndex=0;
+  renderReferencePlayerControls();
+}
+function toggleReferencePlayback(){
+  if(referencePlayback.active)stopReferencePlayback();
+  else startReferencePlayback();
+}
 function drawDjembeLoopsComparison(pattern,matches){
   const cv=document.getElementById("djembeloopsCompare");
   if(!cv)return;
@@ -2263,7 +2521,7 @@ function drawDjembeLoopsComparison(pattern,matches){
   g.clearRect(0,0,W,H);
   if(!pattern){
     g.fillStyle=css("--muted");g.font="13px Inter, system-ui";g.textAlign="center";
-    g.fillText("Référence DjembeLoops indisponible. Lance import_djembeloops_reference.py pour régénérer le JSON.",W/2,H/2);
+    g.fillText("Référence externe indisponible. Lance import_djembeloops_reference.py pour régénérer le JSON.",W/2,H/2);
     return;
   }
   const sourceRows=referenceRows(pattern)
@@ -2327,6 +2585,7 @@ function renderDjembeLoopsReference(){
   const matrix=djembeloopsMatrix(pattern);
   const matches=pattern ? bestReferenceMatches(pattern) : [];
   const stats=sampleStats();
+  renderReferencePlayerControls();
   const modeTag=document.getElementById("djembeloopsMode");
   if(modeTag)modeTag.textContent=phraseModeLabel();
   const statsBox=document.getElementById("djembeloopsStats");
@@ -2336,7 +2595,7 @@ function renderDjembeLoopsReference(){
       ["site",`${(djembeloopsData().patterns||[]).length} rythmes · ${(djembeloopsData().matrices&&Object.keys(djembeloopsData().matrices).length)||0} matrices`],
       ["sélection",pattern?`${pattern.name} · ${matrix?.steps||pattern.steps} pas · ${pattern.tempo||"—"} bpm`:"—"],
       ["candidats proches",candidateText],
-      ["sons",`${stats.total} URLs · djembe ${stats.djembe} · dunun ${stats.dunun}`],
+      ["sons",`${stats.total} MP3 locaux · djembe ${stats.djembe} · dunun ${stats.dunun}`],
     ].map(([k,v])=>`<div class="referenceStat"><span>${k}</span><b>${v}</b></div>`).join("");
   }
   drawDjembeLoopsComparison(pattern,matches);
@@ -2352,12 +2611,38 @@ function renderDjembeLoopsReference(){
     caption.innerHTML=
       `<b>Lecture.</b> Δ est la différence absolue moyenne entre le motif Polak affiché et la ligne DjembeLoops ramenée à ${displayStepCount()} positions. `+
       `${matchText}. Source : <a href="${djembeloopsData().source}" target="_blank" rel="noreferrer">djembeloops.com</a>. `+
-      `Les MP3 ne sont pas copiés : seules leurs URLs et familles d’instruments sont indexées.`;
+      `Les MP3 sont copiés dans <code>data/djembeloops_samples/</code> pour le player local.`;
   }
 }
 
 function microProfile(voice,piece=state.piece){
   return DATA.microtiming?.[piece]?.[voice]||null;
+}
+function microPhraseProfile(voice,piece=state.piece){
+  return DATA.microtimingPhrase?.[piece]?.[voice]||null;
+}
+function slicedProfile(profile,start,count){
+  if(!profile)return null;
+  return {
+    ...profile,
+    mean:(profile.mean||[]).slice(start,start+count),
+    std:(profile.std||[]).slice(start,start+count),
+    n:(profile.n||[]).slice(start,start+count),
+  };
+}
+function displayMicroProfile(voice,piece=state.piece){
+  if(state.phraseMode==="mean12")return microProfile(voice,piece);
+  const phrase=microPhraseProfile(voice,piece);
+  if(!phrase)return microProfile(voice,piece);
+  if(state.phraseMode==="cycleA")return slicedProfile(phrase,0,12);
+  if(state.phraseMode==="cycleB")return slicedProfile(phrase,12,12);
+  return phrase;
+}
+function displayTimingOffsetMs(voice,stepIndex){
+  if(state.timingMode!=="observed")return 0;
+  const value=displayMicroProfile(voice)?.mean?.[stepIndex];
+  if(!Number.isFinite(value))return 0;
+  return value*state.timingStrength;
 }
 function timingOffsetMs(voice,stepIndex){
   if(state.timingMode!=="observed")return 0;
@@ -2456,7 +2741,8 @@ function renderTimingControls(){
 function drawMicroTiming(){
   const cv=document.getElementById("microTiming"),g=cv.getContext("2d");
   const W=cv.width,H=cv.height,left=54,right=18,top=30,bottom=42,span=W-left-right;
-  const profiles=visibleVoices().map(voice=>[voice,microProfile(voice)]).filter(([,p])=>p);
+  const profiles=visibleVoices().map(voice=>[voice,displayMicroProfile(voice)]).filter(([,p])=>p);
+  const steps=displayStepCount();
   g.clearRect(0,0,W,H);
   if(!profiles.length){
     g.fillStyle=css("--muted");g.font="13px Inter, system-ui";g.textAlign="center";
@@ -2469,28 +2755,28 @@ function drawMicroTiming(){
     return [m-sd,m+sd];
   }));
   const appliedValues=profiles.flatMap(([voice,p])=>p.mean.flatMap((m,s)=>
-    Number.isFinite(m)&&p.n[s]>=3 ? [timingOffsetMs(voice,s)] : []
+    Number.isFinite(m)&&p.n[s]>=3 ? [displayTimingOffsetMs(voice,s)] : []
   ));
   const maxAbs=Math.max(20,...observedValues.concat(appliedValues).map(v=>Math.abs(v)));
   const limit=Math.min(100,Math.ceil(maxAbs/10)*10);
-  const xOf=s=>left+s/11*span;
+  const xOf=s=>left+(steps<=1?0:s/(steps-1))*span;
   const yOf=v=>top+(limit-v)/(2*limit)*(H-top-bottom);
-  const p=playheadPosition(),activeStep=p===null?null:Math.floor(p)%12;
+  const p=playheadDisplayPosition(),activeStep=p===null?null:Math.floor(p)%steps;
 
   if(activeStep!==null){
-    const x=xOf(activeStep),cell=span/11;
+    const x=xOf(activeStep),cell=span/Math.max(1,steps-1);
     g.fillStyle="rgba(127,127,127,.07)";
     g.fillRect(x-cell*.42,top,cell*.84,H-top-bottom);
   }
   g.strokeStyle=css("--line2");g.lineWidth=1;
-  for(let s=0;s<12;s++){
+  for(let s=0;s<steps;s++){
     const x=xOf(s);
     g.beginPath();g.moveTo(x,top);g.lineTo(x,H-bottom);g.stroke();
   }
   g.strokeStyle=css("--line");g.lineWidth=1.2;
   g.beginPath();g.moveTo(left,yOf(0));g.lineTo(W-right,yOf(0));g.stroke();
   g.fillStyle=css("--muted");g.font="11px Inter, system-ui";g.textAlign="center";g.textBaseline="top";
-  for(let s=0;s<12;s++)g.fillText(String(s+1),xOf(s),H-bottom+10);
+  for(let s=0;s<steps;s++)g.fillText(String(s+1),xOf(s),H-bottom+10);
   g.textAlign="right";g.textBaseline="middle";
   [-limit,0,limit].forEach(v=>g.fillText(`${v>0?"+":""}${v} ms`,left-8,yOf(v)));
   g.save();g.translate(13,H/2);g.rotate(-Math.PI/2);g.textAlign="center";
@@ -2502,8 +2788,8 @@ function drawMicroTiming(){
     profile.mean.forEach((mean,s)=>{
       if(!Number.isFinite(mean)||profile.n[s]<3)return;
       const sd=Number.isFinite(profile.std[s])?profile.std[s]:0;
-      const x=xOf(s)+(voiceIndex===0?-3:3);
-      const observedY=yOf(mean),applied=timingOffsetMs(voice,s);
+      const x=xOf(s)+(voiceIndex-(profiles.length-1)/2)*3;
+      const observedY=yOf(mean),applied=displayTimingOffsetMs(voice,s);
       const appliedY=yOf(applied);
       g.globalAlpha=audible ? .34 : .12;g.strokeStyle=col;g.lineWidth=1.3;
       g.beginPath();g.moveTo(x,yOf(Math.min(limit,mean+sd)));g.lineTo(x,yOf(Math.max(-limit,mean-sd)));g.stroke();
@@ -2519,7 +2805,7 @@ function drawMicroTiming(){
   });
   g.globalAlpha=1;
   const precisionText=profiles
-    .map(([voice])=>`${voice} ${Number.isFinite(microProfile(voice)?.precision)?microProfile(voice).precision.toFixed(1):"—"} ms`)
+    .map(([voice,profile])=>`${voice} ${Number.isFinite(profile?.precision)?profile.precision.toFixed(1):"—"} ms`)
     .join(", ");
   const heardLabel=state.listeningMode==="recording"
     ? `L’enregistrement réel varie à l’intérieur de cette distribution ; le point plein reste sa moyenne de référence.`
@@ -2527,7 +2813,7 @@ function drawMicroTiming(){
       ? `La reconstruction suit le cycle annoté sélectionné ; le graphe reste la distribution moyenne du corpus.`
       : `Point plein = placement entendu (${timingModeLabel()}).`;
   document.getElementById("microCaption").innerHTML=
-    `La roue montre le mètre moyen de l’ensemble ; ce graphe sépare les écarts propres aux voix visibles. `+
+    `Fenêtre active : <b>${phraseModeLabel()}</b>. Ce graphe sépare les écarts propres aux voix visibles. `+
     `Cercle vide + barre = moyenne et dispersion observées. ${heardLabel} `+
     `Précision résiduelle : ${precisionText}.`;
 }
@@ -2933,7 +3219,10 @@ function render(){
   syncPlaybackUI();
   queueMath();
 }
-window.addEventListener("pagehide",stopPlayback);
+window.addEventListener("pagehide",()=>{
+  stopPlayback();
+  stopReferencePlayback();
+});
 render();
 </script></body></html>"""
 

@@ -5,7 +5,8 @@ Le script lit les fichiers publics du site et genere un JSON compact avec :
 - les metadonnees de patterns quand elles sont disponibles ;
 - les URLs des samples audio references dans js/global.js.
 
-Il ne telecharge pas les MP3 : le JSON garde seulement leurs URLs.
+Il copie aussi les MP3 dans data/djembeloops_samples/ pour que le player
+de reference externe puisse fonctionner localement.
 """
 from __future__ import annotations
 
@@ -20,6 +21,7 @@ BASE_URL = "https://www.djembeloops.com"
 RYTHMS_URL = f"{BASE_URL}/js/rythms.js"
 GLOBAL_URL = f"{BASE_URL}/js/global.js"
 OUT_JSON = "data/djembeloops_reference.json"
+SAMPLE_DIR = "data/djembeloops_samples"
 HEADERS = {"User-Agent": "Mozilla/5.0"}
 
 
@@ -148,12 +150,29 @@ def sample_entry(url: str):
         "articulation": articulation,
         "variant": variant,
         "url": url,
+        "localPath": f"{SAMPLE_DIR}/{filename}",
     }
 
 
 def extract_samples(text: str):
     urls = sorted(set(re.findall(r"https://www\.djembeloops\.com/snd/[^\"']+", text)))
     return [sample_entry(url) for url in urls]
+
+
+def download_samples(samples):
+    os.makedirs(SAMPLE_DIR, exist_ok=True)
+    downloaded = 0
+    for sample in samples:
+        path = sample["localPath"]
+        if os.path.exists(path) and os.path.getsize(path) > 0:
+            continue
+        request = urllib.request.Request(sample["url"], headers=HEADERS)
+        with urllib.request.urlopen(request, timeout=60) as response:
+            content = response.read()
+        with open(path, "wb") as handle:
+            handle.write(content)
+        downloaded += 1
+    return downloaded
 
 
 def build_reference():
@@ -177,13 +196,17 @@ def build_reference():
             **meta,
             "matrixSteps": matrices[matrix_key]["steps"],
         })
+    samples = extract_samples(global_js)
+    downloaded = download_samples(samples)
     return {
         "source": BASE_URL,
         "rythmsUrl": RYTHMS_URL,
         "globalUrl": GLOBAL_URL,
         "patterns": patterns,
         "matrices": matrices,
-        "samples": extract_samples(global_js),
+        "samples": samples,
+        "localSampleDir": SAMPLE_DIR,
+        "downloadedSamples": downloaded,
     }
 
 
