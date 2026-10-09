@@ -1,4 +1,4 @@
-# DJEMBE_LLM
+# Djembe
 
 Analyse de la musique de djembé malien à partir du corpus annoté **IEMP
 Malian Jembe** (Polak, Tarsitani & Clayton, 2018).
@@ -7,9 +7,25 @@ Le chantier actif est la **V2 dununs** : on se concentre sur le dunun, le
 tambour grave joué à la baguette, dans trois rythmes du corpus :
 **Manjanin**, **Maraka** et **Woloso**.
 
-## État du projet
+## Où en est le projet
 
-Le projet est un prototype de recherche avancé :
+- **Fait :** un laboratoire d'analyse (extraction, micro-timing, Fourier) et
+  une interface interactive, la *boussole des rythmes*.
+- **Partie IA : pas encore construite.** Aucun réseau de neurones n'a été
+  entraîné. Il existe seulement des essais de ML classique : un random forest
+  qui reconnaît le rythme depuis le motif du dunun (leave-one-out sur 14
+  prises) et, dans `archive/`, un générateur Markov et un test de
+  reconnaissance audio sur YouTube. Aucun n'a encore de protocole
+  d'évaluation commun.
+- **Prochaine étape :** une table d'événements unique avec des découpages par
+  prise, puis la reconnaissance (baseline contre petit réseau) et la
+  génération conditionnée avec micro-timing, évaluées sans fuite de données.
+- **Limite structurelle :** 15 prises (≈ 51 min), 3 rythmes et un seul joueur
+  de dunun. Les résultats valent à l'intérieur du corpus.
+
+## Contenu actuel
+
+Le projet est un prototype de recherche :
 
 - extraction des frappes de dunun ;
 - alignement sur le cycle métrique ;
@@ -131,3 +147,10 @@ Corpus : **IEMP Malian Jembe** (Polak, Tarsitani & Clayton, 2018), OSF
 
 Usage recommandé : recherche, pédagogie et exploration personnelle, avec citation
 de la source.
+
+La référence d'écoute DjembeLoops (patterns et samples MP3) n'est pas versionnée.
+Pour la régénérer en local :
+
+```bash
+python import_djembeloops_reference.py
+```
