@@ -44,7 +44,7 @@ Woloso's metre file labels half-cycles (`1.1`, `1.2`), and the two halves carry 
 
 ## How I checked it
 
-- **Data audit.** The OSF file `MJ_Maraka_5_Onsets_Selected.csv` actually contains take Woloso_5. Its dundun onsets match the raw Woloso_5 onsets at 99 % and the raw Maraka_5 onsets at 10 %. Woloso_5 has no file of its own. Earlier versions of my analysis used these files, so one Woloso take was labelled Maraka and Woloso was short of a take. Replaying the old classifier reproduces 12/14: the mislabelled take is "misclassified" as Woloso (which is correct), and Woloso_2 falls to Maraka. The event table reads the `_Onsets_Selected_Peak` files instead: for all 15 takes, their dundun onsets match the raw onsets at 99.9 % or more. A test now asserts that file labels and table labels agree.
+- **Data audit.** The OSF file `MJ_Maraka_5_Onsets_Selected.csv` actually contains take Woloso_5. Its dundun onsets match the raw Woloso_5 onsets at 99 % and the raw Maraka_5 onsets at 10 %. Woloso_5 has no file of its own. Earlier versions of my analysis used these files, so one Woloso take was labelled Maraka and Woloso was short of a take. Replaying the old classifier reproduces 12/14: the mislabelled take is "misclassified" as Woloso (which is correct), and Woloso_2 falls to Maraka. The event table reads the `_Onsets_Selected_Peak` files instead: for all 15 takes, their dundun onsets match the raw onsets at 99.9 % or more. A test now asserts that file labels and table labels agree. Details in [`docs/CORPUS_ERRATUM.md`](docs/CORPUS_ERRATUM.md).
 - **Leakage.** The split unit is the take, never the stroke or the cycle. The same dundun player (Madu Jakite) plays on every take, so a split by musician is impossible. An abandoned experiment in `archive/v2_abandonne` used stratified folds over strokes, which mixes strokes of one take between train and test. `iter_folds` now refuses any split that shares a take.
 - **Reference points.** Every score is reported next to the majority class and a nearest-centroid rule, with an exact binomial interval. Over 15 takes, a bootstrap collapses to [1, 1] at perfect accuracy; the exact interval does not.
 
@@ -77,9 +77,13 @@ On Colab, open `colab/00_step0_dataset_baseline.ipynb` and run all cells. The an
 ## Credits
 
 - Corpus: Polak, R., Tarsitani, S., & Clayton, M. (2018). *IEMP Malian Jembe* [Data set]. OSF. https://doi.org/10.17605/OSF.IO/M652X. Licence CC BY-NC-ND 4.0. Recordings, annotated onsets, metre and form annotations are theirs.
-- Founding thesis: Polak, R. (2004). *Festmusik als Arbeit, Trommeln als Beruf: Jenbe-Spieler in einer westafrikanischen Großstadt*. Dietrich Reimer. Doctoral thesis, Universität Bayreuth, 2002. https://d-nb.info/971098840
+- Founding thesis: Polak, R. (2004). *Festmusik als Arbeit, Trommeln als Beruf: Jenbe-Spieler in einer westafrikanischen Großstadt*. Berlin: Dietrich Reimer. ISBN 978-3-496-02771-3. Doctoral thesis, Universität Bayreuth, 2002. https://d-nb.info/971098840
 - Collection paper: Clayton, M., et al. (2021). The Interpersonal Entrainment in Music Performance Data Collection. *Empirical Musicology Review, 16*(1), 65–84. https://doi.org/10.18061/emr.v16i1.7555
 - Micro-timing findings reproduced in the notebooks: Polak, R. (2010). Rhythmic feel as meter. *Music Theory Online, 16*(4), https://doi.org/10.30535/mto.16.4.4. Polak, R., & London, J. (2014). Timing and meter in Mande drumming from Mali. *Music Theory Online, 20*(1), https://doi.org/10.30535/mto.20.1.1. Polak, R., London, J., & Jacoby, N. (2016). *Frontiers in Neuroscience, 10*, 285, https://doi.org/10.3389/fnins.2016.00285
 - Tools: librosa, scikit-learn, pandas, matplotlib, UMAP. The interactive page can optionally load reference patterns from djembeloops.com; they are fetched locally by `import_djembeloops_reference.py` and not redistributed.
+
+## License
+
+The code in this repository is under the [MIT License](LICENSE). The IEMP Malian Jembe corpus is not part of it: it is licensed CC BY-NC-ND 4.0 by its authors, is not redistributed here, and is downloaded from OSF (https://osf.io/m652x/) by `djembe_dataset.py`.
 
 Clément Dumeril · https://clement.dumeril.net · https://github.com/clementdumeril
