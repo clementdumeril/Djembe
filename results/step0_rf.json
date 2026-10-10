@@ -1,0 +1,157 @@
+{
+  "task": "piece from per-take D1 subdivision profile (12 features)",
+  "n_takes": 15,
+  "class_counts": {
+    "Manjanin": 4,
+    "Maraka": 6,
+    "Woloso": 5
+  },
+  "splits": "splits.json (leave-one-take-out)",
+  "models": {
+    "majority": {
+      "accuracy": 0.4,
+      "balanced_accuracy": 0.3333333333333333,
+      "accuracy_ci95_exact": [
+        0.16336432385951338,
+        0.6771302337934105
+      ],
+      "confusion": {
+        "labels": [
+          "Manjanin",
+          "Maraka",
+          "Woloso"
+        ],
+        "matrix": [
+          [
+            0,
+            4,
+            0
+          ],
+          [
+            0,
+            6,
+            0
+          ],
+          [
+            0,
+            5,
+            0
+          ]
+        ]
+      },
+      "errors": [
+        {
+          "take_id": "Manjanin_1",
+          "true": "Manjanin",
+          "pred": "Maraka"
+        },
+        {
+          "take_id": "Manjanin_2",
+          "true": "Manjanin",
+          "pred": "Maraka"
+        },
+        {
+          "take_id": "Manjanin_3",
+          "true": "Manjanin",
+          "pred": "Maraka"
+        },
+        {
+          "take_id": "Manjanin_4",
+          "true": "Manjanin",
+          "pred": "Maraka"
+        },
+        {
+          "take_id": "Woloso_1",
+          "true": "Woloso",
+          "pred": "Maraka"
+        },
+        {
+          "take_id": "Woloso_2",
+          "true": "Woloso",
+          "pred": "Maraka"
+        },
+        {
+          "take_id": "Woloso_3",
+          "true": "Woloso",
+          "pred": "Maraka"
+        },
+        {
+          "take_id": "Woloso_4",
+          "true": "Woloso",
+          "pred": "Maraka"
+        },
+        {
+          "take_id": "Woloso_5",
+          "true": "Woloso",
+          "pred": "Maraka"
+        }
+      ]
+    },
+    "nearest_centroid": {
+      "accuracy": 1.0,
+      "balanced_accuracy": 1.0,
+      "accuracy_ci95_exact": [
+        0.7819806390891612,
+        1.0
+      ],
+      "confusion": {
+        "labels": [
+          "Manjanin",
+          "Maraka",
+          "Woloso"
+        ],
+        "matrix": [
+          [
+            4,
+            0,
+            0
+          ],
+          [
+            0,
+            6,
+            0
+          ],
+          [
+            0,
+            0,
+            5
+          ]
+        ]
+      },
+      "errors": []
+    },
+    "random_forest": {
+      "accuracy": 1.0,
+      "balanced_accuracy": 1.0,
+      "accuracy_ci95_exact": [
+        0.7819806390891612,
+        1.0
+      ],
+      "confusion": {
+        "labels": [
+          "Manjanin",
+          "Maraka",
+          "Woloso"
+        ],
+        "matrix": [
+          [
+            4,
+            0,
+            0
+          ],
+          [
+            0,
+            6,
+            0
+          ],
+          [
+            0,
+            0,
+            5
+          ]
+        ]
+      },
+      "errors": []
+    }
+  }
+}

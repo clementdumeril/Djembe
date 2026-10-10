@@ -1,0 +1,354 @@
+{
+  "scheme": "leave-one-take-out",
+  "group_key": "take_id",
+  "note": "Same D1 player on all takes: folds test generalisation to an unseen take, not to an unseen musician.",
+  "takes": [
+    "Manjanin_1",
+    "Manjanin_2",
+    "Manjanin_3",
+    "Manjanin_4",
+    "Maraka_1",
+    "Maraka_2",
+    "Maraka_3",
+    "Maraka_4",
+    "Maraka_5",
+    "Maraka_6",
+    "Woloso_1",
+    "Woloso_2",
+    "Woloso_3",
+    "Woloso_4",
+    "Woloso_5"
+  ],
+  "folds": [
+    {
+      "fold": 0,
+      "test": [
+        "Manjanin_1"
+      ],
+      "train": [
+        "Manjanin_2",
+        "Manjanin_3",
+        "Manjanin_4",
+        "Maraka_1",
+        "Maraka_2",
+        "Maraka_3",
+        "Maraka_4",
+        "Maraka_5",
+        "Maraka_6",
+        "Woloso_1",
+        "Woloso_2",
+        "Woloso_3",
+        "Woloso_4",
+        "Woloso_5"
+      ]
+    },
+    {
+      "fold": 1,
+      "test": [
+        "Manjanin_2"
+      ],
+      "train": [
+        "Manjanin_1",
+        "Manjanin_3",
+        "Manjanin_4",
+        "Maraka_1",
+        "Maraka_2",
+        "Maraka_3",
+        "Maraka_4",
+        "Maraka_5",
+        "Maraka_6",
+        "Woloso_1",
+        "Woloso_2",
+        "Woloso_3",
+        "Woloso_4",
+        "Woloso_5"
+      ]
+    },
+    {
+      "fold": 2,
+      "test": [
+        "Manjanin_3"
+      ],
+      "train": [
+        "Manjanin_1",
+        "Manjanin_2",
+        "Manjanin_4",
+        "Maraka_1",
+        "Maraka_2",
+        "Maraka_3",
+        "Maraka_4",
+        "Maraka_5",
+        "Maraka_6",
+        "Woloso_1",
+        "Woloso_2",
+        "Woloso_3",
+        "Woloso_4",
+        "Woloso_5"
+      ]
+    },
+    {
+      "fold": 3,
+      "test": [
+        "Manjanin_4"
+      ],
+      "train": [
+        "Manjanin_1",
+        "Manjanin_2",
+        "Manjanin_3",
+        "Maraka_1",
+        "Maraka_2",
+        "Maraka_3",
+        "Maraka_4",
+        "Maraka_5",
+        "Maraka_6",
+        "Woloso_1",
+        "Woloso_2",
+        "Woloso_3",
+        "Woloso_4",
+        "Woloso_5"
+      ]
+    },
+    {
+      "fold": 4,
+      "test": [
+        "Maraka_1"
+      ],
+      "train": [
+        "Manjanin_1",
+        "Manjanin_2",
+        "Manjanin_3",
+        "Manjanin_4",
+        "Maraka_2",
+        "Maraka_3",
+        "Maraka_4",
+        "Maraka_5",
+        "Maraka_6",
+        "Woloso_1",
+        "Woloso_2",
+        "Woloso_3",
+        "Woloso_4",
+        "Woloso_5"
+      ]
+    },
+    {
+      "fold": 5,
+      "test": [
+        "Maraka_2"
+      ],
+      "train": [
+        "Manjanin_1",
+        "Manjanin_2",
+        "Manjanin_3",
+        "Manjanin_4",
+        "Maraka_1",
+        "Maraka_3",
+        "Maraka_4",
+        "Maraka_5",
+        "Maraka_6",
+        "Woloso_1",
+        "Woloso_2",
+        "Woloso_3",
+        "Woloso_4",
+        "Woloso_5"
+      ]
+    },
+    {
+      "fold": 6,
+      "test": [
+        "Maraka_3"
+      ],
+      "train": [
+        "Manjanin_1",
+        "Manjanin_2",
+        "Manjanin_3",
+        "Manjanin_4",
+        "Maraka_1",
+        "Maraka_2",
+        "Maraka_4",
+        "Maraka_5",
+        "Maraka_6",
+        "Woloso_1",
+        "Woloso_2",
+        "Woloso_3",
+        "Woloso_4",
+        "Woloso_5"
+      ]
+    },
+    {
+      "fold": 7,
+      "test": [
+        "Maraka_4"
+      ],
+      "train": [
+        "Manjanin_1",
+        "Manjanin_2",
+        "Manjanin_3",
+        "Manjanin_4",
+        "Maraka_1",
+        "Maraka_2",
+        "Maraka_3",
+        "Maraka_5",
+        "Maraka_6",
+        "Woloso_1",
+        "Woloso_2",
+        "Woloso_3",
+        "Woloso_4",
+        "Woloso_5"
+      ]
+    },
+    {
+      "fold": 8,
+      "test": [
+        "Maraka_5"
+      ],
+      "train": [
+        "Manjanin_1",
+        "Manjanin_2",
+        "Manjanin_3",
+        "Manjanin_4",
+        "Maraka_1",
+        "Maraka_2",
+        "Maraka_3",
+        "Maraka_4",
+        "Maraka_6",
+        "Woloso_1",
+        "Woloso_2",
+        "Woloso_3",
+        "Woloso_4",
+        "Woloso_5"
+      ]
+    },
+    {
+      "fold": 9,
+      "test": [
+        "Maraka_6"
+      ],
+      "train": [
+        "Manjanin_1",
+        "Manjanin_2",
+        "Manjanin_3",
+        "Manjanin_4",
+        "Maraka_1",
+        "Maraka_2",
+        "Maraka_3",
+        "Maraka_4",
+        "Maraka_5",
+        "Woloso_1",
+        "Woloso_2",
+        "Woloso_3",
+        "Woloso_4",
+        "Woloso_5"
+      ]
+    },
+    {
+      "fold": 10,
+      "test": [
+        "Woloso_1"
+      ],
+      "train": [
+        "Manjanin_1",
+        "Manjanin_2",
+        "Manjanin_3",
+        "Manjanin_4",
+        "Maraka_1",
+        "Maraka_2",
+        "Maraka_3",
+        "Maraka_4",
+        "Maraka_5",
+        "Maraka_6",
+        "Woloso_2",
+        "Woloso_3",
+        "Woloso_4",
+        "Woloso_5"
+      ]
+    },
+    {
+      "fold": 11,
+      "test": [
+        "Woloso_2"
+      ],
+      "train": [
+        "Manjanin_1",
+        "Manjanin_2",
+        "Manjanin_3",
+        "Manjanin_4",
+        "Maraka_1",
+        "Maraka_2",
+        "Maraka_3",
+        "Maraka_4",
+        "Maraka_5",
+        "Maraka_6",
+        "Woloso_1",
+        "Woloso_3",
+        "Woloso_4",
+        "Woloso_5"
+      ]
+    },
+    {
+      "fold": 12,
+      "test": [
+        "Woloso_3"
+      ],
+      "train": [
+        "Manjanin_1",
+        "Manjanin_2",
+        "Manjanin_3",
+        "Manjanin_4",
+        "Maraka_1",
+        "Maraka_2",
+        "Maraka_3",
+        "Maraka_4",
+        "Maraka_5",
+        "Maraka_6",
+        "Woloso_1",
+        "Woloso_2",
+        "Woloso_4",
+        "Woloso_5"
+      ]
+    },
+    {
+      "fold": 13,
+      "test": [
+        "Woloso_4"
+      ],
+      "train": [
+        "Manjanin_1",
+        "Manjanin_2",
+        "Manjanin_3",
+        "Manjanin_4",
+        "Maraka_1",
+        "Maraka_2",
+        "Maraka_3",
+        "Maraka_4",
+        "Maraka_5",
+        "Maraka_6",
+        "Woloso_1",
+        "Woloso_2",
+        "Woloso_3",
+        "Woloso_5"
+      ]
+    },
+    {
+      "fold": 14,
+      "test": [
+        "Woloso_5"
+      ],
+      "train": [
+        "Manjanin_1",
+        "Manjanin_2",
+        "Manjanin_3",
+        "Manjanin_4",
+        "Maraka_1",
+        "Maraka_2",
+        "Maraka_3",
+        "Maraka_4",
+        "Maraka_5",
+        "Maraka_6",
+        "Woloso_1",
+        "Woloso_2",
+        "Woloso_3",
+        "Woloso_4"
+      ]
+    }
+  ]
+}
