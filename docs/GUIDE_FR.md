@@ -103,7 +103,7 @@ Pour régénérer le rapport de couverture :
 python qc_d2_coverage.py
 ```
 
-Voir aussi [`docs/D2_COVERAGE.md`](docs/D2_COVERAGE.md).
+Voir aussi [`docs/D2_COVERAGE.md`](D2_COVERAGE.md).
 
 ## Vérification rapide
 
