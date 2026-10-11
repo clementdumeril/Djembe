@@ -12,8 +12,9 @@ import subprocess
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
-AUDIO_B64 = re.compile(rb"UklGR[A-Za-z0-9+/]{60}|data:audio/[a-z0-9.+-]+;base64,[A-Za-z0-9+/]{60}")
-AUDIO_EXT = {".wav", ".mp3", ".flac", ".ogg", ".m4a", ".aif", ".aiff"}
+# base64 signatures: RIFF/WAV ("UklGR"), MP3 with ID3 tag ("SUQz"), Ogg ("T2dnUw"), FLAC ("ZkxhQw"), or a data: URI
+AUDIO_B64 = re.compile(rb"(?:UklGR|SUQz|T2dnUw|ZkxhQw)[A-Za-z0-9+/]{60}|data:audio/[a-z0-9.+-]+;base64,[A-Za-z0-9+/]{60}")
+AUDIO_EXT = {".wav", ".mp3", ".flac", ".ogg", ".opus", ".aac", ".m4a", ".webm", ".aif", ".aiff"}
 
 
 def tracked(*patterns):

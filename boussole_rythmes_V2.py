@@ -3029,7 +3029,7 @@ function drawDjembeLoopsComparison(pattern,matches){
   g.clearRect(0,0,W,H);
   if(!pattern||!matrix){
     g.fillStyle=css("--muted");g.font="13px Inter, system-ui";g.textAlign="center";
-    g.fillText("Référence externe indisponible. Lance import_djembeloops_reference.py pour régénérer le JSON.",W/2,H/2);
+    g.fillText("Référence externe indisponible : aucune donnée locale.",W/2,H/2);
     return;
   }
   const rows=matrix.rows.map(row=>({
@@ -3741,6 +3741,11 @@ window.addEventListener("pagehide",()=>{
 if((djembeloopsData().samples||[]).length){
   document.getElementById("timbreLabel").textContent="samples";
   document.getElementById("timbreDetail").textContent="DjembeLoops comme timbre";
+}
+if(!(djembeloopsData().patterns||[]).length){
+  // No external reference loaded (public builds, Colab): hide every entry point to it.
+  document.querySelector(".referencePanel")?.remove();
+  ["circleReferenceBtn","referenceTimingBtn"].forEach(id=>document.getElementById(id)?.remove());
 }
 render();
 </script></body></html>"""

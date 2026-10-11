@@ -148,9 +148,6 @@ Corpus : **IEMP Malian Jembe** (Polak, Tarsitani & Clayton, 2018), OSF
 Usage recommandé : recherche, pédagogie et exploration personnelle, avec citation
 de la source.
 
-La référence d'écoute DjembeLoops (patterns et samples MP3) n'est pas versionnée.
-Pour la régénérer en local :
-
-```bash
-python import_djembeloops_reference.py
-```
+Aucune référence d'écoute tierce n'est versionnée. Sans données externes, la
+boussole joue sa synthèse intégrée (oscillateurs) et masque le panneau de
+référence externe.

@@ -20,7 +20,8 @@ anaconda_projects/
 corpus/
 output/
 
-# Third-party reference (regenerate with import_djembeloops_reference.py)
+# Third-party reference material, kept local only (not redistributed)
+import_djembeloops_reference.py
 data/djembeloops_samples/
 data/djembeloops_reference.json
 
