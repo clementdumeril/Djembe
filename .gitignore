@@ -12,9 +12,8 @@ venv/
 env/
 anaconda_projects/
 
-# IDE / assistant local state
+# IDE local state
 .idea/
-.claude/
 
 # Raw corpus and generated artifacts
 corpus/
