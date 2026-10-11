@@ -886,7 +886,7 @@ canvas{display:block;width:100%;height:auto}
       <div class="pipelineStep"><span>2 · partition</span><b>D1/D2 · 12</b><small>base visible et corrigeable</small></div>
       <div class="pipelineStep"><span>3 · calcul</span><b>\(c_k\)</b><small>signature complexe de la partition</small></div>
       <div class="pipelineStep"><span>4 · édition</span><b>\(\tilde c_k\)</b><small>variations puis nouvelle partition</small></div>
-      <div class="pipelineStep"><span>5 · écoute</span><b>samples</b><small>DjembeLoops comme timbre</small></div>
+      <div class="pipelineStep"><span>5 · écoute</span><b id="timbreLabel">synthèse</b><small id="timbreDetail">oscillateurs intégrés</small></div>
     </div>
     <div class="partitionEditor" id="partitionEditor"></div>
     <div class="synthTop">
@@ -2657,6 +2657,10 @@ function sampleForNote(instrument,note,rowIndex=99,step=0){
   const variant=family.startsWith("Djembe")&&rowIndex<3&&((step+1)%2===0) ? "L" : "";
   return sampleForArticulation(instrument,articulationForNote(instrument,note),variant);
 }
+function timbreName(){
+  return (djembeloopsData().samples||[]).length ? "samples DjembeLoops" : "oscillateurs intégrés";
+}
+
 function sampleForPolakVoice(voice){
   const samples=djembeloopsData().samples||[];
   const target={
@@ -3515,7 +3519,7 @@ function syncPlaybackUI(){
         : `Référence réelle · ${playVoiceLabel()} · prise ${selectedRecording()?.take??"—"} · ${selectedCycleLabel()}.`;
     }else if(state.listeningMode==="synthesis"){
       caption.textContent=playback.active
-        ? `Partition synthèse en lecture · ${playVoiceLabel()} · ${synthesisCycleLabel()} · samples DjembeLoops.`
+        ? `Partition synthèse en lecture · ${playVoiceLabel()} · ${synthesisCycleLabel()} · ${timbreName()}.`
         : `Partition synthèse prête · ${playVoiceLabel()} · ${synthesisCycleLabel()} · cases D1/D2 modifiables.`;
     }else if(["reference","model"].includes(state.listeningMode)){
       caption.textContent=referencePlayback.active
@@ -3734,6 +3738,10 @@ window.addEventListener("pagehide",()=>{
   stopPlayback();
   stopReferencePlayback();
 });
+if((djembeloopsData().samples||[]).length){
+  document.getElementById("timbreLabel").textContent="samples";
+  document.getElementById("timbreDetail").textContent="DjembeLoops comme timbre";
+}
 render();
 </script></body></html>"""
 

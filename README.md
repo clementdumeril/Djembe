@@ -4,11 +4,15 @@ Analysis of 15 multitrack recordings of Malian jembe ensembles (about 51 minutes
 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/clementdumeril/Djembe/blob/main/colab/demo_listen_and_explore.ipynb) Listen to the takes, hear the micro-timing against an even grid and open the interactive *Boussole des rythmes*. The corpus is downloaded from OSF into your own Colab session; no audio is stored in this repository.
 
-![Dundun 1 pattern and micro-timing in Manjanin, Maraka and Woloso](docs/figures/hero_d1_pattern_timing.png)
+![The Boussole des rythmes replaying Manjanin, Maraka and Woloso](docs/figures/boussole.gif)
 
-I started this in June 2026 as a personal project. The data is the IEMP Malian Jembe corpus (Polak, Tarsitani & Clayton, 2018), and it builds on Rainer Polak's doctoral research on jembe drumming in Bamako (Polak, 2004). The question: how much of a rhythm's identity lives in its pattern, and how much in the timing of each stroke? Can a model learn both from such a small corpus? So far the dataset, the evaluation protocol and feature baselines are done. Small neural models are written but not yet evaluated.
+*The Boussole des rythmes, an interactive page I wrote (French interface): each piece on a 12-pulse circle, with dots at the measured mean positions of the four drums, replayed by its built-in synthesis. Recorded with [`tools/capture_boussole_gif.py`](tools/capture_boussole_gif.py) from a build that contains no corpus audio.*
+
+I started this in June 2026 as a personal project. The data is the IEMP Malian Jembe corpus (Polak, Tarsitani & Clayton, 2018), and it builds on Rainer Polak's doctoral research on jembe drumming in Bamako (Polak, 2004). The question: how much of a rhythm's identity lives in its pattern, and how much in the timing of each stroke? Can a model learn both from such a small corpus? So far the dataset, the evaluation protocol, feature baselines and a first small CNN are done; the CNN does not beat the feature baselines yet.
 
 ## Results
+
+![Dundun 1 pattern and micro-timing in Manjanin, Maraka and Woloso](docs/figures/hero_d1_pattern_timing.png)
 
 | What | Result (balanced accuracy, leave-one-take-out) | Source |
 |---|---|---|
@@ -17,6 +21,7 @@ I started this in June 2026 as a personal project. The data is the IEMP Malian J
 | Piece from jembe timing only, pattern masked, 4 cycles | 0.86 (95 % CI 0.74 to 0.95) | [`results/a2_recognition.json`](results/a2_recognition.json) |
 | Same, restricted to the tempo range shared by all pieces | 0.87, while tempo alone falls to 0.29 (chance 0.33) | [`results/a2_tempo_control.json`](results/a2_tempo_control.json) |
 | Same, tempo regressed out of every feature | 0.78 (95 % CI 0.64 to 0.90) | [`results/a2_tempo_control.json`](results/a2_tempo_control.json) |
+| 1D CNN on jembe stroke sequences (which pulses and their timing), 1 / 8 cycles, mean of 3 seeds | 0.78 / 0.74, against 0.77 / 0.89 for logistic regression on the jembe feel | [`results/a3_sequence_cnn_cpu.json`](results/a3_sequence_cnn_cpu.json) |
 
 The whole-take result is a ceiling: the three dundun patterns differ so much that a nearest-centroid rule already separates them. The more informative result is the jembe timing. With the pattern masked, the timing of the jembe strokes on the three pulses of each beat still identifies the piece in 77 % (1 cycle) to 89 % (8 cycles) of windows. This holds inside a tempo band where tempo alone carries no information, and survives, about 9 points lower, when tempo is regressed out.
 
@@ -30,7 +35,7 @@ The jembe *pattern* (which pulses are played) is at or below chance for short wi
 - [`splits.json`](splits.json), [`tests/`](tests/): frozen leave-one-take-out folds and 9 tests (25 cases). They fail if a take ends up on both sides of a split, if a window spans two takes, or if a file's take label disagrees with its name.
 - [`features.py`](features.py), [`recognition_baselines.py`](recognition_baselines.py): windows of 1 to 8 cycles and five feature sets (tempo, dundun pattern, jembe pattern, jembe timing per pulse, jembe feel per position in the beat), scored with majority class, nearest centroid, logistic regression and random forest.
 - [`tempo_control.py`](tempo_control.py): the two tempo controls above.
-- [`sequence_models.py`](sequence_models.py): a 1D CNN (11k parameters) and a transformer (68k parameters) on stroke sequences, same folds and metrics. Written and smoke-tested; results pending.
+- [`sequence_models.py`](sequence_models.py): a 1D CNN (11k parameters) and a transformer (68k parameters) on stroke sequences, same folds and metrics. The CNN has been run on CPU; the transformer is too slow there and runs on Colab.
 - [`colab/demo_listen_and_explore.ipynb`](colab/demo_listen_and_explore.ipynb) and [`demo_audio.py`](demo_audio.py): a listening demo. Each piece is played, then its dundun with a click on the even 12-pulse grid, then the analysis and the Boussole, all computed in the reader's session.
 - [`colab/`](colab/): the same pipelines on Google Colab. Pinned dependencies, GPU detection with CPU fallback, the corpus downloaded into the session, outputs written to Google Drive.
 - Analysis notebooks `01` to `07` (dundun extraction, tempo and accelerando, micro-timing, Fourier fingerprint of the 12-pulse pattern) and [`boussole_rythmes_V2.py`](boussole_rythmes_V2.py), a self-contained interactive page that draws each rhythm on a 12-pulse circle with its complex Fourier coefficients.
@@ -60,12 +65,12 @@ Two details of the table: the last cycle of each take has no end time, so its 43
 
 - 15 takes, 3 pieces, one dundun player, four jembe players in total, all recorded in the same sessions. Results hold within this corpus. They say nothing about other musicians or other rhythms.
 - The analysis notebooks `01` to `07` and `utils_V2.py` still read the faulty `_Onsets_Selected` files, so their Maraka and Woloso figures include the mix-up until they are ported to the event table. All results in this README come from the event table.
-- No neural model has been evaluated yet, and the generation experiments in `archive/` were judged only by ear.
+- The CNN is below the feature baselines, most clearly on long windows, where there are 8 times fewer training windows for the same fixed 40 epochs. Its settings have not been tuned. The transformer has not been evaluated yet, and the generation experiments in `archive/` were judged only by ear.
 - The corpus licence (CC BY-NC-ND 4.0) forbids redistributing derived data. The event table, audio and any trained weights stay out of the repository. Only code, fold definitions, aggregate metrics and figures are versioned.
 
 ## Next
 
-1. Evaluate the CNN and transformer against the feature baselines, on Colab.
+1. Evaluate the transformer on Colab, and tune both networks (epochs, size) on a validation take held out inside each training fold.
 2. Generation: a sequence model over strokes, conditioned on the piece, with a continuous timing head. It will be evaluated with distances between timing distributions per pulse, a check that the model does not copy its training data, and a blind listening test.
 
 ## Reproduce
@@ -79,6 +84,7 @@ python -m pytest -q tests             # 25 cases, a few seconds
 python step0_rf_baseline.py           # results/step0_rf.json, about 20 s on 2 threads
 python recognition_baselines.py       # results/a2_recognition.json and figure, several minutes on 2 threads
 python tempo_control.py               # results/a2_tempo_control.json, a few minutes
+python sequence_models.py --models cnn --out results/a3_sequence_cnn_cpu.json   # about 20 min on 2 threads
 python make_figures.py                # docs/figures/
 ```
 

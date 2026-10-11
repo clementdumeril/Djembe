@@ -23,6 +23,7 @@ from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
+import numpy as np
 from PIL import Image
 import websocket
 
@@ -46,7 +47,7 @@ def build_synth_only() -> None:
 
 class CDP:
     def __init__(self, ws_url: str):
-        self.ws = websocket.create_connection(ws_url, timeout=30)
+        self.ws = websocket.create_connection(ws_url, timeout=30, suppress_origin=True)
         self.n = 0
 
     def call(self, method: str, **params):
@@ -67,8 +68,8 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--chrome", default=DEFAULT_CHROME)
     parser.add_argument("--seconds-per-piece", type=float, default=4.0)
-    parser.add_argument("--fps", type=float, default=8.0)
-    parser.add_argument("--width", type=int, default=720, help="GIF width in pixels")
+    parser.add_argument("--fps", type=float, default=12.0)
+    parser.add_argument("--width", type=int, default=640, help="GIF width in pixels")
     args = parser.parse_args()
 
     build_synth_only()
@@ -97,19 +98,44 @@ def main() -> None:
         time.sleep(3)
         cdp.js("document.getElementById('circleSynthesisBtn').click()")
         cdp.js("document.getElementById('playBtn').click()")
-        # Clip: page header down to the bottom of the circle panel.
-        rect = cdp.js("""(() => { const c = document.getElementById('circle').getBoundingClientRect();
-                         return {x: 0, y: 0, width: innerWidth, height: Math.ceil(c.bottom + 24)}; })()""")
+        # Clip: the circle card, from the page title down (left column only, so text stays legible).
+        rect = cdp.js("""(() => { let el = document.getElementById('circle');
+                         while (el.parentElement && !el.parentElement.classList.contains('studioGrid')) el = el.parentElement;
+                         const r = el.getBoundingClientRect();
+                         const c = document.getElementById('circle').getBoundingClientRect();
+                         const bottom = Math.min(innerHeight, c.bottom + 64);   // circle and its legend
+                         return {x: Math.max(0, Math.floor(r.left - 12)), y: 0,
+                                 width: Math.floor(r.width + 10), height: Math.floor(bottom)}; })()""")
+        label = cdp.js("document.getElementById('timbreLabel').textContent + ' / ' + document.getElementById('timbreDetail').textContent")
+        assert label.startswith("synthèse"), label
         tabs_js = "[...document.querySelectorAll('button.tab')].slice(0,3)"
-        frames, step = [], 1.0 / args.fps
+        # Screencast pushes frames at compositor rate; each frame is acked, timestamped and cropped later.
+        raw, t_start = [], time.time()
+        cdp.call("Page.startScreencast", format="jpeg", quality=90, everyNthFrame=1)
         for i in range(3):
-            cdp.js(f"{tabs_js}[{i}].click()")
+            cdp.n += 1
+            cdp.ws.send(json.dumps({"id": cdp.n, "method": "Runtime.evaluate",
+                                    "params": {"expression": f"{tabs_js}[{i}].click()"}}))
             t_end = time.time() + args.seconds_per_piece
             while time.time() < t_end:
-                t0 = time.time()
-                shot = cdp.call("Page.captureScreenshot", format="png", clip={**rect, "scale": 1})
-                frames.append(Image.open(io.BytesIO(base64.b64decode(shot["data"]))).convert("RGB"))
-                time.sleep(max(0.0, step - (time.time() - t0)))
+                msg = json.loads(cdp.ws.recv())
+                if msg.get("method") == "Page.screencastFrame":
+                    prm = msg["params"]
+                    raw.append((prm["metadata"]["timestamp"], prm["data"]))
+                    cdp.n += 1
+                    cdp.ws.send(json.dumps({"id": cdp.n, "method": "Page.screencastFrameAck",
+                                            "params": {"sessionId": prm["sessionId"]}}))
+        cdp.call("Page.stopScreencast")
+        # Resample to a constant frame rate (the screencast only sends frames when pixels change).
+        box = (rect["x"], rect["y"], rect["x"] + rect["width"], rect["y"] + rect["height"])
+        times = [t for t, _ in raw]
+        frames, k = [], 0
+        for target in np.arange(times[0], times[-1], 1.0 / args.fps):
+            while k + 1 < len(times) and times[k + 1] <= target:
+                k += 1
+            frames.append(Image.open(io.BytesIO(base64.b64decode(raw[k][1]))).convert("RGB").crop(box))
+        print(f"{len(raw)} screencast frames received")
+        elapsed = len(frames) / args.fps
         cdp.js("document.getElementById('playBtn').click()")
     finally:
         chrome.terminate()
@@ -120,8 +146,8 @@ def main() -> None:
     palette = small[len(small) // 2].quantize(colors=128, method=Image.Quantize.MEDIANCUT)
     gif = [f.quantize(palette=palette, dither=Image.Dither.NONE) for f in small]
     OUT_GIF.parent.mkdir(parents=True, exist_ok=True)
-    gif[0].save(OUT_GIF, save_all=True, append_images=gif[1:], duration=int(1000 / args.fps), loop=0, optimize=True)
-    print(f"{len(gif)} frames, {OUT_GIF.stat().st_size / 1e6:.1f} MB -> {OUT_GIF.relative_to(ROOT)}")
+    gif[0].save(OUT_GIF, save_all=True, append_images=gif[1:], duration=round(1000 * elapsed / len(gif)), loop=0, optimize=True)
+    print(f"{len(gif)} frames over {elapsed:.1f} s ({len(gif) / elapsed:.1f} fps), {OUT_GIF.stat().st_size / 1e6:.1f} MB -> {OUT_GIF.relative_to(ROOT)}")
 
 
 if __name__ == "__main__":
