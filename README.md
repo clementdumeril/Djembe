@@ -2,6 +2,8 @@
 
 Analysis of 15 multitrack recordings of Malian jembe ensembles (about 51 minutes, 41,072 annotated strokes), with an audited stroke-level dataset, leakage-safe evaluation and first rhythm-recognition baselines. Generation is in progress.
 
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/clementdumeril/Djembe/blob/main/colab/demo_listen_and_explore.ipynb) Listen to the takes, hear the micro-timing against an even grid and open the interactive *Boussole des rythmes*. The corpus is downloaded from OSF into your own Colab session; no audio is stored in this repository.
+
 ![Dundun 1 pattern and micro-timing in Manjanin, Maraka and Woloso](docs/figures/hero_d1_pattern_timing.png)
 
 I started this in June 2026 as a personal project. The data is the IEMP Malian Jembe corpus (Polak, Tarsitani & Clayton, 2018), and it builds on Rainer Polak's doctoral research on jembe drumming in Bamako (Polak, 2004). The question: how much of a rhythm's identity lives in its pattern, and how much in the timing of each stroke? Can a model learn both from such a small corpus? So far the dataset, the evaluation protocol and feature baselines are done. Small neural models are written but not yet evaluated.
@@ -29,6 +31,7 @@ The jembe *pattern* (which pulses are played) is at or below chance for short wi
 - [`features.py`](features.py), [`recognition_baselines.py`](recognition_baselines.py): windows of 1 to 8 cycles and five feature sets (tempo, dundun pattern, jembe pattern, jembe timing per pulse, jembe feel per position in the beat), scored with majority class, nearest centroid, logistic regression and random forest.
 - [`tempo_control.py`](tempo_control.py): the two tempo controls above.
 - [`sequence_models.py`](sequence_models.py): a 1D CNN (11k parameters) and a transformer (68k parameters) on stroke sequences, same folds and metrics. Written and smoke-tested; results pending.
+- [`colab/demo_listen_and_explore.ipynb`](colab/demo_listen_and_explore.ipynb) and [`demo_audio.py`](demo_audio.py): a listening demo. Each piece is played, then its dundun with a click on the even 12-pulse grid, then the analysis and the Boussole, all computed in the reader's session.
 - [`colab/`](colab/): the same pipelines on Google Colab. Pinned dependencies, GPU detection with CPU fallback, the corpus downloaded into the session, outputs written to Google Drive.
 - Analysis notebooks `01` to `07` (dundun extraction, tempo and accelerando, micro-timing, Fourier fingerprint of the 12-pulse pattern) and [`boussole_rythmes_V2.py`](boussole_rythmes_V2.py), a self-contained interactive page that draws each rhythm on a 12-pulse circle with its complex Fourier coefficients.
 - Earlier experiments in `archive/` (informed NMF source separation, a YouTube recognition test, a second-order Markov generator with measured swing). Their outputs are stripped and none of them has a proper evaluation.
@@ -79,7 +82,7 @@ python tempo_control.py               # results/a2_tempo_control.json, a few min
 python make_figures.py                # docs/figures/
 ```
 
-On Colab, open `colab/00_step0_dataset_baseline.ipynb` or `colab/01_a2_a3_recognition.ipynb` and run all cells. The analysis notebooks and the interactive page need the audio (`python djembe_dataset.py download --audio`, about 900 MB) and the packages in `requirements.txt`. Their French documentation is in [`docs/GUIDE_FR.md`](docs/GUIDE_FR.md).
+On Colab, open `colab/demo_listen_and_explore.ipynb` (listening demo), `colab/00_step0_dataset_baseline.ipynb` or `colab/01_a2_a3_recognition.ipynb` and run all cells. Notebooks are committed without outputs; `tests/test_repo_clean.py` and the pre-commit hook in `.pre-commit-config.yaml` enforce it, because outputs would embed corpus audio. The analysis notebooks and the interactive page need the audio (`python djembe_dataset.py download --audio`, about 900 MB) and the packages in `requirements.txt`. Their French documentation is in [`docs/GUIDE_FR.md`](docs/GUIDE_FR.md).
 
 ## Credits
 

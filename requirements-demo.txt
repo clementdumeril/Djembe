@@ -1,0 +1,4 @@
+# Demo notebook (colab/demo_listen_and_explore.ipynb): learning stack plus audio.
+-r requirements-train.txt
+soundfile==0.14.0
+librosa==0.11.0

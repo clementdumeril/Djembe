@@ -30,6 +30,7 @@ Google Drive folder on Colab. ``splits.json`` holds only take identifiers.
 
 Usage:
     python djembe_dataset.py download   # annotations only, from OSF
+    python djembe_dataset.py download --audio --takes Woloso_2   # plus that take's WAVs
     python djembe_dataset.py build      # -> output/events.csv
     python djembe_dataset.py splits     # -> splits.json (deterministic)
 """
@@ -74,11 +75,13 @@ def _osf_list(path: str) -> list[dict]:
         return json.load(response)["data"]
 
 
-def download_corpus(corpus_dir: str | Path = DEFAULT_CORPUS, audio: bool = False, verbose: bool = True) -> int:
+def download_corpus(corpus_dir: str | Path = DEFAULT_CORPUS, audio: bool = False, audio_takes=None,
+                    verbose: bool = True) -> int:
     """Download annotations (and optionally the multitrack WAVs) from OSF.
 
     Idempotent: files already present are skipped. Returns the number of new
-    files. Annotations are about 10 MB; audio is about 900 MB.
+    files. Annotations are about 10 MB; all audio is about 900 MB. With
+    ``audio_takes`` (e.g. ``["Woloso_2"]``), only those takes' WAVs are fetched.
     """
     corpus_dir = Path(corpus_dir)
     new = 0
@@ -92,6 +95,8 @@ def download_corpus(corpus_dir: str | Path = DEFAULT_CORPUS, audio: bool = False
             for item in _osf_list(f"{folder}/MJ_{piece}"):
                 name = item["attributes"]["name"]
                 if item["attributes"]["kind"] != "file" or not pattern.search(name):
+                    continue
+                if folder == "Media" and audio_takes and not any(name.startswith(f"MJ_{t}_") for t in audio_takes):
                     continue
                 dest = dest_dir / name
                 if dest.exists():
@@ -256,10 +261,11 @@ def main() -> None:
     parser.add_argument("--corpus", default=str(DEFAULT_CORPUS))
     parser.add_argument("--out", default=str(DEFAULT_EVENTS))
     parser.add_argument("--audio", action="store_true", help="also download the WAVs (about 900 MB)")
+    parser.add_argument("--takes", nargs="+", help="with --audio: only these takes, e.g. Woloso_2 Maraka_6")
     args = parser.parse_args()
 
     if args.command == "download":
-        download_corpus(args.corpus, audio=args.audio)
+        download_corpus(args.corpus, audio=args.audio, audio_takes=args.takes)
     elif args.command == "build":
         events = build_events(args.corpus)
         Path(args.out).parent.mkdir(parents=True, exist_ok=True)

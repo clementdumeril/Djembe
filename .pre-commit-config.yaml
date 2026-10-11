@@ -1,0 +1,16 @@
+# Install once with: pip install pre-commit && pre-commit install
+# Notebook outputs can embed corpus audio (CC BY-NC-ND, not redistributable):
+# strip them on every commit, then re-check the whole tree.
+repos:
+  - repo: https://github.com/kynan/nbstripout
+    rev: 0.8.1
+    hooks:
+      - id: nbstripout
+  - repo: local
+    hooks:
+      - id: no-third-party-audio
+        name: no notebook outputs or embedded audio
+        entry: python -m pytest -q tests/test_repo_clean.py
+        language: system
+        pass_filenames: false
+        always_run: true
