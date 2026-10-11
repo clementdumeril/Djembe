@@ -1,0 +1,1106 @@
+{
+  "windows_in_cycles": [
+    1,
+    2,
+    4,
+    8
+  ],
+  "feature_sets": [
+    "tempo",
+    "d1_pattern",
+    "jembe_pattern",
+    "jembe_timing12",
+    "jembe_feel3"
+  ],
+  "splits": "splits.json (leave-one-take-out)",
+  "results": {
+    "1": {
+      "tempo": {
+        "majority": {
+          "n_windows": 1941,
+          "balanced_accuracy": 0.0,
+          "ci95_bootstrap_takes": [
+            0.0,
+            0.0
+          ],
+          "take_vote_accuracy": 0.0,
+          "worst_take": {
+            "take_id": "Manjanin_1",
+            "window_accuracy": 0.0
+          }
+        },
+        "nearest_centroid": {
+          "n_windows": 1941,
+          "balanced_accuracy": 0.6070168180588087,
+          "ci95_bootstrap_takes": [
+            0.5425550070846019,
+            0.6675581631648521
+          ],
+          "take_vote_accuracy": 0.7333333333333333,
+          "worst_take": {
+            "take_id": "Maraka_4",
+            "window_accuracy": 0.23255813953488372
+          }
+        },
+        "logistic_regression": {
+          "n_windows": 1941,
+          "balanced_accuracy": 0.42509556537550325,
+          "ci95_bootstrap_takes": [
+            0.3958847432006247,
+            0.46318323381513443
+          ],
+          "take_vote_accuracy": 0.4,
+          "worst_take": {
+            "take_id": "Woloso_2",
+            "window_accuracy": 0.1
+          }
+        },
+        "random_forest": {
+          "n_windows": 1941,
+          "balanced_accuracy": 0.5034510900762844,
+          "ci95_bootstrap_takes": [
+            0.46588533890909334,
+            0.539211158499621
+          ],
+          "take_vote_accuracy": 0.7333333333333333,
+          "worst_take": {
+            "take_id": "Woloso_3",
+            "window_accuracy": 0.2719298245614035
+          }
+        }
+      },
+      "d1_pattern": {
+        "majority": {
+          "n_windows": 1941,
+          "balanced_accuracy": 0.0,
+          "ci95_bootstrap_takes": [
+            0.0,
+            0.0
+          ],
+          "take_vote_accuracy": 0.0,
+          "worst_take": {
+            "take_id": "Manjanin_1",
+            "window_accuracy": 0.0
+          }
+        },
+        "nearest_centroid": {
+          "n_windows": 1941,
+          "balanced_accuracy": 0.9249815818245056,
+          "ci95_bootstrap_takes": [
+            0.840134412417519,
+            0.9807069170660553
+          ],
+          "take_vote_accuracy": 1.0,
+          "worst_take": {
+            "take_id": "Woloso_2",
+            "window_accuracy": 0.5333333333333333
+          }
+        },
+        "logistic_regression": {
+          "n_windows": 1941,
+          "balanced_accuracy": 0.9887091439190971,
+          "ci95_bootstrap_takes": [
+            0.9712985612327093,
+            0.9982605991089458
+          ],
+          "take_vote_accuracy": 1.0,
+          "worst_take": {
+            "take_id": "Maraka_4",
+            "window_accuracy": 0.8372093023255814
+          }
+        },
+        "random_forest": {
+          "n_windows": 1941,
+          "balanced_accuracy": 0.9964851936858157,
+          "ci95_bootstrap_takes": [
+            0.9932158028979134,
+            0.999519761415214
+          ],
+          "take_vote_accuracy": 1.0,
+          "worst_take": {
+            "take_id": "Woloso_3",
+            "window_accuracy": 0.9824561403508771
+          }
+        }
+      },
+      "jembe_pattern": {
+        "majority": {
+          "n_windows": 1941,
+          "balanced_accuracy": 0.0,
+          "ci95_bootstrap_takes": [
+            0.0,
+            0.0
+          ],
+          "take_vote_accuracy": 0.0,
+          "worst_take": {
+            "take_id": "Manjanin_1",
+            "window_accuracy": 0.0
+          }
+        },
+        "nearest_centroid": {
+          "n_windows": 1941,
+          "balanced_accuracy": 0.36301408649775685,
+          "ci95_bootstrap_takes": [
+            0.300593517575099,
+            0.41927994499081234
+          ],
+          "take_vote_accuracy": 0.3333333333333333,
+          "worst_take": {
+            "take_id": "Maraka_5",
+            "window_accuracy": 0.024390243902439025
+          }
+        },
+        "logistic_regression": {
+          "n_windows": 1941,
+          "balanced_accuracy": 0.24140687608805803,
+          "ci95_bootstrap_takes": [
+            0.1668210744004258,
+            0.29794449268146067
+          ],
+          "take_vote_accuracy": 0.2,
+          "worst_take": {
+            "take_id": "Woloso_3",
+            "window_accuracy": 0.008771929824561403
+          }
+        },
+        "random_forest": {
+          "n_windows": 1941,
+          "balanced_accuracy": 0.2557507356107667,
+          "ci95_bootstrap_takes": [
+            0.1953589928782482,
+            0.30123268518766727
+          ],
+          "take_vote_accuracy": 0.3333333333333333,
+          "worst_take": {
+            "take_id": "Woloso_2",
+            "window_accuracy": 0.0
+          }
+        }
+      },
+      "jembe_timing12": {
+        "majority": {
+          "n_windows": 1941,
+          "balanced_accuracy": 0.0,
+          "ci95_bootstrap_takes": [
+            0.0,
+            0.0
+          ],
+          "take_vote_accuracy": 0.0,
+          "worst_take": {
+            "take_id": "Manjanin_1",
+            "window_accuracy": 0.0
+          }
+        },
+        "nearest_centroid": {
+          "n_windows": 1941,
+          "balanced_accuracy": 0.7700223389181398,
+          "ci95_bootstrap_takes": [
+            0.6315704300600589,
+            0.8778366893757221
+          ],
+          "take_vote_accuracy": 0.9333333333333333,
+          "worst_take": {
+            "take_id": "Manjanin_1",
+            "window_accuracy": 0.08294930875576037
+          }
+        },
+        "logistic_regression": {
+          "n_windows": 1941,
+          "balanced_accuracy": 0.7624284308576689,
+          "ci95_bootstrap_takes": [
+            0.6502295820131339,
+            0.8726135029725065
+          ],
+          "take_vote_accuracy": 0.8666666666666667,
+          "worst_take": {
+            "take_id": "Manjanin_1",
+            "window_accuracy": 0.2764976958525346
+          }
+        },
+        "random_forest": {
+          "n_windows": 1941,
+          "balanced_accuracy": 0.7940793065209862,
+          "ci95_bootstrap_takes": [
+            0.6857352222898963,
+            0.9057777001457665
+          ],
+          "take_vote_accuracy": 0.9333333333333333,
+          "worst_take": {
+            "take_id": "Manjanin_1",
+            "window_accuracy": 0.23963133640552994
+          }
+        }
+      },
+      "jembe_feel3": {
+        "majority": {
+          "n_windows": 1941,
+          "balanced_accuracy": 0.0,
+          "ci95_bootstrap_takes": [
+            0.0,
+            0.0
+          ],
+          "take_vote_accuracy": 0.0,
+          "worst_take": {
+            "take_id": "Manjanin_1",
+            "window_accuracy": 0.0
+          }
+        },
+        "nearest_centroid": {
+          "n_windows": 1941,
+          "balanced_accuracy": 0.7953249345939858,
+          "ci95_bootstrap_takes": [
+            0.6566000154462929,
+            0.8919797268681705
+          ],
+          "take_vote_accuracy": 0.9333333333333333,
+          "worst_take": {
+            "take_id": "Manjanin_1",
+            "window_accuracy": 0.06451612903225806
+          }
+        },
+        "logistic_regression": {
+          "n_windows": 1941,
+          "balanced_accuracy": 0.7724346464626403,
+          "ci95_bootstrap_takes": [
+            0.6741418916323071,
+            0.867423398147596
+          ],
+          "take_vote_accuracy": 0.9333333333333333,
+          "worst_take": {
+            "take_id": "Manjanin_1",
+            "window_accuracy": 0.271889400921659
+          }
+        },
+        "random_forest": {
+          "n_windows": 1941,
+          "balanced_accuracy": 0.7784557436968012,
+          "ci95_bootstrap_takes": [
+            0.6637757847029317,
+            0.8709581000321541
+          ],
+          "take_vote_accuracy": 0.9333333333333333,
+          "worst_take": {
+            "take_id": "Manjanin_1",
+            "window_accuracy": 0.2488479262672811
+          }
+        }
+      }
+    },
+    "2": {
+      "tempo": {
+        "majority": {
+          "n_windows": 969,
+          "balanced_accuracy": 0.0,
+          "ci95_bootstrap_takes": [
+            0.0,
+            0.0
+          ],
+          "take_vote_accuracy": 0.0,
+          "worst_take": {
+            "take_id": "Manjanin_1",
+            "window_accuracy": 0.0
+          }
+        },
+        "nearest_centroid": {
+          "n_windows": 969,
+          "balanced_accuracy": 0.5847070535584098,
+          "ci95_bootstrap_takes": [
+            0.5256692007718952,
+            0.6428975248284176
+          ],
+          "take_vote_accuracy": 0.7333333333333333,
+          "worst_take": {
+            "take_id": "Maraka_4",
+            "window_accuracy": 0.18604651162790697
+          }
+        },
+        "logistic_regression": {
+          "n_windows": 969,
+          "balanced_accuracy": 0.4368854389516043,
+          "ci95_bootstrap_takes": [
+            0.4029219568888049,
+            0.4732902357701197
+          ],
+          "take_vote_accuracy": 0.4,
+          "worst_take": {
+            "take_id": "Woloso_2",
+            "window_accuracy": 0.1
+          }
+        },
+        "random_forest": {
+          "n_windows": 969,
+          "balanced_accuracy": 0.5079095762371836,
+          "ci95_bootstrap_takes": [
+            0.4658518423509679,
+            0.5486770868077516
+          ],
+          "take_vote_accuracy": 0.6,
+          "worst_take": {
+            "take_id": "Maraka_5",
+            "window_accuracy": 0.14634146341463414
+          }
+        }
+      },
+      "d1_pattern": {
+        "majority": {
+          "n_windows": 969,
+          "balanced_accuracy": 0.0,
+          "ci95_bootstrap_takes": [
+            0.0,
+            0.0
+          ],
+          "take_vote_accuracy": 0.0,
+          "worst_take": {
+            "take_id": "Manjanin_1",
+            "window_accuracy": 0.0
+          }
+        },
+        "nearest_centroid": {
+          "n_windows": 969,
+          "balanced_accuracy": 0.9648751891982797,
+          "ci95_bootstrap_takes": [
+            0.9230110245563355,
+            0.9931106029810298
+          ],
+          "take_vote_accuracy": 1.0,
+          "worst_take": {
+            "take_id": "Maraka_4",
+            "window_accuracy": 0.627906976744186
+          }
+        },
+        "logistic_regression": {
+          "n_windows": 969,
+          "balanced_accuracy": 0.9957792574855256,
+          "ci95_bootstrap_takes": [
+            0.9902433623806982,
+            1.0
+          ],
+          "take_vote_accuracy": 1.0,
+          "worst_take": {
+            "take_id": "Maraka_4",
+            "window_accuracy": 0.9534883720930233
+          }
+        },
+        "random_forest": {
+          "n_windows": 969,
+          "balanced_accuracy": 0.9957792574855256,
+          "ci95_bootstrap_takes": [
+            0.9892872211634114,
+            1.0
+          ],
+          "take_vote_accuracy": 1.0,
+          "worst_take": {
+            "take_id": "Maraka_4",
+            "window_accuracy": 0.9534883720930233
+          }
+        }
+      },
+      "jembe_pattern": {
+        "majority": {
+          "n_windows": 969,
+          "balanced_accuracy": 0.0,
+          "ci95_bootstrap_takes": [
+            0.0,
+            0.0
+          ],
+          "take_vote_accuracy": 0.0,
+          "worst_take": {
+            "take_id": "Manjanin_1",
+            "window_accuracy": 0.0
+          }
+        },
+        "nearest_centroid": {
+          "n_windows": 969,
+          "balanced_accuracy": 0.3944576438630207,
+          "ci95_bootstrap_takes": [
+            0.32223400864720686,
+            0.457516662203199
+          ],
+          "take_vote_accuracy": 0.4,
+          "worst_take": {
+            "take_id": "Maraka_5",
+            "window_accuracy": 0.0
+          }
+        },
+        "logistic_regression": {
+          "n_windows": 969,
+          "balanced_accuracy": 0.3100298482178692,
+          "ci95_bootstrap_takes": [
+            0.21933724382046985,
+            0.40394026058864946
+          ],
+          "take_vote_accuracy": 0.4,
+          "worst_take": {
+            "take_id": "Woloso_3",
+            "window_accuracy": 0.0
+          }
+        },
+        "random_forest": {
+          "n_windows": 969,
+          "balanced_accuracy": 0.35061017820549817,
+          "ci95_bootstrap_takes": [
+            0.3030402881814514,
+            0.39749907881219443
+          ],
+          "take_vote_accuracy": 0.4,
+          "worst_take": {
+            "take_id": "Woloso_3",
+            "window_accuracy": 0.017543859649122806
+          }
+        }
+      },
+      "jembe_timing12": {
+        "majority": {
+          "n_windows": 969,
+          "balanced_accuracy": 0.0,
+          "ci95_bootstrap_takes": [
+            0.0,
+            0.0
+          ],
+          "take_vote_accuracy": 0.0,
+          "worst_take": {
+            "take_id": "Manjanin_1",
+            "window_accuracy": 0.0
+          }
+        },
+        "nearest_centroid": {
+          "n_windows": 969,
+          "balanced_accuracy": 0.8059545193581664,
+          "ci95_bootstrap_takes": [
+            0.6558154882126708,
+            0.9199969458942497
+          ],
+          "take_vote_accuracy": 0.9333333333333333,
+          "worst_take": {
+            "take_id": "Manjanin_1",
+            "window_accuracy": 0.027777777777777776
+          }
+        },
+        "logistic_regression": {
+          "n_windows": 969,
+          "balanced_accuracy": 0.785440480104488,
+          "ci95_bootstrap_takes": [
+            0.6668821502329454,
+            0.8895407520812095
+          ],
+          "take_vote_accuracy": 0.8666666666666667,
+          "worst_take": {
+            "take_id": "Manjanin_1",
+            "window_accuracy": 0.28703703703703703
+          }
+        },
+        "random_forest": {
+          "n_windows": 969,
+          "balanced_accuracy": 0.817510764150843,
+          "ci95_bootstrap_takes": [
+            0.7083730997703934,
+            0.9271198762962982
+          ],
+          "take_vote_accuracy": 0.8666666666666667,
+          "worst_take": {
+            "take_id": "Manjanin_1",
+            "window_accuracy": 0.2962962962962963
+          }
+        }
+      },
+      "jembe_feel3": {
+        "majority": {
+          "n_windows": 969,
+          "balanced_accuracy": 0.0,
+          "ci95_bootstrap_takes": [
+            0.0,
+            0.0
+          ],
+          "take_vote_accuracy": 0.0,
+          "worst_take": {
+            "take_id": "Manjanin_1",
+            "window_accuracy": 0.0
+          }
+        },
+        "nearest_centroid": {
+          "n_windows": 969,
+          "balanced_accuracy": 0.8154081642297292,
+          "ci95_bootstrap_takes": [
+            0.668250974764587,
+            0.9227034741437159
+          ],
+          "take_vote_accuracy": 0.9333333333333333,
+          "worst_take": {
+            "take_id": "Manjanin_1",
+            "window_accuracy": 0.046296296296296294
+          }
+        },
+        "logistic_regression": {
+          "n_windows": 969,
+          "balanced_accuracy": 0.8259634732978798,
+          "ci95_bootstrap_takes": [
+            0.706793618875032,
+            0.9301163945335267
+          ],
+          "take_vote_accuracy": 0.9333333333333333,
+          "worst_take": {
+            "take_id": "Manjanin_1",
+            "window_accuracy": 0.25
+          }
+        },
+        "random_forest": {
+          "n_windows": 969,
+          "balanced_accuracy": 0.8062301544270648,
+          "ci95_bootstrap_takes": [
+            0.6981831874115488,
+            0.9062509747823155
+          ],
+          "take_vote_accuracy": 0.9333333333333333,
+          "worst_take": {
+            "take_id": "Manjanin_1",
+            "window_accuracy": 0.26851851851851855
+          }
+        }
+      }
+    },
+    "4": {
+      "tempo": {
+        "majority": {
+          "n_windows": 481,
+          "balanced_accuracy": 0.06013745704467354,
+          "ci95_bootstrap_takes": [
+            0.0,
+            0.21212121212121213
+          ],
+          "take_vote_accuracy": 0.06666666666666667,
+          "worst_take": {
+            "take_id": "Manjanin_1",
+            "window_accuracy": 0.0
+          }
+        },
+        "nearest_centroid": {
+          "n_windows": 481,
+          "balanced_accuracy": 0.5758703519094858,
+          "ci95_bootstrap_takes": [
+            0.5238383945824409,
+            0.6316639632888844
+          ],
+          "take_vote_accuracy": 0.6,
+          "worst_take": {
+            "take_id": "Maraka_4",
+            "window_accuracy": 0.23809523809523808
+          }
+        },
+        "logistic_regression": {
+          "n_windows": 481,
+          "balanced_accuracy": 0.4272141917374484,
+          "ci95_bootstrap_takes": [
+            0.38679237301978153,
+            0.47506030605082356
+          ],
+          "take_vote_accuracy": 0.4666666666666667,
+          "worst_take": {
+            "take_id": "Woloso_4",
+            "window_accuracy": 0.13043478260869565
+          }
+        },
+        "random_forest": {
+          "n_windows": 481,
+          "balanced_accuracy": 0.5029410215262918,
+          "ci95_bootstrap_takes": [
+            0.4621350301916578,
+            0.5470514660315628
+          ],
+          "take_vote_accuracy": 0.5333333333333333,
+          "worst_take": {
+            "take_id": "Maraka_4",
+            "window_accuracy": 0.23809523809523808
+          }
+        }
+      },
+      "d1_pattern": {
+        "majority": {
+          "n_windows": 481,
+          "balanced_accuracy": 0.06013745704467354,
+          "ci95_bootstrap_takes": [
+            0.0,
+            0.220125786163522
+          ],
+          "take_vote_accuracy": 0.06666666666666667,
+          "worst_take": {
+            "take_id": "Manjanin_1",
+            "window_accuracy": 0.0
+          }
+        },
+        "nearest_centroid": {
+          "n_windows": 481,
+          "balanced_accuracy": 0.9685534591194968,
+          "ci95_bootstrap_takes": [
+            0.9253731343283582,
+            0.9943820224719101
+          ],
+          "take_vote_accuracy": 1.0,
+          "worst_take": {
+            "take_id": "Maraka_4",
+            "window_accuracy": 0.6190476190476191
+          }
+        },
+        "logistic_regression": {
+          "n_windows": 481,
+          "balanced_accuracy": 0.9979035639412999,
+          "ci95_bootstrap_takes": [
+            0.9927007299270073,
+            1.0
+          ],
+          "take_vote_accuracy": 1.0,
+          "worst_take": {
+            "take_id": "Maraka_4",
+            "window_accuracy": 0.9523809523809523
+          }
+        },
+        "random_forest": {
+          "n_windows": 481,
+          "balanced_accuracy": 0.9952993972746332,
+          "ci95_bootstrap_takes": [
+            0.9878543912552383,
+            1.0
+          ],
+          "take_vote_accuracy": 1.0,
+          "worst_take": {
+            "take_id": "Maraka_4",
+            "window_accuracy": 0.9523809523809523
+          }
+        }
+      },
+      "jembe_pattern": {
+        "majority": {
+          "n_windows": 481,
+          "balanced_accuracy": 0.06013745704467354,
+          "ci95_bootstrap_takes": [
+            0.0,
+            0.2333333333333333
+          ],
+          "take_vote_accuracy": 0.06666666666666667,
+          "worst_take": {
+            "take_id": "Manjanin_1",
+            "window_accuracy": 0.0
+          }
+        },
+        "nearest_centroid": {
+          "n_windows": 481,
+          "balanced_accuracy": 0.4145297067150792,
+          "ci95_bootstrap_takes": [
+            0.3241995981738897,
+            0.49703526312001917
+          ],
+          "take_vote_accuracy": 0.4666666666666667,
+          "worst_take": {
+            "take_id": "Maraka_5",
+            "window_accuracy": 0.05
+          }
+        },
+        "logistic_regression": {
+          "n_windows": 481,
+          "balanced_accuracy": 0.3981536639002356,
+          "ci95_bootstrap_takes": [
+            0.29819763467114974,
+            0.487122334865826
+          ],
+          "take_vote_accuracy": 0.4,
+          "worst_take": {
+            "take_id": "Manjanin_2",
+            "window_accuracy": 0.06666666666666667
+          }
+        },
+        "random_forest": {
+          "n_windows": 481,
+          "balanced_accuracy": 0.36764035450301497,
+          "ci95_bootstrap_takes": [
+            0.32027568543626195,
+            0.4165008870994911
+          ],
+          "take_vote_accuracy": 0.4,
+          "worst_take": {
+            "take_id": "Woloso_3",
+            "window_accuracy": 0.0
+          }
+        }
+      },
+      "jembe_timing12": {
+        "majority": {
+          "n_windows": 481,
+          "balanced_accuracy": 0.06013745704467354,
+          "ci95_bootstrap_takes": [
+            0.0,
+            0.2333333333333333
+          ],
+          "take_vote_accuracy": 0.06666666666666667,
+          "worst_take": {
+            "take_id": "Manjanin_1",
+            "window_accuracy": 0.0
+          }
+        },
+        "nearest_centroid": {
+          "n_windows": 481,
+          "balanced_accuracy": 0.8393637951436167,
+          "ci95_bootstrap_takes": [
+            0.6790723968731768,
+            0.9625172337328802
+          ],
+          "take_vote_accuracy": 0.9333333333333333,
+          "worst_take": {
+            "take_id": "Manjanin_1",
+            "window_accuracy": 0.037037037037037035
+          }
+        },
+        "logistic_regression": {
+          "n_windows": 481,
+          "balanced_accuracy": 0.8156048055933779,
+          "ci95_bootstrap_takes": [
+            0.6813715692255088,
+            0.9401896273804168
+          ],
+          "take_vote_accuracy": 0.8666666666666667,
+          "worst_take": {
+            "take_id": "Manjanin_1",
+            "window_accuracy": 0.2222222222222222
+          }
+        },
+        "random_forest": {
+          "n_windows": 481,
+          "balanced_accuracy": 0.8281503274330545,
+          "ci95_bootstrap_takes": [
+            0.7105110283443248,
+            0.935628718246028
+          ],
+          "take_vote_accuracy": 0.9333333333333333,
+          "worst_take": {
+            "take_id": "Manjanin_1",
+            "window_accuracy": 0.2037037037037037
+          }
+        }
+      },
+      "jembe_feel3": {
+        "majority": {
+          "n_windows": 481,
+          "balanced_accuracy": 0.06013745704467354,
+          "ci95_bootstrap_takes": [
+            0.0,
+            0.220125786163522
+          ],
+          "take_vote_accuracy": 0.06666666666666667,
+          "worst_take": {
+            "take_id": "Manjanin_1",
+            "window_accuracy": 0.0
+          }
+        },
+        "nearest_centroid": {
+          "n_windows": 481,
+          "balanced_accuracy": 0.8433734654952559,
+          "ci95_bootstrap_takes": [
+            0.7002096682850972,
+            0.9468818500051704
+          ],
+          "take_vote_accuracy": 0.9333333333333333,
+          "worst_take": {
+            "take_id": "Manjanin_1",
+            "window_accuracy": 0.1111111111111111
+          }
+        },
+        "logistic_regression": {
+          "n_windows": 481,
+          "balanced_accuracy": 0.8643614650197756,
+          "ci95_bootstrap_takes": [
+            0.7411628622492921,
+            0.9516773855577046
+          ],
+          "take_vote_accuracy": 0.9333333333333333,
+          "worst_take": {
+            "take_id": "Manjanin_1",
+            "window_accuracy": 0.24074074074074073
+          }
+        },
+        "random_forest": {
+          "n_windows": 481,
+          "balanced_accuracy": 0.8526151081177463,
+          "ci95_bootstrap_takes": [
+            0.7185803795300493,
+            0.9490172486124908
+          ],
+          "take_vote_accuracy": 0.9333333333333333,
+          "worst_take": {
+            "take_id": "Manjanin_1",
+            "window_accuracy": 0.2037037037037037
+          }
+        }
+      }
+    },
+    "8": {
+      "tempo": {
+        "majority": {
+          "n_windows": 237,
+          "balanced_accuracy": 0.05902777777777778,
+          "ci95_bootstrap_takes": [
+            0.0,
+            0.21794871794871795
+          ],
+          "take_vote_accuracy": 0.06666666666666667,
+          "worst_take": {
+            "take_id": "Manjanin_1",
+            "window_accuracy": 0.0
+          }
+        },
+        "nearest_centroid": {
+          "n_windows": 237,
+          "balanced_accuracy": 0.5610373422873423,
+          "ci95_bootstrap_takes": [
+            0.5136248431099597,
+            0.6123314556022726
+          ],
+          "take_vote_accuracy": 0.6,
+          "worst_take": {
+            "take_id": "Maraka_5",
+            "window_accuracy": 0.2
+          }
+        },
+        "logistic_regression": {
+          "n_windows": 237,
+          "balanced_accuracy": 0.466982091982092,
+          "ci95_bootstrap_takes": [
+            0.41969894862733714,
+            0.5267978217884934
+          ],
+          "take_vote_accuracy": 0.4666666666666667,
+          "worst_take": {
+            "take_id": "Maraka_6",
+            "window_accuracy": 0.14285714285714285
+          }
+        },
+        "random_forest": {
+          "n_windows": 237,
+          "balanced_accuracy": 0.5154151404151404,
+          "ci95_bootstrap_takes": [
+            0.4500677506775068,
+            0.5722488214996776
+          ],
+          "take_vote_accuracy": 0.6666666666666666,
+          "worst_take": {
+            "take_id": "Maraka_4",
+            "window_accuracy": 0.2
+          }
+        }
+      },
+      "d1_pattern": {
+        "majority": {
+          "n_windows": 237,
+          "balanced_accuracy": 0.05902777777777778,
+          "ci95_bootstrap_takes": [
+            0.0,
+            0.21794871794871795
+          ],
+          "take_vote_accuracy": 0.06666666666666667,
+          "worst_take": {
+            "take_id": "Manjanin_1",
+            "window_accuracy": 0.0
+          }
+        },
+        "nearest_centroid": {
+          "n_windows": 237,
+          "balanced_accuracy": 0.9786324786324787,
+          "ci95_bootstrap_takes": [
+            0.9516129032258065,
+            0.9962596621244719
+          ],
+          "take_vote_accuracy": 1.0,
+          "worst_take": {
+            "take_id": "Maraka_4",
+            "window_accuracy": 0.8
+          }
+        },
+        "logistic_regression": {
+          "n_windows": 237,
+          "balanced_accuracy": 1.0,
+          "ci95_bootstrap_takes": [
+            1.0,
+            1.0
+          ],
+          "take_vote_accuracy": 1.0,
+          "worst_take": {
+            "take_id": "Manjanin_1",
+            "window_accuracy": 1.0
+          }
+        },
+        "random_forest": {
+          "n_windows": 237,
+          "balanced_accuracy": 0.9957264957264957,
+          "ci95_bootstrap_takes": [
+            0.9850746268656717,
+            1.0
+          ],
+          "take_vote_accuracy": 1.0,
+          "worst_take": {
+            "take_id": "Maraka_4",
+            "window_accuracy": 0.9
+          }
+        }
+      },
+      "jembe_pattern": {
+        "majority": {
+          "n_windows": 237,
+          "balanced_accuracy": 0.05902777777777778,
+          "ci95_bootstrap_takes": [
+            0.0,
+            0.21794871794871795
+          ],
+          "take_vote_accuracy": 0.06666666666666667,
+          "worst_take": {
+            "take_id": "Manjanin_1",
+            "window_accuracy": 0.0
+          }
+        },
+        "nearest_centroid": {
+          "n_windows": 237,
+          "balanced_accuracy": 0.4330102767602768,
+          "ci95_bootstrap_takes": [
+            0.3427898416560761,
+            0.5197751611439656
+          ],
+          "take_vote_accuracy": 0.4666666666666667,
+          "worst_take": {
+            "take_id": "Maraka_5",
+            "window_accuracy": 0.0
+          }
+        },
+        "logistic_regression": {
+          "n_windows": 237,
+          "balanced_accuracy": 0.4250483312983313,
+          "ci95_bootstrap_takes": [
+            0.30719094043214323,
+            0.5402453850198211
+          ],
+          "take_vote_accuracy": 0.4,
+          "worst_take": {
+            "take_id": "Manjanin_2",
+            "window_accuracy": 0.13636363636363635
+          }
+        },
+        "random_forest": {
+          "n_windows": 237,
+          "balanced_accuracy": 0.43321377696377694,
+          "ci95_bootstrap_takes": [
+            0.3636733797694725,
+            0.506890784523044
+          ],
+          "take_vote_accuracy": 0.4666666666666667,
+          "worst_take": {
+            "take_id": "Woloso_3",
+            "window_accuracy": 0.07142857142857142
+          }
+        }
+      },
+      "jembe_timing12": {
+        "majority": {
+          "n_windows": 237,
+          "balanced_accuracy": 0.05902777777777778,
+          "ci95_bootstrap_takes": [
+            0.0,
+            0.23287671232876714
+          ],
+          "take_vote_accuracy": 0.06666666666666667,
+          "worst_take": {
+            "take_id": "Manjanin_1",
+            "window_accuracy": 0.0
+          }
+        },
+        "nearest_centroid": {
+          "n_windows": 237,
+          "balanced_accuracy": 0.8555530118030118,
+          "ci95_bootstrap_takes": [
+            0.6935160449967968,
+            0.9723235280064917
+          ],
+          "take_vote_accuracy": 0.9333333333333333,
+          "worst_take": {
+            "take_id": "Manjanin_1",
+            "window_accuracy": 0.0
+          }
+        },
+        "logistic_regression": {
+          "n_windows": 237,
+          "balanced_accuracy": 0.8069037444037445,
+          "ci95_bootstrap_takes": [
+            0.6395145208438134,
+            0.9549915229067236
+          ],
+          "take_vote_accuracy": 0.8,
+          "worst_take": {
+            "take_id": "Manjanin_1",
+            "window_accuracy": 0.037037037037037035
+          }
+        },
+        "random_forest": {
+          "n_windows": 237,
+          "balanced_accuracy": 0.8195716320716321,
+          "ci95_bootstrap_takes": [
+            0.6564630123930465,
+            0.9532163742690059
+          ],
+          "take_vote_accuracy": 0.8666666666666667,
+          "worst_take": {
+            "take_id": "Manjanin_1",
+            "window_accuracy": 0.037037037037037035
+          }
+        }
+      },
+      "jembe_feel3": {
+        "majority": {
+          "n_windows": 237,
+          "balanced_accuracy": 0.05902777777777778,
+          "ci95_bootstrap_takes": [
+            0.0,
+            0.21794871794871795
+          ],
+          "take_vote_accuracy": 0.06666666666666667,
+          "worst_take": {
+            "take_id": "Manjanin_1",
+            "window_accuracy": 0.0
+          }
+        },
+        "nearest_centroid": {
+          "n_windows": 237,
+          "balanced_accuracy": 0.8403286528286529,
+          "ci95_bootstrap_takes": [
+            0.7031584526785016,
+            0.9631039720049255
+          ],
+          "take_vote_accuracy": 0.8666666666666667,
+          "worst_take": {
+            "take_id": "Manjanin_1",
+            "window_accuracy": 0.14814814814814814
+          }
+        },
+        "logistic_regression": {
+          "n_windows": 237,
+          "balanced_accuracy": 0.8910637973137973,
+          "ci95_bootstrap_takes": [
+            0.7670550991433468,
+            0.9861158675799088
+          ],
+          "take_vote_accuracy": 0.9333333333333333,
+          "worst_take": {
+            "take_id": "Manjanin_1",
+            "window_accuracy": 0.2222222222222222
+          }
+        },
+        "random_forest": {
+          "n_windows": 237,
+          "balanced_accuracy": 0.8425544363044363,
+          "ci95_bootstrap_takes": [
+            0.6853144820305677,
+            0.9524996766003456
+          ],
+          "take_vote_accuracy": 0.9333333333333333,
+          "worst_take": {
+            "take_id": "Manjanin_1",
+            "window_accuracy": 0.037037037037037035
+          }
+        }
+      }
+    }
+  }
+}

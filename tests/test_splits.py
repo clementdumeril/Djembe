@@ -1,8 +1,10 @@
 """Leakage guards for the take-level splits.
 
-The first group runs anywhere (no corpus needed). The last test builds the
-event table and is skipped when the annotations are not on disk.
+The first group runs anywhere (no corpus needed). The last two tests read the
+annotations from $DJEMBE_CORPUS (default: corpus/) and are skipped without them.
 """
+import os
+import shutil
 from pathlib import Path
 import sys
 
@@ -52,11 +54,23 @@ def test_iter_folds_never_shares_a_take():
     assert n == len(d.TAKES)
 
 
-@pytest.mark.skipif(not (d.DEFAULT_CORPUS / "MJ_Woloso" / "annotations").exists(), reason="corpus not downloaded")
-def test_event_table_labels_match_files():
-    events = d.build_events()
+CORPUS = Path(os.environ.get("DJEMBE_CORPUS", d.DEFAULT_CORPUS))  # /content/corpus on Colab
+needs_corpus = pytest.mark.skipif(not (CORPUS / "MJ_Woloso" / "annotations").exists(), reason="corpus not downloaded")
+
+
+@needs_corpus
+def test_event_table_covers_all_takes():
+    events = d.build_events(CORPUS)
     assert sorted(events["take_id"].unique()) == sorted(d.TAKES)
-    # Every row of a take carries that take's piece (guards against the
-    # mislabelled MJ_Maraka_5_Onsets_Selected.csv on OSF).
-    assert (events["take_id"].str.split("_").str[0] == events["piece"]).all()
     assert events["sd"].between(1, d.N_SUBDIVISIONS).all()
+
+
+@needs_corpus
+def test_load_take_rejects_a_mislabelled_file(tmp_path):
+    # Reproduce the OSF mix-up: Woloso_5 content stored under the Maraka_5 name.
+    src = CORPUS / "MJ_Woloso" / "annotations"
+    dst = tmp_path / "MJ_Maraka" / "annotations"
+    dst.mkdir(parents=True)
+    shutil.copy(src / "MJ_Woloso_5_Onsets_Selected_Peak.csv", dst / "MJ_Maraka_5_Onsets_Selected_Peak.csv")
+    with pytest.raises(ValueError, match="Woloso_5"):
+        d.load_take("Maraka_5", tmp_path)

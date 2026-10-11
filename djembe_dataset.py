@@ -20,6 +20,10 @@ Note on Woloso: its metre file labels half-cycles (``1.1``, ``1.2``...), each
 holding 12 subdivisions. A "cycle" here is always one row of the metre file,
 i.e. 12 subdivisions.
 
+Known gaps, kept as they are: the last annotated cycle of each take has no end
+time, so its strokes (43 in total) have NaN phase and offset; and 1,422 strokes
+(3.5 %) sit more than half a pulse from their nominal subdivision.
+
 Licence: the corpus is CC BY-NC-ND 4.0. The derived event table must not be
 committed or redistributed; it is written to ``output/`` (git-ignored) or to a
 Google Drive folder on Colab. ``splits.json`` holds only take identifiers.

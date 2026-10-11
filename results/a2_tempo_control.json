@@ -1,0 +1,1010 @@
+{
+  "tempo_band_s": [
+    1.3663999999999916,
+    1.6437333364999984
+  ],
+  "results": {
+    "1": {
+      "all_windows": {
+        "n_windows": 1941,
+        "takes_per_piece": {
+          "Manjanin": 4,
+          "Maraka": 6,
+          "Woloso": 5
+        },
+        "tempo": {
+          "nearest_centroid": {
+            "n_windows": 1941,
+            "balanced_accuracy": 0.6070168180588087,
+            "ci95_bootstrap_takes": [
+              0.5414747217260003,
+              0.6653965739704952
+            ],
+            "take_vote_accuracy": 0.7333333333333333,
+            "worst_take": {
+              "take_id": "Maraka_4",
+              "window_accuracy": 0.23255813953488372
+            }
+          },
+          "logistic_regression": {
+            "n_windows": 1941,
+            "balanced_accuracy": 0.42509556537550325,
+            "ci95_bootstrap_takes": [
+              0.3941531741058222,
+              0.46417416140260925
+            ],
+            "take_vote_accuracy": 0.4,
+            "worst_take": {
+              "take_id": "Woloso_2",
+              "window_accuracy": 0.1
+            }
+          }
+        },
+        "d1_pattern": {
+          "nearest_centroid": {
+            "n_windows": 1941,
+            "balanced_accuracy": 0.9249815818245056,
+            "ci95_bootstrap_takes": [
+              0.8456687752071452,
+              0.9803512420009628
+            ],
+            "take_vote_accuracy": 1.0,
+            "worst_take": {
+              "take_id": "Woloso_2",
+              "window_accuracy": 0.5333333333333333
+            }
+          },
+          "logistic_regression": {
+            "n_windows": 1941,
+            "balanced_accuracy": 0.9887091439190971,
+            "ci95_bootstrap_takes": [
+              0.9714786035057468,
+              0.9980523295680548
+            ],
+            "take_vote_accuracy": 1.0,
+            "worst_take": {
+              "take_id": "Maraka_4",
+              "window_accuracy": 0.8372093023255814
+            }
+          }
+        },
+        "jembe_timing12": {
+          "nearest_centroid": {
+            "n_windows": 1941,
+            "balanced_accuracy": 0.7700223389181398,
+            "ci95_bootstrap_takes": [
+              0.6266051969825149,
+              0.8834072203687504
+            ],
+            "take_vote_accuracy": 0.9333333333333333,
+            "worst_take": {
+              "take_id": "Manjanin_1",
+              "window_accuracy": 0.08294930875576037
+            }
+          },
+          "logistic_regression": {
+            "n_windows": 1941,
+            "balanced_accuracy": 0.7624284308576689,
+            "ci95_bootstrap_takes": [
+              0.6463037131757,
+              0.8627892029777755
+            ],
+            "take_vote_accuracy": 0.8666666666666667,
+            "worst_take": {
+              "take_id": "Manjanin_1",
+              "window_accuracy": 0.2764976958525346
+            }
+          }
+        },
+        "jembe_feel3": {
+          "nearest_centroid": {
+            "n_windows": 1941,
+            "balanced_accuracy": 0.7953249345939858,
+            "ci95_bootstrap_takes": [
+              0.6537669162918354,
+              0.8922207181168955
+            ],
+            "take_vote_accuracy": 0.9333333333333333,
+            "worst_take": {
+              "take_id": "Manjanin_1",
+              "window_accuracy": 0.06451612903225806
+            }
+          },
+          "logistic_regression": {
+            "n_windows": 1941,
+            "balanced_accuracy": 0.7724346464626403,
+            "ci95_bootstrap_takes": [
+              0.6693243718474238,
+              0.8709896545940764
+            ],
+            "take_vote_accuracy": 0.9333333333333333,
+            "worst_take": {
+              "take_id": "Manjanin_1",
+              "window_accuracy": 0.271889400921659
+            }
+          }
+        }
+      },
+      "tempo_band": {
+        "n_windows": 971,
+        "takes_per_piece": {
+          "Manjanin": 4,
+          "Maraka": 6,
+          "Woloso": 5
+        },
+        "tempo": {
+          "nearest_centroid": {
+            "n_windows": 971,
+            "balanced_accuracy": 0.4840831290443693,
+            "ci95_bootstrap_takes": [
+              0.4033430228348846,
+              0.5744268502650093
+            ],
+            "take_vote_accuracy": 0.4,
+            "worst_take": {
+              "take_id": "Maraka_4",
+              "window_accuracy": 0.0
+            }
+          },
+          "logistic_regression": {
+            "n_windows": 971,
+            "balanced_accuracy": 0.3473530775856357,
+            "ci95_bootstrap_takes": [
+              0.3039347596764287,
+              0.387289699295082
+            ],
+            "take_vote_accuracy": 0.3333333333333333,
+            "worst_take": {
+              "take_id": "Woloso_1",
+              "window_accuracy": 0.0
+            }
+          }
+        },
+        "d1_pattern": {
+          "nearest_centroid": {
+            "n_windows": 971,
+            "balanced_accuracy": 0.8151366789065687,
+            "ci95_bootstrap_takes": [
+              0.7871137186933231,
+              0.8368500807607332
+            ],
+            "take_vote_accuracy": 0.8,
+            "worst_take": {
+              "take_id": "Woloso_1",
+              "window_accuracy": 0.4838709677419355
+            }
+          },
+          "logistic_regression": {
+            "n_windows": 971,
+            "balanced_accuracy": 0.9928192574459404,
+            "ci95_bootstrap_takes": [
+              0.9841175479981531,
+              0.9981982792144662
+            ],
+            "take_vote_accuracy": 1.0,
+            "worst_take": {
+              "take_id": "Maraka_5",
+              "window_accuracy": 0.9375
+            }
+          }
+        },
+        "jembe_timing12": {
+          "nearest_centroid": {
+            "n_windows": 971,
+            "balanced_accuracy": 0.7677997584566333,
+            "ci95_bootstrap_takes": [
+              0.63241146727607,
+              0.8723758818650131
+            ],
+            "take_vote_accuracy": 0.9333333333333333,
+            "worst_take": {
+              "take_id": "Manjanin_1",
+              "window_accuracy": 0.11235955056179775
+            }
+          },
+          "logistic_regression": {
+            "n_windows": 971,
+            "balanced_accuracy": 0.7590745564633773,
+            "ci95_bootstrap_takes": [
+              0.6643020232229325,
+              0.8581839012967506
+            ],
+            "take_vote_accuracy": 0.8666666666666667,
+            "worst_take": {
+              "take_id": "Manjanin_1",
+              "window_accuracy": 0.3707865168539326
+            }
+          }
+        },
+        "jembe_feel3": {
+          "nearest_centroid": {
+            "n_windows": 971,
+            "balanced_accuracy": 0.7973682466950521,
+            "ci95_bootstrap_takes": [
+              0.6650813877429901,
+              0.9058580255004685
+            ],
+            "take_vote_accuracy": 0.9333333333333333,
+            "worst_take": {
+              "take_id": "Manjanin_1",
+              "window_accuracy": 0.11235955056179775
+            }
+          },
+          "logistic_regression": {
+            "n_windows": 971,
+            "balanced_accuracy": 0.7492520641031453,
+            "ci95_bootstrap_takes": [
+              0.6575177521963659,
+              0.8504478521484446
+            ],
+            "take_vote_accuracy": 0.8666666666666667,
+            "worst_take": {
+              "take_id": "Woloso_4",
+              "window_accuracy": 0.25925925925925924
+            }
+          }
+        }
+      },
+      "tempo_regressed_out": {
+        "n_windows": 1941,
+        "takes_per_piece": {
+          "Manjanin": 4,
+          "Maraka": 6,
+          "Woloso": 5
+        },
+        "d1_pattern": {
+          "nearest_centroid": {
+            "n_windows": 1941,
+            "balanced_accuracy": 0.8594405190828208,
+            "ci95_bootstrap_takes": [
+              0.8149887061308805,
+              0.8962352409270595
+            ],
+            "take_vote_accuracy": 1.0,
+            "worst_take": {
+              "take_id": "Woloso_5",
+              "window_accuracy": 0.6029411764705882
+            }
+          },
+          "logistic_regression": {
+            "n_windows": 1941,
+            "balanced_accuracy": 0.9953573341598224,
+            "ci95_bootstrap_takes": [
+              0.9912058818660701,
+              0.9985632183908045
+            ],
+            "take_vote_accuracy": 1.0,
+            "worst_take": {
+              "take_id": "Maraka_3",
+              "window_accuracy": 0.9791666666666666
+            }
+          }
+        },
+        "jembe_timing12": {
+          "nearest_centroid": {
+            "n_windows": 1941,
+            "balanced_accuracy": 0.7238809203816979,
+            "ci95_bootstrap_takes": [
+              0.6052626495545819,
+              0.8344668256720696
+            ],
+            "take_vote_accuracy": 0.9333333333333333,
+            "worst_take": {
+              "take_id": "Manjanin_1",
+              "window_accuracy": 0.05069124423963134
+            }
+          },
+          "logistic_regression": {
+            "n_windows": 1941,
+            "balanced_accuracy": 0.7141368189579698,
+            "ci95_bootstrap_takes": [
+              0.5966404661257664,
+              0.8071171685210754
+            ],
+            "take_vote_accuracy": 0.8666666666666667,
+            "worst_take": {
+              "take_id": "Manjanin_1",
+              "window_accuracy": 0.17972350230414746
+            }
+          }
+        },
+        "jembe_feel3": {
+          "nearest_centroid": {
+            "n_windows": 1941,
+            "balanced_accuracy": 0.7455497428281254,
+            "ci95_bootstrap_takes": [
+              0.6161954960443116,
+              0.8456985988659504
+            ],
+            "take_vote_accuracy": 0.9333333333333333,
+            "worst_take": {
+              "take_id": "Manjanin_1",
+              "window_accuracy": 0.041474654377880185
+            }
+          },
+          "logistic_regression": {
+            "n_windows": 1941,
+            "balanced_accuracy": 0.7042414254700414,
+            "ci95_bootstrap_takes": [
+              0.5768977343723212,
+              0.8011816165703259
+            ],
+            "take_vote_accuracy": 0.8,
+            "worst_take": {
+              "take_id": "Manjanin_1",
+              "window_accuracy": 0.14285714285714285
+            }
+          }
+        }
+      }
+    },
+    "2": {
+      "all_windows": {
+        "n_windows": 969,
+        "takes_per_piece": {
+          "Manjanin": 4,
+          "Maraka": 6,
+          "Woloso": 5
+        },
+        "tempo": {
+          "nearest_centroid": {
+            "n_windows": 969,
+            "balanced_accuracy": 0.5847070535584098,
+            "ci95_bootstrap_takes": [
+              0.5219731957333388,
+              0.6359581806411088
+            ],
+            "take_vote_accuracy": 0.7333333333333333,
+            "worst_take": {
+              "take_id": "Maraka_4",
+              "window_accuracy": 0.18604651162790697
+            }
+          },
+          "logistic_regression": {
+            "n_windows": 969,
+            "balanced_accuracy": 0.4368854389516043,
+            "ci95_bootstrap_takes": [
+              0.40133740039532506,
+              0.4818137814966295
+            ],
+            "take_vote_accuracy": 0.4,
+            "worst_take": {
+              "take_id": "Woloso_2",
+              "window_accuracy": 0.1
+            }
+          }
+        },
+        "d1_pattern": {
+          "nearest_centroid": {
+            "n_windows": 969,
+            "balanced_accuracy": 0.9648751891982797,
+            "ci95_bootstrap_takes": [
+              0.9249410184102954,
+              0.991825715964539
+            ],
+            "take_vote_accuracy": 1.0,
+            "worst_take": {
+              "take_id": "Maraka_4",
+              "window_accuracy": 0.627906976744186
+            }
+          },
+          "logistic_regression": {
+            "n_windows": 969,
+            "balanced_accuracy": 0.9957792574855256,
+            "ci95_bootstrap_takes": [
+              0.989984303214292,
+              1.0
+            ],
+            "take_vote_accuracy": 1.0,
+            "worst_take": {
+              "take_id": "Maraka_4",
+              "window_accuracy": 0.9534883720930233
+            }
+          }
+        },
+        "jembe_timing12": {
+          "nearest_centroid": {
+            "n_windows": 969,
+            "balanced_accuracy": 0.8059545193581664,
+            "ci95_bootstrap_takes": [
+              0.6609300733265729,
+              0.9223503466359891
+            ],
+            "take_vote_accuracy": 0.9333333333333333,
+            "worst_take": {
+              "take_id": "Manjanin_1",
+              "window_accuracy": 0.027777777777777776
+            }
+          },
+          "logistic_regression": {
+            "n_windows": 969,
+            "balanced_accuracy": 0.785440480104488,
+            "ci95_bootstrap_takes": [
+              0.663399018354005,
+              0.8929674508096106
+            ],
+            "take_vote_accuracy": 0.8666666666666667,
+            "worst_take": {
+              "take_id": "Manjanin_1",
+              "window_accuracy": 0.28703703703703703
+            }
+          }
+        },
+        "jembe_feel3": {
+          "nearest_centroid": {
+            "n_windows": 969,
+            "balanced_accuracy": 0.8154081642297292,
+            "ci95_bootstrap_takes": [
+              0.6664051942297509,
+              0.9263557208236126
+            ],
+            "take_vote_accuracy": 0.9333333333333333,
+            "worst_take": {
+              "take_id": "Manjanin_1",
+              "window_accuracy": 0.046296296296296294
+            }
+          },
+          "logistic_regression": {
+            "n_windows": 969,
+            "balanced_accuracy": 0.8259634732978798,
+            "ci95_bootstrap_takes": [
+              0.7095930402884258,
+              0.9229355722332959
+            ],
+            "take_vote_accuracy": 0.9333333333333333,
+            "worst_take": {
+              "take_id": "Manjanin_1",
+              "window_accuracy": 0.25
+            }
+          }
+        }
+      },
+      "tempo_band": {
+        "n_windows": 427,
+        "takes_per_piece": {
+          "Manjanin": 4,
+          "Maraka": 6,
+          "Woloso": 5
+        },
+        "tempo": {
+          "nearest_centroid": {
+            "n_windows": 427,
+            "balanced_accuracy": 0.47953964194373394,
+            "ci95_bootstrap_takes": [
+              0.3943336125890368,
+              0.5634453441249782
+            ],
+            "take_vote_accuracy": 0.4666666666666667,
+            "worst_take": {
+              "take_id": "Woloso_5",
+              "window_accuracy": 0.0
+            }
+          },
+          "logistic_regression": {
+            "n_windows": 427,
+            "balanced_accuracy": 0.32310315430520037,
+            "ci95_bootstrap_takes": [
+              0.2818063768674379,
+              0.35602317791648447
+            ],
+            "take_vote_accuracy": 0.3333333333333333,
+            "worst_take": {
+              "take_id": "Woloso_1",
+              "window_accuracy": 0.0
+            }
+          }
+        },
+        "d1_pattern": {
+          "nearest_centroid": {
+            "n_windows": 427,
+            "balanced_accuracy": 0.9820261437908497,
+            "ci95_bootstrap_takes": [
+              0.9558195548150047,
+              0.9975406487641519
+            ],
+            "take_vote_accuracy": 1.0,
+            "worst_take": {
+              "take_id": "Maraka_4",
+              "window_accuracy": 0.7407407407407407
+            }
+          },
+          "logistic_regression": {
+            "n_windows": 427,
+            "balanced_accuracy": 0.9950980392156863,
+            "ci95_bootstrap_takes": [
+              0.9862068965517241,
+              1.0
+            ],
+            "take_vote_accuracy": 1.0,
+            "worst_take": {
+              "take_id": "Maraka_4",
+              "window_accuracy": 0.9259259259259259
+            }
+          }
+        },
+        "jembe_timing12": {
+          "nearest_centroid": {
+            "n_windows": 427,
+            "balanced_accuracy": 0.7875816993464052,
+            "ci95_bootstrap_takes": [
+              0.6538995907675121,
+              0.9018450922136475
+            ],
+            "take_vote_accuracy": 0.9333333333333333,
+            "worst_take": {
+              "take_id": "Manjanin_1",
+              "window_accuracy": 0.10810810810810811
+            }
+          },
+          "logistic_regression": {
+            "n_windows": 427,
+            "balanced_accuracy": 0.7656578573458369,
+            "ci95_bootstrap_takes": [
+              0.6786043774107245,
+              0.889203030454536
+            ],
+            "take_vote_accuracy": 0.9333333333333333,
+            "worst_take": {
+              "take_id": "Woloso_3",
+              "window_accuracy": 0.41935483870967744
+            }
+          }
+        },
+        "jembe_feel3": {
+          "nearest_centroid": {
+            "n_windows": 427,
+            "balanced_accuracy": 0.8065927820403523,
+            "ci95_bootstrap_takes": [
+              0.6609533370525668,
+              0.9273486631462087
+            ],
+            "take_vote_accuracy": 0.9333333333333333,
+            "worst_take": {
+              "take_id": "Manjanin_1",
+              "window_accuracy": 0.08108108108108109
+            }
+          },
+          "logistic_regression": {
+            "n_windows": 427,
+            "balanced_accuracy": 0.8017760727479398,
+            "ci95_bootstrap_takes": [
+              0.6930011305442206,
+              0.9008894314326408
+            ],
+            "take_vote_accuracy": 0.8666666666666667,
+            "worst_take": {
+              "take_id": "Woloso_4",
+              "window_accuracy": 0.2916666666666667
+            }
+          }
+        }
+      },
+      "tempo_regressed_out": {
+        "n_windows": 969,
+        "takes_per_piece": {
+          "Manjanin": 4,
+          "Maraka": 6,
+          "Woloso": 5
+        },
+        "d1_pattern": {
+          "nearest_centroid": {
+            "n_windows": 969,
+            "balanced_accuracy": 0.9320214740775489,
+            "ci95_bootstrap_takes": [
+              0.8912841980165819,
+              0.9602055334519064
+            ],
+            "take_vote_accuracy": 1.0,
+            "worst_take": {
+              "take_id": "Maraka_4",
+              "window_accuracy": 0.6744186046511628
+            }
+          },
+          "logistic_regression": {
+            "n_windows": 969,
+            "balanced_accuracy": 0.9951038830264259,
+            "ci95_bootstrap_takes": [
+              0.9897178254641352,
+              0.9991323329603582
+            ],
+            "take_vote_accuracy": 1.0,
+            "worst_take": {
+              "take_id": "Manjanin_1",
+              "window_accuracy": 0.9722222222222222
+            }
+          }
+        },
+        "jembe_timing12": {
+          "nearest_centroid": {
+            "n_windows": 969,
+            "balanced_accuracy": 0.7527494477017577,
+            "ci95_bootstrap_takes": [
+              0.6184987449968543,
+              0.8678543830513855
+            ],
+            "take_vote_accuracy": 0.9333333333333333,
+            "worst_take": {
+              "take_id": "Manjanin_1",
+              "window_accuracy": 0.037037037037037035
+            }
+          },
+          "logistic_regression": {
+            "n_windows": 969,
+            "balanced_accuracy": 0.7358888331187301,
+            "ci95_bootstrap_takes": [
+              0.6087629850644731,
+              0.8478196888883122
+            ],
+            "take_vote_accuracy": 0.8666666666666667,
+            "worst_take": {
+              "take_id": "Manjanin_1",
+              "window_accuracy": 0.14814814814814814
+            }
+          }
+        },
+        "jembe_feel3": {
+          "nearest_centroid": {
+            "n_windows": 969,
+            "balanced_accuracy": 0.7562948157571322,
+            "ci95_bootstrap_takes": [
+              0.6095953141845344,
+              0.8635124935105657
+            ],
+            "take_vote_accuracy": 0.9333333333333333,
+            "worst_take": {
+              "take_id": "Manjanin_1",
+              "window_accuracy": 0.027777777777777776
+            }
+          },
+          "logistic_regression": {
+            "n_windows": 969,
+            "balanced_accuracy": 0.7489679299736239,
+            "ci95_bootstrap_takes": [
+              0.6101616370723553,
+              0.8722398782650627
+            ],
+            "take_vote_accuracy": 0.8,
+            "worst_take": {
+              "take_id": "Manjanin_1",
+              "window_accuracy": 0.1111111111111111
+            }
+          }
+        }
+      }
+    },
+    "4": {
+      "all_windows": {
+        "n_windows": 481,
+        "takes_per_piece": {
+          "Manjanin": 4,
+          "Maraka": 6,
+          "Woloso": 5
+        },
+        "tempo": {
+          "nearest_centroid": {
+            "n_windows": 481,
+            "balanced_accuracy": 0.5758703519094858,
+            "ci95_bootstrap_takes": [
+              0.5256888631159382,
+              0.638580503144402
+            ],
+            "take_vote_accuracy": 0.6,
+            "worst_take": {
+              "take_id": "Maraka_4",
+              "window_accuracy": 0.23809523809523808
+            }
+          },
+          "logistic_regression": {
+            "n_windows": 481,
+            "balanced_accuracy": 0.4272141917374484,
+            "ci95_bootstrap_takes": [
+              0.3897004478663341,
+              0.47925038197995506
+            ],
+            "take_vote_accuracy": 0.4666666666666667,
+            "worst_take": {
+              "take_id": "Woloso_4",
+              "window_accuracy": 0.13043478260869565
+            }
+          }
+        },
+        "d1_pattern": {
+          "nearest_centroid": {
+            "n_windows": 481,
+            "balanced_accuracy": 0.9685534591194968,
+            "ci95_bootstrap_takes": [
+              0.9269152714358194,
+              0.993268505955073
+            ],
+            "take_vote_accuracy": 1.0,
+            "worst_take": {
+              "take_id": "Maraka_4",
+              "window_accuracy": 0.6190476190476191
+            }
+          },
+          "logistic_regression": {
+            "n_windows": 481,
+            "balanced_accuracy": 0.9979035639412999,
+            "ci95_bootstrap_takes": [
+              0.9925373134328358,
+              1.0
+            ],
+            "take_vote_accuracy": 1.0,
+            "worst_take": {
+              "take_id": "Maraka_4",
+              "window_accuracy": 0.9523809523809523
+            }
+          }
+        },
+        "jembe_timing12": {
+          "nearest_centroid": {
+            "n_windows": 481,
+            "balanced_accuracy": 0.8393637951436167,
+            "ci95_bootstrap_takes": [
+              0.6823754775348645,
+              0.9546670942518486
+            ],
+            "take_vote_accuracy": 0.9333333333333333,
+            "worst_take": {
+              "take_id": "Manjanin_1",
+              "window_accuracy": 0.037037037037037035
+            }
+          },
+          "logistic_regression": {
+            "n_windows": 481,
+            "balanced_accuracy": 0.8156048055933779,
+            "ci95_bootstrap_takes": [
+              0.6776268867334211,
+              0.9411422753631331
+            ],
+            "take_vote_accuracy": 0.8666666666666667,
+            "worst_take": {
+              "take_id": "Manjanin_1",
+              "window_accuracy": 0.2222222222222222
+            }
+          }
+        },
+        "jembe_feel3": {
+          "nearest_centroid": {
+            "n_windows": 481,
+            "balanced_accuracy": 0.8433734654952559,
+            "ci95_bootstrap_takes": [
+              0.6961171840480478,
+              0.9483863568125863
+            ],
+            "take_vote_accuracy": 0.9333333333333333,
+            "worst_take": {
+              "take_id": "Manjanin_1",
+              "window_accuracy": 0.1111111111111111
+            }
+          },
+          "logistic_regression": {
+            "n_windows": 481,
+            "balanced_accuracy": 0.8643614650197756,
+            "ci95_bootstrap_takes": [
+              0.745630031091272,
+              0.9515503060739909
+            ],
+            "take_vote_accuracy": 0.9333333333333333,
+            "worst_take": {
+              "take_id": "Manjanin_1",
+              "window_accuracy": 0.24074074074074073
+            }
+          }
+        }
+      },
+      "tempo_band": {
+        "n_windows": 189,
+        "takes_per_piece": {
+          "Manjanin": 4,
+          "Maraka": 6,
+          "Woloso": 4
+        },
+        "tempo": {
+          "nearest_centroid": {
+            "n_windows": 189,
+            "balanced_accuracy": 0.439028314028314,
+            "ci95_bootstrap_takes": [
+              0.3509874743580048,
+              0.5434461390406357
+            ],
+            "take_vote_accuracy": 0.42857142857142855,
+            "worst_take": {
+              "take_id": "Maraka_2",
+              "window_accuracy": 0.0
+            }
+          },
+          "logistic_regression": {
+            "n_windows": 189,
+            "balanced_accuracy": 0.2876984126984127,
+            "ci95_bootstrap_takes": [
+              0.2247815916603102,
+              0.33603587962962966
+            ],
+            "take_vote_accuracy": 0.35714285714285715,
+            "worst_take": {
+              "take_id": "Manjanin_1",
+              "window_accuracy": 0.0
+            }
+          }
+        },
+        "d1_pattern": {
+          "nearest_centroid": {
+            "n_windows": 189,
+            "balanced_accuracy": 0.9826388888888888,
+            "ci95_bootstrap_takes": [
+              0.9577446158432074,
+              0.9972222222222222
+            ],
+            "take_vote_accuracy": 1.0,
+            "worst_take": {
+              "take_id": "Maraka_4",
+              "window_accuracy": 0.7692307692307693
+            }
+          },
+          "logistic_regression": {
+            "n_windows": 189,
+            "balanced_accuracy": 0.9930555555555555,
+            "ci95_bootstrap_takes": [
+              0.9819694694694695,
+              1.0
+            ],
+            "take_vote_accuracy": 1.0,
+            "worst_take": {
+              "take_id": "Maraka_5",
+              "window_accuracy": 0.8888888888888888
+            }
+          }
+        },
+        "jembe_timing12": {
+          "nearest_centroid": {
+            "n_windows": 189,
+            "balanced_accuracy": 0.8178759116259116,
+            "ci95_bootstrap_takes": [
+              0.6749298061950223,
+              0.9539718339028684
+            ],
+            "take_vote_accuracy": 0.9285714285714286,
+            "worst_take": {
+              "take_id": "Manjanin_1",
+              "window_accuracy": 0.06666666666666667
+            }
+          },
+          "logistic_regression": {
+            "n_windows": 189,
+            "balanced_accuracy": 0.7559925997425997,
+            "ci95_bootstrap_takes": [
+              0.6588947677836566,
+              0.903308167344899
+            ],
+            "take_vote_accuracy": 0.8571428571428571,
+            "worst_take": {
+              "take_id": "Woloso_4",
+              "window_accuracy": 0.18181818181818182
+            }
+          }
+        },
+        "jembe_feel3": {
+          "nearest_centroid": {
+            "n_windows": 189,
+            "balanced_accuracy": 0.8486298798798799,
+            "ci95_bootstrap_takes": [
+              0.7092879169492072,
+              0.9688510184694238
+            ],
+            "take_vote_accuracy": 0.9285714285714286,
+            "worst_take": {
+              "take_id": "Manjanin_1",
+              "window_accuracy": 0.2
+            }
+          },
+          "logistic_regression": {
+            "n_windows": 189,
+            "balanced_accuracy": 0.8708842771342772,
+            "ci95_bootstrap_takes": [
+              0.7877935165864066,
+              0.9385057471264369
+            ],
+            "take_vote_accuracy": 1.0,
+            "worst_take": {
+              "take_id": "Manjanin_1",
+              "window_accuracy": 0.5333333333333333
+            }
+          }
+        }
+      },
+      "tempo_regressed_out": {
+        "n_windows": 481,
+        "takes_per_piece": {
+          "Manjanin": 4,
+          "Maraka": 6,
+          "Woloso": 5
+        },
+        "d1_pattern": {
+          "nearest_centroid": {
+            "n_windows": 481,
+            "balanced_accuracy": 0.9373034591194968,
+            "ci95_bootstrap_takes": [
+              0.8976132270567129,
+              0.9650272183504209
+            ],
+            "take_vote_accuracy": 1.0,
+            "worst_take": {
+              "take_id": "Maraka_4",
+              "window_accuracy": 0.6666666666666666
+            }
+          },
+          "logistic_regression": {
+            "n_windows": 481,
+            "balanced_accuracy": 0.9956776202749141,
+            "ci95_bootstrap_takes": [
+              0.9904431886602671,
+              1.0
+            ],
+            "take_vote_accuracy": 1.0,
+            "worst_take": {
+              "take_id": "Woloso_3",
+              "window_accuracy": 0.9642857142857143
+            }
+          }
+        },
+        "jembe_timing12": {
+          "nearest_centroid": {
+            "n_windows": 481,
+            "balanced_accuracy": 0.7743015031662669,
+            "ci95_bootstrap_takes": [
+              0.6256211034071576,
+              0.8958961510111063
+            ],
+            "take_vote_accuracy": 0.9333333333333333,
+            "worst_take": {
+              "take_id": "Manjanin_1",
+              "window_accuracy": 0.037037037037037035
+            }
+          },
+          "logistic_regression": {
+            "n_windows": 481,
+            "balanced_accuracy": 0.7722515007348333,
+            "ci95_bootstrap_takes": [
+              0.6351809523290392,
+              0.8911180545223099
+            ],
+            "take_vote_accuracy": 0.8666666666666667,
+            "worst_take": {
+              "take_id": "Manjanin_1",
+              "window_accuracy": 0.1111111111111111
+            }
+          }
+        },
+        "jembe_feel3": {
+          "nearest_centroid": {
+            "n_windows": 481,
+            "balanced_accuracy": 0.7738577665391514,
+            "ci95_bootstrap_takes": [
+              0.6294892412549667,
+              0.8886906584012746
+            ],
+            "take_vote_accuracy": 0.9333333333333333,
+            "worst_take": {
+              "take_id": "Manjanin_1",
+              "window_accuracy": 0.07407407407407407
+            }
+          },
+          "logistic_regression": {
+            "n_windows": 481,
+            "balanced_accuracy": 0.776088269143487,
+            "ci95_bootstrap_takes": [
+              0.6446910967586902,
+              0.8966756218407074
+            ],
+            "take_vote_accuracy": 0.8666666666666667,
+            "worst_take": {
+              "take_id": "Manjanin_1",
+              "window_accuracy": 0.09259259259259259
+            }
+          }
+        }
+      }
+    }
+  }
+}
