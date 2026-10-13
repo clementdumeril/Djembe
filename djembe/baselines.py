@@ -19,6 +19,11 @@ for the intensity. Nothing depends on what happened before.
   instrument's previous stroke (within the last 12 pulses), which captures drift and
   the persistence of a player's timing.
 
+``MarkovModel(memory_scope="cycle")`` only remembers strokes of earlier cycles: it is
+the fair reference for the "humanise a cycle" task, where no offset of the target
+cycle is known. ``nll`` also returns the cycle index of every scored item
+(``*_cyc``), so that scores can be restricted to the cycles another model is scored on.
+
 Offsets are scored only where |delta| <= 0.5 (3.5 % of strokes sit further from their
 nominal pulse and are kept as annotated but not used as targets).
 """
@@ -93,8 +98,10 @@ class PositionModel:
         return np.array([self.p.get((piece, i, kk), 0.5) for kk in range(12)])[k]
 
     def nll(self, g: TakeGrid) -> dict:
-        out = {key: [] for key in ("hit", "delta", "intensity", "hit_inst", "delta_inst", "intensity_inst")}
+        out = {key: [] for key in ("hit", "delta", "intensity", "hit_inst", "delta_inst", "intensity_inst",
+                                   "hit_cyc", "delta_cyc", "intensity_cyc")}
         for i, h, d, I, k in _lines(g):
+            cyc = np.arange(h.size) // 12
             out["hit"].append(_bern_nll(h, self.p_hit(g.piece, i, k)))
             ok = h > 0
             okd = ok & (np.abs(d) <= DELTA_MAX)
@@ -102,8 +109,9 @@ class PositionModel:
             out["delta"].append(_gauss_nll(d[okd], mu[okd], sd[okd]))
             mu, sd = self.mu_sd("I", g.piece, i, k)
             out["intensity"].append(_gauss_nll(I[ok], mu[ok], sd[ok]))
-            for key, n in (("hit", h.size), ("delta", okd.sum()), ("intensity", ok.sum())):
-                out[key + "_inst"].append(np.full(n, i))
+            for key, m in (("hit", np.ones_like(ok)), ("delta", okd), ("intensity", ok)):
+                out[key + "_inst"].append(np.full(m.sum(), i))
+                out[key + "_cyc"].append(cyc[m])
         return {key: np.concatenate(v) for key, v in out.items()}
 
     def sample_delta(self, g: TakeGrid, rng) -> dict:
@@ -118,17 +126,25 @@ class PositionModel:
 class MarkovModel:
     """B2: order-2 strike chain shrunk towards B1, AR(1) on offset and intensity residuals."""
 
-    def __init__(self, alpha: float = 5.0, memory: int = 12):
-        self.alpha, self.memory = alpha, memory
+    def __init__(self, alpha: float = 5.0, memory: int = 12, memory_scope: str = "stroke"):
+        self.alpha, self.memory, self.memory_scope = alpha, memory, memory_scope
         self.base = PositionModel()
 
-    @staticmethod
-    def _prev_residual(h, r, memory):
-        """Residual of the instrument's previous stroke within ``memory`` pulses (0 if none)."""
+    def _prev_residual(self, h, r, memory):
+        """Residual of the instrument's previous stroke within ``memory`` pulses (0 if none).
+
+        With ``memory_scope="cycle"`` the memory is frozen at the start of each cycle, so a
+        stroke only sees the last stroke of an earlier cycle."""
         prev = np.zeros_like(r)
         last_t, last_r = -10 ** 9, 0.0
+        seen_t, seen_r = last_t, last_r
         for t in range(len(h)):
-            prev[t] = last_r if t - last_t <= memory else 0.0
+            if self.memory_scope == "cycle":
+                if t % 12 == 0:
+                    seen_t, seen_r = last_t, last_r
+                prev[t] = seen_r if t - seen_t <= memory + t % 12 else 0.0
+            else:
+                prev[t] = last_r if t - last_t <= memory else 0.0
             if h[t] > 0:
                 last_t, last_r = t, r[t]
         return prev
@@ -186,12 +202,15 @@ class MarkovModel:
         return rho, sd
 
     def nll(self, g: TakeGrid) -> dict:
-        out = {key: [] for key in ("hit", "delta", "intensity", "hit_inst", "delta_inst", "intensity_inst")}
+        out = {key: [] for key in ("hit", "delta", "intensity", "hit_inst", "delta_inst", "intensity_inst",
+                                   "hit_cyc", "delta_cyc", "intensity_cyc")}
         for i, h, d, I, k in _lines(g):
+            cyc = np.arange(h.size) // 12
             h1 = np.concatenate([[0], h[:-1]])
             h2 = np.concatenate([[0, 0], h[:-2]])
             out["hit"].append(_bern_nll(h, self.p_hit(g.piece, i, k, h1, h2)))
             out["hit_inst"].append(np.full(h.size, i))
+            out["hit_cyc"].append(cyc)
             for name, x, key in (("d", d, "delta"), ("I", I, "intensity")):
                 mu, r = self._residuals(g, i, h, x, k, name)
                 prev = self._prev_residual(h, r, self.memory)
@@ -201,6 +220,7 @@ class MarkovModel:
                     ok &= np.abs(d) <= DELTA_MAX
                 out[key].append(_gauss_nll(x[ok], mu[ok] + rho * prev[ok], sd[ok]))
                 out[key + "_inst"].append(np.full(ok.sum(), i))
+                out[key + "_cyc"].append(cyc[ok])
         return {key: np.concatenate(v) for key, v in out.items()}
 
     def sample_delta(self, g: TakeGrid, rng) -> dict:
