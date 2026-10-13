@@ -27,10 +27,43 @@ These intervals rest on 4 to 6 takes per piece and resample fixed predictions wi
 
 The jembe *pattern* (which pulses are played) is at or below chance for short windows. My working hypothesis: takes differ more by who plays which part than pieces do, so the classifier learns take-specific habits that do not transfer to the held-out take. The worst take for the timing features is Manjanin_1 (about 25 % of its windows correct); I have not found out why yet.
 
+## Symmetry check: do the four beats share one feel?
+
+Before any model, the data has to say which symmetry is worth building in. A 12-pulse cycle is four beats of three pulses. If the feel were the same on every beat (the cycle unchanged when rotated by one beat, the group C4), the mean offset at a pulse would depend only on its position in the beat. [`experiments/symmetry/beat_symmetry.py`](experiments/symmetry/beat_symmetry.py) measures two things per piece and drum, in milliseconds:
+- **feel**: the size of the short-medium-long pattern (spread of the beat-averaged profile over the three pulses);
+- **breach**: how much the four beats differ at the same position.
+
+Breaks, strokes more than half a pulse off and positions with fewer than 30 strokes per beat are left out.
+
+![Mean offset at each pulse of each beat](docs/figures/j1_beat_symmetry.png)
+
+| Piece, drum | Strokes (takes) | Feel | Breach | Breach / feel |
+|---|---|---|---|---|
+| Manjanin, jembe 1 | 5,215 (4) | 8.7 ms | 1.8 ms | 0.21 |
+| Manjanin, jembe 2 | 4,440 (3) | 8.3 ms | 1.4 ms | 0.16 |
+| Maraka, jembe 1 | 4,812 (6) | 6.5 ms | 1.5 ms | 0.23 |
+| Maraka, jembe 2 | 4,092 (5) | 3.3 ms | 2.2 ms | 0.66 |
+| Woloso, jembe 1 | 4,389 (5) | 15.3 ms | 0.8 ms | 0.05 |
+| Woloso, jembe 2 | 3,098 (4) | 19.5 ms | 1.2 ms | 0.06 |
+| Woloso, dundun 1 | 2,313 (5) | 21.6 ms | 5.4 ms | 0.25 |
+| Maraka, dundun 1 | 3,495 (6) | one shared position | 3.8 ms | – |
+
+**What this says:**
+- **The jembe feel is close to beat-symmetric.** The four beats differ by 1 to 2 ms, against a pattern of 3 to 20 ms. The exception is Maraka's second jembe, whose feel is itself almost even, as Polak, London & Jacoby (2016) found for Maraka.
+- **The breach is not zero.** Rotating every cycle by a random number of beats (which makes C4 exact) gives a noise floor of 0.4 to 1.0 ms. For every pair except Woloso's first jembe, the bootstrap interval over takes lies above that floor.
+- **The dundun breaks the symmetry more.** For example, Woloso's dundun plays the last pulse of beat 4 about 17 ms earlier than the same pulse on beats 1 to 3, just before the next cycle starts.
+- **Consequence for the model:**
+  - beat symmetry is a good prior but not an exact law, so it should be built in with a learnable, penalised way to break it, not imposed strictly;
+  - full rotation by one pulse (C12) is clearly wrong, because the feel is several times larger than the breach.
+- **Caveat:** differences of 1 to 2 ms are close to the precision of onset annotation, and they rest on 3 to 6 takes per piece.
+
+Numbers: [`results/j1_beat_symmetry.json`](results/j1_beat_symmetry.json) (in fractions of a pulse, with intervals and noise floors).
+
 ## What is in the repository
 
 - [`djembe/dataset.py`](djembe/dataset.py): downloads the annotations from OSF and builds one event table. Each row is one stroke: take, instrument, player, cycle, subdivision, onset, peak amplitude, offset from the even grid (fraction of a pulse and ms), musical section. Every experiment reads only this table.
 - [`splits.json`](splits.json), [`tests/`](tests/): frozen leave-one-take-out folds and tests that fail if a take ends up on both sides of a split, if a window spans two takes, if a file's take label disagrees with its name, or if any audio is committed. CI runs them on every push.
+- [`djembe/grid.py`](djembe/grid.py): the cycle grid of a take (cycle × 12 pulses × 4 drums × hit, intensity, offset, with tempo as a separate log cycle duration) and the performance graph. It has three edge types: next pulse (a ring of 12), same pulse on another drum, and same pulse one cycle earlier. Tests check that rotating the cycle maps every edge type onto itself, and that each choice of positional input keeps exactly the intended rotations: C12, C4 or none.
 - [`djembe/features.py`](djembe/features.py), [`experiments/recognition/`](experiments/recognition/): windows of 1 to 8 cycles, five feature sets (tempo, dundun pattern, jembe pattern, jembe timing per pulse, jembe feel per position in the beat), the classifiers, the two tempo controls, and a small CNN and transformer on stroke sequences.
 
 **Data notes.** The second dundun (D2) is recorded on 4 takes only (Manjanin 1 and 4, Maraka 6, Woloso 2), and the second jembe is missing on some takes; missing parts are masked, never imputed. Each drum has its own close microphone, so every track also hears the others. The onsets come from the corpus authors' detection and selection, but the peak amplitudes are measured on tracks with that bleed, so intensity is the least reliable variable.
@@ -74,6 +107,7 @@ python experiments/recognition/recognition_baselines.py  # results/a2_recognitio
 python experiments/recognition/tempo_control.py          # results/a2_tempo_control.json, a few minutes
 python experiments/recognition/sequence_models.py --models cnn --out results/a3_sequence_cnn_cpu.json   # about 20 min on 2 threads
 python experiments/recognition/make_figures.py           # docs/figures/
+python experiments/symmetry/beat_symmetry.py             # results/j1_beat_symmetry.json and figure, a few minutes
 ```
 
 ## Credits
