@@ -25,6 +25,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
+from collections import defaultdict
 
 from djembe import dataset as d
 from djembe import grid as gr
@@ -34,25 +35,25 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 class GlobalModel(PositionModel):
-    """Pulse-blind reference: B1 with every pulse pooled."""
+    """Pulse-blind reference: one strike rate and one Gaussian per piece and instrument."""
 
     def fit(self, grids):
-        pooled = []
+        hits, tot = defaultdict(float), defaultdict(float)
+        vals = {"d": defaultdict(list), "I": defaultdict(list)}
         for g in grids:
-            x = g.x.copy()
-            pooled.append(gr.TakeGrid(g.take_id, g.piece, x, g.log_T, g.section, g.in_signal, g.present, g.cycle_idx))
-        super().fit(pooled)
-        # replace every per-pulse entry by the instrument-level pool
-        for key in list(self.p):
-            piece, i, _ = key
-            same = [k for k in self.p if k[:2] == (piece, i)]
-            self.p[key] = float(np.mean([self.p[k] for k in same]))
-        for name in ("d", "I"):
-            for key in [k for k in self.params if k[0] == name]:
-                _, piece, i, _ = key
-                same = [self.params[k] for k in self.params if k[:3] == (name, piece, i)]
-                self.params[key] = (float(np.mean([s[0] for s in same])),
-                                    float(np.sqrt(np.mean([s[1] ** 2 for s in same]) + np.var([s[0] for s in same]))))
+            for i, h, dlt, I, _ in _lines(g):
+                key = (g.piece, i)
+                hits[key] += h.sum()
+                tot[key] += h.size
+                vals["d"][key] += dlt[(h > 0) & (np.abs(dlt) <= 0.5)].tolist()
+                vals["I"][key] += I[h > 0].tolist()
+        self.p, self.params = {}, {}
+        for (piece, i) in tot:
+            for kk in range(12):
+                self.p[(piece, i, kk)] = (hits[(piece, i)] + 0.5) / (tot[(piece, i)] + 1.0)
+                for name in ("d", "I"):
+                    v = np.asarray(vals[name][(piece, i)] or [0.0])
+                    self.params[(name, piece, i, kk)] = (float(v.mean()), max(float(v.std()), self.min_sd))
         return self
 
 

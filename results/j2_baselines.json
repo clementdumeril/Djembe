@@ -27,11 +27,11 @@
     "summary": {
       "main": {
         "global": {
-          "nll_hit": 0.6323653907299289,
-          "nll_delta": -0.38776843565709573,
-          "nll_intensity": 1.4031425293037045,
-          "hist_intersection": 0.6157812645511174,
-          "mean_error_ms": 11.012737046709344,
+          "nll_hit": 0.6549021077426499,
+          "nll_delta": -0.3665902658808225,
+          "nll_intensity": 1.4174549516344976,
+          "hist_intersection": 0.6093462127003753,
+          "mean_error_ms": 11.598526083165694,
           "n_takes": 15
         },
         "B1_position": {
@@ -53,11 +53,11 @@
       },
       "D2": {
         "global": {
-          "nll_hit": 0.6538036580645858,
-          "nll_delta": 0.5734252289132001,
-          "nll_intensity": 1.4184268737054246,
-          "hist_intersection": 0.4827617470215687,
-          "mean_error_ms": 19.024147444186493,
+          "nll_hit": 0.6578643810460761,
+          "nll_delta": 0.552579006487547,
+          "nll_intensity": 1.4183050476860601,
+          "hist_intersection": 0.4894670602721768,
+          "mean_error_ms": 18.683872562569388,
           "n_takes": 4
         },
         "B1_position": {
@@ -84,14 +84,14 @@
           "take": "Manjanin_1",
           "piece": "Manjanin",
           "model": "global",
-          "nll_hit": 0.6242095151630597,
+          "nll_hit": 0.6509405374526978,
           "n_hit": 7812,
-          "nll_delta": -0.26990910851487215,
+          "nll_delta": -0.24842937145993788,
           "n_delta": 4361,
-          "nll_intensity": 1.4056113329198086,
+          "nll_intensity": 1.4186600974345231,
           "n_intensity": 4497,
-          "hist_intersection": 0.686739144138603,
-          "mean_error_ms": 10.788462653100577
+          "hist_intersection": 0.6737273880955122,
+          "mean_error_ms": 11.644519267485059
         },
         {
           "take": "Manjanin_1",
@@ -123,14 +123,14 @@
           "take": "Manjanin_2",
           "piece": "Manjanin",
           "model": "global",
-          "nll_hit": 0.6338222156454312,
+          "nll_hit": 0.6534008979797363,
           "n_hit": 4392,
-          "nll_delta": -0.015825626090347787,
+          "nll_delta": -0.024291711686573358,
           "n_delta": 2385,
-          "nll_intensity": 1.4089976564723194,
+          "nll_intensity": 1.4185346442934486,
           "n_intensity": 2477,
-          "hist_intersection": 0.7256445534419849,
-          "mean_error_ms": 11.061938929818893
+          "hist_intersection": 0.7261040807238828,
+          "mean_error_ms": 10.828402932650485
         },
         {
           "take": "Manjanin_2",
@@ -162,14 +162,14 @@
           "take": "Manjanin_3",
           "piece": "Manjanin",
           "model": "global",
-          "nll_hit": 0.6278604891505309,
+          "nll_hit": 0.6542831659317017,
           "n_hit": 5040,
-          "nll_delta": -0.20612349590716797,
+          "nll_delta": -0.20096637586830104,
           "n_delta": 2811,
-          "nll_intensity": 1.4006587245216662,
+          "nll_intensity": 1.4184565387069392,
           "n_intensity": 2897,
-          "hist_intersection": 0.7373030449665811,
-          "mean_error_ms": 8.355682303401231
+          "hist_intersection": 0.7265445023484334,
+          "mean_error_ms": 8.724086478945418
         },
         {
           "take": "Manjanin_3",
@@ -201,14 +201,14 @@
           "take": "Manjanin_4",
           "piece": "Manjanin",
           "model": "global",
-          "nll_hit": 0.6735113888987913,
+          "nll_hit": 0.700522243976593,
           "n_hit": 8640,
-          "nll_delta": -0.32084010810009983,
+          "nll_delta": -0.29844888411452986,
           "n_delta": 4420,
-          "nll_intensity": 1.395117222345334,
+          "nll_intensity": 1.41066654316804,
           "n_intensity": 4476,
-          "hist_intersection": 0.726736959277471,
-          "mean_error_ms": 9.994807299620264
+          "hist_intersection": 0.7176050411608415,
+          "mean_error_ms": 10.947617841651939
         },
         {
           "take": "Manjanin_4",
@@ -240,14 +240,14 @@
           "take": "Maraka_1",
           "piece": "Maraka",
           "model": "global",
-          "nll_hit": 0.6217812346821507,
+          "nll_hit": 0.6448847651481628,
           "n_hit": 4392,
-          "nll_delta": 0.03116127943832464,
+          "nll_delta": 0.1148347148524506,
           "n_delta": 2668,
-          "nll_intensity": 1.409946434602694,
+          "nll_intensity": 1.41838797726153,
           "n_intensity": 2726,
-          "hist_intersection": 0.6662359408816214,
-          "mean_error_ms": 6.935344895562718
+          "hist_intersection": 0.6599846292642376,
+          "mean_error_ms": 7.225154853487002
         },
         {
           "take": "Maraka_1",
@@ -279,14 +279,14 @@
           "take": "Maraka_2",
           "piece": "Maraka",
           "model": "global",
-          "nll_hit": 0.6255183871593705,
+          "nll_hit": 0.6465291976928711,
           "n_hit": 3024,
-          "nll_delta": -0.6978443282868815,
+          "nll_delta": -0.7034918528190438,
           "n_delta": 1872,
-          "nll_intensity": 1.415016570307181,
+          "nll_intensity": 1.4181396193759435,
           "n_intensity": 1879,
-          "hist_intersection": 0.5650456863357366,
-          "mean_error_ms": 8.948047955107572
+          "hist_intersection": 0.5715530737386301,
+          "mean_error_ms": 8.90020677135019
         },
         {
           "take": "Maraka_2",
@@ -318,14 +318,14 @@
           "take": "Maraka_3",
           "piece": "Maraka",
           "model": "global",
-          "nll_hit": 0.6135049801443886,
+          "nll_hit": 0.6355237364768982,
           "n_hit": 3456,
-          "nll_delta": -0.7246687013042642,
+          "nll_delta": -0.7260937416288167,
           "n_delta": 2191,
-          "nll_intensity": 1.403508800716914,
+          "nll_intensity": 1.4182534330245953,
           "n_intensity": 2191,
-          "hist_intersection": 0.6678875531884199,
-          "mean_error_ms": 6.717276104715036
+          "hist_intersection": 0.6721765546768317,
+          "mean_error_ms": 6.7204282095658066
         },
         {
           "take": "Maraka_3",
@@ -357,14 +357,14 @@
           "take": "Maraka_4",
           "piece": "Maraka",
           "model": "global",
-          "nll_hit": 0.6422939691202278,
+          "nll_hit": 0.6645363569259644,
           "n_hit": 3096,
-          "nll_delta": -0.7296003294394204,
+          "nll_delta": -0.7300705709445181,
           "n_delta": 1800,
-          "nll_intensity": 1.4088210036958015,
+          "nll_intensity": 1.418107311255026,
           "n_intensity": 1806,
-          "hist_intersection": 0.6139028380963241,
-          "mean_error_ms": 6.2784814452071505
+          "hist_intersection": 0.6156336414109334,
+          "mean_error_ms": 6.3632507232947075
         },
         {
           "take": "Maraka_4",
@@ -396,14 +396,14 @@
           "take": "Maraka_5",
           "piece": "Maraka",
           "model": "global",
-          "nll_hit": 0.6461034186730168,
+          "nll_hit": 0.6631342768669128,
           "n_hit": 1968,
-          "nll_delta": -0.6333979080575801,
+          "nll_delta": -0.6253149885687075,
           "n_delta": 1116,
-          "nll_intensity": 1.4131550506842563,
+          "nll_intensity": 1.4180488911658915,
           "n_intensity": 1125,
-          "hist_intersection": 0.5765411872529697,
-          "mean_error_ms": 7.113085406926242
+          "hist_intersection": 0.5691261569496584,
+          "mean_error_ms": 7.62962002551744
         },
         {
           "take": "Maraka_5",
@@ -435,14 +435,14 @@
           "take": "Maraka_6",
           "piece": "Maraka",
           "model": "global",
-          "nll_hit": 0.6703296441809515,
+          "nll_hit": 0.6975694054746061,
           "n_hit": 6228,
-          "nll_delta": -0.6029560739708946,
+          "nll_delta": -0.5947046178592454,
           "n_delta": 3452,
-          "nll_intensity": 1.401617689256758,
+          "nll_intensity": 1.418512437479989,
           "n_intensity": 3521,
-          "hist_intersection": 0.7053565744699123,
-          "mean_error_ms": 5.938696924216211
+          "hist_intersection": 0.7054866513266504,
+          "mean_error_ms": 6.1645807581831455
         },
         {
           "take": "Maraka_6",
@@ -474,14 +474,14 @@
           "take": "Woloso_1",
           "piece": "Woloso",
           "model": "global",
-          "nll_hit": 0.6075610185435486,
+          "nll_hit": 0.6250819563865662,
           "n_hit": 4392,
-          "nll_delta": -0.39545109373874937,
+          "nll_delta": -0.36296783817179445,
           "n_delta": 2593,
-          "nll_intensity": 1.3945011412990649,
+          "nll_intensity": 1.4183603742331428,
           "n_intensity": 2596,
-          "hist_intersection": 0.504358467125556,
-          "mean_error_ms": 19.153815030921326
+          "hist_intersection": 0.4911617806426472,
+          "mean_error_ms": 20.287455332610165
         },
         {
           "take": "Woloso_1",
@@ -513,14 +513,14 @@
           "take": "Woloso_2",
           "piece": "Woloso",
           "model": "global",
-          "nll_hit": 0.6249739447510321,
+          "nll_hit": 0.6453717157589617,
           "n_hit": 4320,
-          "nll_delta": -0.4300382851865154,
+          "nll_delta": -0.389815153394149,
           "n_delta": 2567,
-          "nll_intensity": 1.3974706861828936,
+          "nll_intensity": 1.4183543129594265,
           "n_intensity": 2569,
-          "hist_intersection": 0.5459774792516697,
-          "mean_error_ms": 15.376954786687426
+          "hist_intersection": 0.5298089040912022,
+          "mean_error_ms": 16.703181742563178
         },
         {
           "take": "Woloso_2",
@@ -552,14 +552,14 @@
           "take": "Woloso_3",
           "piece": "Woloso",
           "model": "global",
-          "nll_hit": 0.5608747877695848,
+          "nll_hit": 0.5688303709030151,
           "n_hit": 2736,
-          "nll_delta": -0.48146230292624675,
+          "nll_delta": -0.4484058727622858,
           "n_delta": 1652,
-          "nll_intensity": 1.4024578483038415,
+          "nll_intensity": 1.4183331561905073,
           "n_intensity": 1653,
-          "hist_intersection": 0.5246330293211316,
-          "mean_error_ms": 15.244771297971061
+          "hist_intersection": 0.5135527636295948,
+          "mean_error_ms": 16.185755546280816
         },
         {
           "take": "Woloso_3",
@@ -591,14 +591,14 @@
           "take": "Woloso_4",
           "piece": "Woloso",
           "model": "global",
-          "nll_hit": 0.6056453309608727,
+          "nll_hit": 0.6241482496261597,
           "n_hit": 3384,
-          "nll_delta": -0.39398002221682643,
+          "nll_delta": -0.35670807041764396,
           "n_delta": 1996,
-          "nll_intensity": 1.3979432999845067,
+          "nll_intensity": 1.4181894286060772,
           "n_intensity": 2004,
-          "hist_intersection": 0.48567697069392485,
-          "mean_error_ms": 17.22900785225887
+          "hist_intersection": 0.4782152313148881,
+          "mean_error_ms": 18.32723447391112
         },
         {
           "take": "Woloso_4",
@@ -630,14 +630,14 @@
           "take": "Woloso_5",
           "piece": "Woloso",
           "model": "global",
-          "nll_hit": 0.6281028371644073,
+          "nll_hit": 0.6478491425514221,
           "n_hit": 2448,
-          "nll_delta": -0.44191776691267187,
+          "nll_delta": -0.4136421247215525,
           "n_delta": 1454,
-          "nll_intensity": 1.408819846339431,
+          "nll_intensity": 1.4179059395956284,
           "n_intensity": 1454,
-          "hist_intersection": 0.5046795398248552,
-          "mean_error_ms": 16.054682815125595
+          "hist_intersection": 0.48951279113168567,
+          "mean_error_ms": 17.326396289988928
         },
         {
           "take": "Woloso_5",
@@ -671,14 +671,14 @@
           "take": "Manjanin_1",
           "piece": "Manjanin",
           "model": "global",
-          "nll_hit": 0.6213390393671511,
+          "nll_hit": 0.6354446411132812,
           "n_hit": 2604,
-          "nll_delta": 0.7071183169082526,
+          "nll_delta": 0.6735164280433025,
           "n_delta": 841,
-          "nll_intensity": 1.4184713636653543,
+          "nll_intensity": 1.4183594972824711,
           "n_intensity": 864,
-          "hist_intersection": 0.5782811457010151,
-          "mean_error_ms": 19.39707896264502
+          "hist_intersection": 0.5819165745120141,
+          "mean_error_ms": 19.208570943798954
         },
         {
           "take": "Manjanin_1",
@@ -788,14 +788,14 @@
           "take": "Manjanin_4",
           "piece": "Manjanin",
           "model": "global",
-          "nll_hit": 0.6351252004237654,
+          "nll_hit": 0.6350611448287964,
           "n_hit": 2880,
-          "nll_delta": -0.05950767086117549,
+          "nll_delta": -0.09863678255240946,
           "n_delta": 932,
-          "nll_intensity": 1.4187161156198995,
+          "nll_intensity": 1.4184141512442798,
           "n_intensity": 954,
-          "hist_intersection": 0.5756064823576672,
-          "mean_error_ms": 20.58978666965558
+          "hist_intersection": 0.5987923065491005,
+          "mean_error_ms": 19.41719516203323
         },
         {
           "take": "Manjanin_4",
@@ -1260,11 +1260,11 @@
     "summary": {
       "main": {
         "global": {
-          "nll_hit": 0.6323653907299289,
-          "nll_delta": -0.24853134333000484,
-          "nll_intensity": 1.4031425293037045,
-          "hist_intersection": 0.5791557163050373,
-          "mean_error_ms": 13.633996521058483,
+          "nll_hit": 0.6549021077426499,
+          "nll_delta": -0.2284970870270872,
+          "nll_intensity": 1.4174549516344976,
+          "hist_intersection": 0.5734494585402184,
+          "mean_error_ms": 14.046403439803754,
           "n_takes": 15
         },
         "B1_position": {
@@ -1286,11 +1286,11 @@
       },
       "D2": {
         "global": {
-          "nll_hit": 0.6538036580645858,
-          "nll_delta": 2.3253376850940075,
-          "nll_intensity": 1.4184268737054246,
-          "hist_intersection": 0.2958258070302018,
-          "mean_error_ms": 33.11710279011902,
+          "nll_hit": 0.6578643810460761,
+          "nll_delta": 2.2260770995685006,
+          "nll_intensity": 1.4183050476860601,
+          "hist_intersection": 0.2981911591771982,
+          "mean_error_ms": 32.726694556332376,
           "n_takes": 4
         },
         "B1_position": {
@@ -1317,14 +1317,14 @@
           "take": "Manjanin_1",
           "piece": "Manjanin",
           "model": "global",
-          "nll_hit": 0.6242095151630597,
+          "nll_hit": 0.6509405374526978,
           "n_hit": 7812,
-          "nll_delta": 0.6131849110128886,
+          "nll_delta": 0.6679838555349293,
           "n_delta": 4072,
-          "nll_intensity": 1.4056113329198086,
+          "nll_intensity": 1.4186600974345231,
           "n_intensity": 4497,
-          "hist_intersection": 0.4077552583727573,
-          "mean_error_ms": 29.62792425235891
+          "hist_intersection": 0.39686002792584646,
+          "mean_error_ms": 30.409597387870505
         },
         {
           "take": "Manjanin_1",
@@ -1356,14 +1356,14 @@
           "take": "Manjanin_2",
           "piece": "Manjanin",
           "model": "global",
-          "nll_hit": 0.6338222156454312,
+          "nll_hit": 0.6534008979797363,
           "n_hit": 4392,
-          "nll_delta": 0.08677441236747552,
+          "nll_delta": 0.07155414609662197,
           "n_delta": 2308,
-          "nll_intensity": 1.4089976564723194,
+          "nll_intensity": 1.4185346442934486,
           "n_intensity": 2477,
-          "hist_intersection": 0.6487923846790987,
-          "mean_error_ms": 17.616504392689443
+          "hist_intersection": 0.6491470357062779,
+          "mean_error_ms": 16.855505500675584
         },
         {
           "take": "Manjanin_2",
@@ -1395,14 +1395,14 @@
           "take": "Manjanin_3",
           "piece": "Manjanin",
           "model": "global",
-          "nll_hit": 0.6278604891505309,
+          "nll_hit": 0.6542831659317017,
           "n_hit": 5040,
-          "nll_delta": -0.14511712456689935,
+          "nll_delta": -0.1516770890858775,
           "n_delta": 2782,
-          "nll_intensity": 1.4006587245216662,
+          "nll_intensity": 1.4184565387069392,
           "n_intensity": 2897,
-          "hist_intersection": 0.6915672256639341,
-          "mean_error_ms": 10.730451878324454
+          "hist_intersection": 0.6943549606561971,
+          "mean_error_ms": 10.236507265203818
         },
         {
           "take": "Manjanin_3",
@@ -1434,14 +1434,14 @@
           "take": "Manjanin_4",
           "piece": "Manjanin",
           "model": "global",
-          "nll_hit": 0.6735113888987913,
+          "nll_hit": 0.700522243976593,
           "n_hit": 8640,
-          "nll_delta": -0.07715906783945391,
+          "nll_delta": -0.09014294379687936,
           "n_delta": 4395,
-          "nll_intensity": 1.395117222345334,
+          "nll_intensity": 1.41066654316804,
           "n_intensity": 4476,
-          "hist_intersection": 0.6248830612080963,
-          "mean_error_ms": 15.684927256190297
+          "hist_intersection": 0.6303344159881591,
+          "mean_error_ms": 15.137229493065268
         },
         {
           "take": "Manjanin_4",
@@ -1473,14 +1473,14 @@
           "take": "Maraka_1",
           "piece": "Maraka",
           "model": "global",
-          "nll_hit": 0.6217812346821507,
+          "nll_hit": 0.6448847651481628,
           "n_hit": 4392,
-          "nll_delta": 0.07653334441686356,
+          "nll_delta": 0.20232788536393886,
           "n_delta": 2510,
-          "nll_intensity": 1.409946434602694,
+          "nll_intensity": 1.41838797726153,
           "n_intensity": 2726,
-          "hist_intersection": 0.6439379508362469,
-          "mean_error_ms": 11.808302786990625
+          "hist_intersection": 0.6256568888486049,
+          "mean_error_ms": 12.485104322331114
         },
         {
           "take": "Maraka_1",
@@ -1512,14 +1512,14 @@
           "take": "Maraka_2",
           "piece": "Maraka",
           "model": "global",
-          "nll_hit": 0.6255183871593705,
+          "nll_hit": 0.6465291976928711,
           "n_hit": 3024,
-          "nll_delta": -0.6678947538223398,
+          "nll_delta": -0.6802635189808601,
           "n_delta": 1872,
-          "nll_intensity": 1.415016570307181,
+          "nll_intensity": 1.4181396193759435,
           "n_intensity": 1879,
-          "hist_intersection": 0.5590545091395902,
-          "mean_error_ms": 9.32315842620109
+          "hist_intersection": 0.5661318883720942,
+          "mean_error_ms": 9.16260056938653
         },
         {
           "take": "Maraka_2",
@@ -1551,14 +1551,14 @@
           "take": "Maraka_3",
           "piece": "Maraka",
           "model": "global",
-          "nll_hit": 0.6135049801443886,
+          "nll_hit": 0.6355237364768982,
           "n_hit": 3456,
-          "nll_delta": -0.7164956606590823,
+          "nll_delta": -0.7212258350742767,
           "n_delta": 2191,
-          "nll_intensity": 1.403508800716914,
+          "nll_intensity": 1.4182534330245953,
           "n_intensity": 2191,
-          "hist_intersection": 0.6586202670819319,
-          "mean_error_ms": 6.923766099144218
+          "hist_intersection": 0.6577744817728259,
+          "mean_error_ms": 6.926628213785747
         },
         {
           "take": "Maraka_3",
@@ -1590,14 +1590,14 @@
           "take": "Maraka_4",
           "piece": "Maraka",
           "model": "global",
-          "nll_hit": 0.6422939691202278,
+          "nll_hit": 0.6645363569259644,
           "n_hit": 3096,
-          "nll_delta": -0.7090663998042047,
+          "nll_delta": -0.7134317074948485,
           "n_delta": 1800,
-          "nll_intensity": 1.4088210036958015,
+          "nll_intensity": 1.418107311255026,
           "n_intensity": 1806,
-          "hist_intersection": 0.6100756417502602,
-          "mean_error_ms": 6.673649929804568
+          "hist_intersection": 0.6158555775291288,
+          "mean_error_ms": 6.667286381377792
         },
         {
           "take": "Maraka_4",
@@ -1629,14 +1629,14 @@
           "take": "Maraka_5",
           "piece": "Maraka",
           "model": "global",
-          "nll_hit": 0.6461034186730168,
+          "nll_hit": 0.6631342768669128,
           "n_hit": 1968,
-          "nll_delta": -0.6319287796181721,
+          "nll_delta": -0.6237691786468234,
           "n_delta": 1116,
-          "nll_intensity": 1.4131550506842563,
+          "nll_intensity": 1.4180488911658915,
           "n_intensity": 1125,
-          "hist_intersection": 0.5575624072945194,
-          "mean_error_ms": 6.960826161630781
+          "hist_intersection": 0.5613867559710902,
+          "mean_error_ms": 7.541120405228265
         },
         {
           "take": "Maraka_5",
@@ -1668,14 +1668,14 @@
           "take": "Maraka_6",
           "piece": "Maraka",
           "model": "global",
-          "nll_hit": 0.6703296441809515,
+          "nll_hit": 0.6975694054746061,
           "n_hit": 6228,
-          "nll_delta": -0.5834446425142961,
+          "nll_delta": -0.5871350336454915,
           "n_delta": 3451,
-          "nll_intensity": 1.401617689256758,
+          "nll_intensity": 1.418512437479989,
           "n_intensity": 3521,
-          "hist_intersection": 0.6776904177216364,
-          "mean_error_ms": 6.999340443618792
+          "hist_intersection": 0.6818792565870334,
+          "mean_error_ms": 6.947942680161132
         },
         {
           "take": "Maraka_6",
@@ -1707,14 +1707,14 @@
           "take": "Woloso_1",
           "piece": "Woloso",
           "model": "global",
-          "nll_hit": 0.6075610185435486,
+          "nll_hit": 0.6250819563865662,
           "n_hit": 4392,
-          "nll_delta": -0.4087293452204708,
+          "nll_delta": -0.3719585658384175,
           "n_delta": 2582,
-          "nll_intensity": 1.3945011412990649,
+          "nll_intensity": 1.4183603742331428,
           "n_intensity": 2596,
-          "hist_intersection": 0.5054503115225428,
-          "mean_error_ms": 19.459580087633697
+          "hist_intersection": 0.4865692223657634,
+          "mean_error_ms": 20.65548727415677
         },
         {
           "take": "Woloso_1",
@@ -1746,14 +1746,14 @@
           "take": "Woloso_2",
           "piece": "Woloso",
           "model": "global",
-          "nll_hit": 0.6249739447510321,
+          "nll_hit": 0.6453717157589617,
           "n_hit": 4320,
-          "nll_delta": -0.4490044923907752,
+          "nll_delta": -0.4092541871314081,
           "n_delta": 2542,
-          "nll_intensity": 1.3974706861828936,
+          "nll_intensity": 1.4183543129594265,
           "n_intensity": 2569,
-          "hist_intersection": 0.5592557058837644,
-          "mean_error_ms": 14.986766295032682
+          "hist_intersection": 0.5371643596420724,
+          "mean_error_ms": 16.367047020916882
         },
         {
           "take": "Woloso_2",
@@ -1785,14 +1785,14 @@
           "take": "Woloso_3",
           "piece": "Woloso",
           "model": "global",
-          "nll_hit": 0.5608747877695848,
+          "nll_hit": 0.5688303709030151,
           "n_hit": 2736,
-          "nll_delta": -0.538761125167384,
+          "nll_delta": -0.499879341567274,
           "n_delta": 1622,
-          "nll_intensity": 1.4024578483038415,
+          "nll_intensity": 1.4183331561905073,
           "n_intensity": 1653,
-          "hist_intersection": 0.5510932907227859,
-          "mean_error_ms": 14.874392486223703
+          "hist_intersection": 0.5351370558804408,
+          "mean_error_ms": 16.10236657480987
         },
         {
           "take": "Woloso_3",
@@ -1824,14 +1824,14 @@
           "take": "Woloso_4",
           "piece": "Woloso",
           "model": "global",
-          "nll_hit": 0.6056453309608727,
+          "nll_hit": 0.6241482496261597,
           "n_hit": 3384,
-          "nll_delta": -0.36147519459432026,
+          "nll_delta": -0.3417942922171113,
           "n_delta": 1977,
-          "nll_intensity": 1.3979432999845067,
+          "nll_intensity": 1.4181894286060772,
           "n_intensity": 2004,
-          "hist_intersection": 0.48829526736145923,
-          "mean_error_ms": 16.138195294310552
+          "hist_intersection": 0.482628116356011,
+          "mean_error_ms": 17.167484124701
         },
         {
           "take": "Woloso_4",
@@ -1863,14 +1863,14 @@
           "take": "Woloso_5",
           "piece": "Woloso",
           "model": "global",
-          "nll_hit": 0.6281028371644073,
+          "nll_hit": 0.6478491425514221,
           "n_hit": 2448,
-          "nll_delta": -0.4549664466606067,
+          "nll_delta": -0.41823872005693125,
           "n_delta": 1450,
-          "nll_intensity": 1.408819846339431,
+          "nll_intensity": 1.4179059395956284,
           "n_intensity": 1454,
-          "hist_intersection": 0.5033020453369358,
-          "mean_error_ms": 16.702162025723442
+          "hist_intersection": 0.48086183450173164,
+          "mean_error_ms": 18.034144383386042
         },
         {
           "take": "Woloso_5",
@@ -1904,14 +1904,14 @@
           "take": "Manjanin_1",
           "piece": "Manjanin",
           "model": "global",
-          "nll_hit": 0.6213390393671511,
+          "nll_hit": 0.6354446411132812,
           "n_hit": 2604,
-          "nll_delta": 5.269387997726499,
+          "nll_delta": 5.037447672469879,
           "n_delta": 812,
-          "nll_intensity": 1.4184713636653543,
+          "nll_intensity": 1.4183594972824711,
           "n_intensity": 864,
-          "hist_intersection": 0.18515004331204202,
-          "mean_error_ms": 47.63440816889813
+          "hist_intersection": 0.18690778354062168,
+          "mean_error_ms": 47.44091379953988
         },
         {
           "take": "Manjanin_1",
@@ -2021,14 +2021,14 @@
           "take": "Manjanin_4",
           "piece": "Manjanin",
           "model": "global",
-          "nll_hit": 0.6351252004237654,
+          "nll_hit": 0.6350611448287964,
           "n_hit": 2880,
-          "nll_delta": 1.6526750977985103,
+          "nll_delta": 1.5225454690721052,
           "n_delta": 793,
-          "nll_intensity": 1.4187161156198995,
+          "nll_intensity": 1.4184141512442798,
           "n_intensity": 954,
-          "hist_intersection": 0.20793966421156954,
-          "mean_error_ms": 49.00901114313605
+          "hist_intersection": 0.21564333257097557,
+          "mean_error_ms": 47.64087257734771
         },
         {
           "take": "Manjanin_4",

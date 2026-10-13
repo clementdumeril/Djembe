@@ -70,7 +70,7 @@ The table also scores the *distribution* of offsets drawn by each model at the t
 
 | Model (jembe 1, jembe 2, dundun 1) | Strikes | Offsets | Intensity | Histogram intersection | Error of the mean |
 |---|---|---|---|---|---|
-| Global | 0.632 | −0.388 | 1.403 | 0.62 | 11.0 ms |
+| Global | 0.655 | −0.367 | 1.417 | 0.61 | 11.6 ms |
 | B1 position | 0.311 | −0.577 | 1.300 | 0.73 | 4.6 ms |
 | B2 Markov | **0.256** | **−0.900** | **1.206** | 0.73 | 5.0 ms |
 
