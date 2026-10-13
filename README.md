@@ -50,8 +50,8 @@ Breaks, strokes more than half a pulse off and positions with fewer than 30 stro
 
 **What this says:**
 - **The jembe feel is close to beat-symmetric.** The four beats differ by 1 to 2 ms, against a pattern of 3 to 20 ms. The exception is Maraka's second jembe, whose feel is itself almost even, as Polak, London & Jacoby (2016) found for Maraka.
-- **The breach is not zero.** Rotating every cycle by a random number of beats (which makes C4 exact) gives a noise floor of 0.4 to 1.0 ms. For every pair except Woloso's first jembe, the bootstrap interval over takes lies above that floor.
-- **The dundun breaks the symmetry more.** For example, Woloso's dundun plays the last pulse of beat 4 about 17 ms earlier than the same pulse on beats 1 to 3, just before the next cycle starts.
+- **The breach is not zero.** Rotating every cycle by a random number of beats (which makes C4 exact) gives a noise floor of 0.5 to 1.0 ms. For every pair except Woloso's first jembe, the bootstrap interval over takes lies above that floor.
+- **The dundun breaks the symmetry more.** For example, Woloso's dundun plays the last pulse of beat 4 about 16 ms earlier than the same pulse on beats 1 to 3, just before the next cycle starts.
 - **Consequence for the model:**
   - beat symmetry is a good prior but not an exact law, so it should be built in with a learnable, penalised way to break it, not imposed strictly;
   - full rotation by one pulse (C12) is clearly wrong, because the feel is several times larger than the breach.
