@@ -9,7 +9,7 @@ Metrics: window-level balanced accuracy pooled over the 15 test folds, a 95 %
 interval from a bootstrap over takes stratified by piece (windows of one
 take are not independent), and take-level accuracy by majority vote over the take's windows.
 
-    python djembe_dataset.py build
+    python -m djembe.dataset build
     python recognition_baselines.py      # -> results/a2_recognition.json, docs/figures/a2_window_accuracy.png
 """
 from __future__ import annotations
@@ -38,10 +38,10 @@ from sklearn.neighbors import NearestCentroid
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
-import djembe_dataset as d
-import features as f
+from djembe import dataset as d
+from djembe import features as f
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parents[2]
 WINDOWS = (1, 2, 4, 8)
 N_BOOT = 1000
 LABELS = list(d.PIECES)

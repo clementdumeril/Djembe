@@ -33,11 +33,11 @@ from sklearn.neighbors import NearestCentroid
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
-import djembe_dataset as d
-import features as f
+from djembe import dataset as d
+from djembe import features as f
 from recognition_baselines import cross_validate, summarise
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parents[2]
 WINDOWS = (1, 2, 4)
 SETS = ("tempo", "d1_pattern", "jembe_timing12", "jembe_feel3")
 TEMPO_COL = "tempo_mean_dur"

@@ -12,7 +12,7 @@ import pandas as pd
 import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-import djembe_dataset as d  # noqa: E402
+from djembe import dataset as d  # noqa: E402
 
 
 @pytest.fixture(scope="module")
@@ -21,7 +21,7 @@ def splits():
 
 
 def test_splits_file_matches_generator(splits):
-    assert splits == d.make_splits(), "splits.json is stale: run `python djembe_dataset.py splits`"
+    assert splits == d.make_splits(), "splits.json is stale: run `python -m djembe.dataset splits`"
 
 
 def test_every_take_tested_exactly_once(splits):

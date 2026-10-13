@@ -1,6 +1,6 @@
 """README figures, computed from the event table (aggregates only, no audio).
 
-    python djembe_dataset.py build
+    python -m djembe.dataset build
     python make_figures.py          # -> docs/figures/*.png
 """
 from __future__ import annotations
@@ -13,9 +13,9 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
-import djembe_dataset as d
+from djembe import dataset as d
 
-FIG_DIR = Path(__file__).resolve().parent / "docs" / "figures"
+FIG_DIR = Path(__file__).resolve().parents[2] / "docs" / "figures"
 COLORS = {"Manjanin": "#2a78d6", "Maraka": "#eb6834", "Woloso": "#1baf7a"}
 INK, MUTED, GRID = "#1f1f1e", "#6b6a63", "#e4e3dc"
 MIN_PROB = 0.10  # subdivisions D1 plays in at least 10 % of cycles

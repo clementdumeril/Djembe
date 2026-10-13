@@ -5,7 +5,7 @@ leave-one-take-out folds, next to two reference points (majority class and
 nearest centroid). Writes results/step0_rf.json (metrics and per-take
 predictions only, no corpus data).
 
-    python djembe_dataset.py build
+    python -m djembe.dataset build
     python step0_rf_baseline.py [--events output/events.csv] [--out results/step0_rf.json]
 """
 from __future__ import annotations
@@ -27,9 +27,9 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, balanced_accuracy_score, confusion_matrix
 from sklearn.neighbors import NearestCentroid
 
-import djembe_dataset as d
+from djembe import dataset as d
 
-OUT = Path(__file__).resolve().parent / "results" / "step0_rf.json"
+OUT = Path(__file__).resolve().parents[2] / "results" / "step0_rf.json"
 
 
 def models():

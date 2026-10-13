@@ -7,7 +7,7 @@ import pandas as pd
 import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-import features as f  # noqa: E402
+from djembe import features as f  # noqa: E402
 
 
 def synthetic_events(n_cycles=10, takes=("Maraka_1", "Woloso_1")):

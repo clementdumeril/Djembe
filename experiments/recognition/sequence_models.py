@@ -34,11 +34,11 @@ import pandas as pd
 import torch
 from torch import nn
 
-import djembe_dataset as d
-import features as f
+from djembe import dataset as d
+from djembe import features as f
 from recognition_baselines import LABELS, summarise
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parents[2]
 VOICES = {"full": ("D1", "J"), "jembe": ("J",)}
 EPOCHS, BATCH, LR, WEIGHT_DECAY, NOISE_SD = 40, 64, 1e-3, 1e-2, 0.02
 

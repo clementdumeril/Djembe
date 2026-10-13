@@ -29,10 +29,10 @@ committed or redistributed; it is written to ``output/`` (git-ignored) or to a
 Google Drive folder on Colab. ``splits.json`` holds only take identifiers.
 
 Usage:
-    python djembe_dataset.py download   # annotations only, from OSF
-    python djembe_dataset.py download --audio --takes Woloso_2   # plus that take's WAVs
-    python djembe_dataset.py build      # -> output/events.csv
-    python djembe_dataset.py splits     # -> splits.json (deterministic)
+    python -m djembe.dataset download   # annotations only, from OSF
+    python -m djembe.dataset download --audio --takes Woloso_2   # plus that take's WAVs
+    python -m djembe.dataset build      # -> output/events.csv
+    python -m djembe.dataset splits     # -> splits.json (deterministic)
 """
 from __future__ import annotations
 
@@ -46,7 +46,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parents[1]
 OSF_NODE = "m652x"
 PIECES = ("Manjanin", "Maraka", "Woloso")
 INSTRUMENTS = ("J1", "J2", "D1", "D2")

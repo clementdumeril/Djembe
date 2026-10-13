@@ -1,14 +1,10 @@
-# Djembe: micro-timing analysis and learning experiments on Malian jembe drumming
+# Djembe: a generative model of Malian jembe micro-timing
 
-Analysis of 15 multitrack recordings of Malian jembe ensembles (about 51 minutes, 41,072 annotated strokes), with an audited stroke-level dataset, leakage-safe evaluation and first rhythm-recognition baselines. Generation is in progress.
+This repository models how Malian jembe ensembles *play* their rhythms: which strokes, at which exact moment, how hard, cycle after cycle, and in response to the other drummers. The data is the IEMP Malian Jembe corpus (Polak, Tarsitani & Clayton, 2018): 15 multitrack takes of three pieces (Manjanin, Maraka, Woloso), about 51 minutes and 41,072 annotated strokes.
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/clementdumeril/Djembe/blob/main/colab/demo_listen_and_explore.ipynb) Listen to the takes, hear the micro-timing against an even grid and open the interactive *Boussole des rythmes*. The corpus is downloaded from OSF into your own Colab session; no audio is stored in this repository.
+The question I am working on: with this little data, does building the symmetries of the metric cycle into the model work better than pretraining on a large drum corpus? Tempo is a time dilation, and these pieces repeat a 12-pulse cycle of four beats of three pulses. The plan is a graph neural network on the cycle grid, with the symmetry kept or broken on purpose, and its departure from symmetry measured.
 
-![The Boussole des rythmes replaying Manjanin, Maraka and Woloso](docs/figures/boussole.gif)
-
-*The Boussole des rythmes, an interactive page I wrote (French interface): each piece on a 12-pulse circle, with dots at the measured mean positions of the four drums, silent capture of its built-in synthesis. Recorded with [`tools/capture_boussole_gif.py`](tools/capture_boussole_gif.py) from a build that contains no corpus audio.*
-
-I started this in June 2026 as a personal project. The data is the IEMP Malian Jembe corpus (Polak, Tarsitani & Clayton, 2018), and it builds on Rainer Polak's doctoral research on jembe drumming in Bamako (Polak, 2004). The question: how much of a rhythm's identity lives in its pattern, and how much in the timing of each stroke? Can a model learn both from such a small corpus? So far the dataset, the evaluation protocol, feature baselines and a first small CNN are done; the CNN does not beat the feature baselines yet.
+**Status (October 2026).** The dataset, the leakage-safe splits and the recognition results below are done; the generative model is in progress. The earlier analysis stage (notebooks, the *Boussole des rythmes* interactive page, Colab listening demo, a Markov generator) is preserved at tag [`v0.2-analysis`](https://github.com/clementdumeril/Djembe/tree/v0.2-analysis).
 
 ## Results
 
@@ -31,17 +27,13 @@ These intervals rest on 4 to 6 takes per piece and resample fixed predictions wi
 
 The jembe *pattern* (which pulses are played) is at or below chance for short windows. My working hypothesis: takes differ more by who plays which part than pieces do, so the classifier learns take-specific habits that do not transfer to the held-out take. The worst take for the timing features is Manjanin_1 (about 25 % of its windows correct); I have not found out why yet.
 
-## What I built
+## What is in the repository
 
-- [`djembe_dataset.py`](djembe_dataset.py): downloads the annotations from OSF and builds one event table. Each row is one stroke: take, instrument, player, cycle, subdivision, onset, peak amplitude, offset from the even grid (fraction of a pulse and ms), musical section. Every experiment reads only this table.
-- [`splits.json`](splits.json), [`tests/`](tests/): frozen leave-one-take-out folds and 12 tests (56 cases). They fail if a take ends up on both sides of a split, if a window spans two takes, if a file's take label disagrees with its name, or if a notebook output or any audio is committed.
-- [`features.py`](features.py), [`recognition_baselines.py`](recognition_baselines.py): windows of 1 to 8 cycles and five feature sets (tempo, dundun pattern, jembe pattern, jembe timing per pulse, jembe feel per position in the beat), scored with majority class, nearest centroid, logistic regression and random forest.
-- [`tempo_control.py`](tempo_control.py): the two tempo controls above.
-- [`sequence_models.py`](sequence_models.py): a 1D CNN (11k parameters) and a transformer (68k parameters) on stroke sequences, same folds and metrics. The CNN has been run on CPU; the transformer is too slow there and runs on Colab.
-- [`colab/demo_listen_and_explore.ipynb`](colab/demo_listen_and_explore.ipynb) and [`demo_audio.py`](demo_audio.py): a listening demo. Each piece is played, then its dundun with a click on the even 12-pulse grid, then the analysis and the Boussole, all computed in the reader's session.
-- [`colab/`](colab/): the same pipelines on Google Colab. Pinned dependencies, GPU detection with CPU fallback, the corpus downloaded into the session, outputs written to Google Drive.
-- Analysis notebooks `01` to `07` (dundun extraction, tempo and accelerando, micro-timing, Fourier fingerprint of the 12-pulse pattern) and [`boussole_rythmes_V2.py`](boussole_rythmes_V2.py), a self-contained interactive page that draws each rhythm on a 12-pulse circle with its complex Fourier coefficients.
-- Earlier experiments in `archive/` (informed NMF source separation, a YouTube recognition test, a second-order Markov generator with measured swing). Their outputs are stripped and none of them has a proper evaluation.
+- [`djembe/dataset.py`](djembe/dataset.py): downloads the annotations from OSF and builds one event table. Each row is one stroke: take, instrument, player, cycle, subdivision, onset, peak amplitude, offset from the even grid (fraction of a pulse and ms), musical section. Every experiment reads only this table.
+- [`splits.json`](splits.json), [`tests/`](tests/): frozen leave-one-take-out folds and tests that fail if a take ends up on both sides of a split, if a window spans two takes, if a file's take label disagrees with its name, or if any audio is committed. CI runs them on every push.
+- [`djembe/features.py`](djembe/features.py), [`experiments/recognition/`](experiments/recognition/): windows of 1 to 8 cycles, five feature sets (tempo, dundun pattern, jembe pattern, jembe timing per pulse, jembe feel per position in the beat), the classifiers, the two tempo controls, and a small CNN and transformer on stroke sequences.
+
+**Data notes.** The second dundun (D2) is recorded on 4 takes only (Manjanin 1 and 4, Maraka 6, Woloso 2), and the second jembe is missing on some takes; missing parts are masked, never imputed. Each drum has its own close microphone, so every track also hears the others. The onsets come from the corpus authors' detection and selection, but the peak amplitudes are measured on tracks with that bleed, so intensity is the least reliable variable.
 
 ## How it works
 
@@ -59,49 +51,41 @@ Two details of the table: the last cycle of each take has no end time, so its 43
 ## How I checked it
 
 - **Data audit.** The OSF file `MJ_Maraka_5_Onsets_Selected.csv` actually contains take Woloso_5: its own `Take` column says so, and its dundun onsets match the raw Woloso_5 onsets (98.6 % within 10 ms) but not the Maraka_5 ones (9.9 %, about chance). Woloso_5 has no file of its own. My earlier analyses used these files and reported 12/14 for the take-level classifier; both errors trace back to this mix-up. The event table reads the `_Onsets_Selected_Peak` files, which are correct for all 15 takes. Details and a reproducible check: [`docs/CORPUS_ERRATUM.md`](docs/CORPUS_ERRATUM.md).
-- **Leakage.** The split unit is the take, never the stroke, cycle or window. The same dundun player (Madu Jakite) plays on every take, so a split by musician is impossible. An abandoned experiment in `archive/v2_abandonne` used stratified folds over strokes, which mixes strokes of one take between train and test; `iter_folds` now refuses any split that shares a take.
+- **Leakage.** The split unit is the take, never the stroke, cycle or window. The same dundun player (Madu Jakite) plays on every take, so a split by musician is impossible. An early experiment (tag `v0.2-analysis`) used stratified folds over strokes, which mixes strokes of one take between train and test; `iter_folds` now refuses any split that shares a take.
 - **Reference points and intervals.** Every score sits next to tempo alone, a majority-class model and a nearest-centroid rule. Intervals come from a bootstrap over takes, stratified by piece, because windows of one take are not independent. For whole-take scores I use an exact binomial interval: over 15 takes, a bootstrap collapses to [1, 1] at perfect accuracy. The majority-class model is a poor reference under this split: at window level it scores 0.00 to 0.06 balanced accuracy, because removing one take usually flips the training majority away from the held-out piece; at take level it scores 6/15 (balanced 0.33).
 - **No tuning on test takes.** All models use fixed settings chosen before running. When hyperparameters start to be tuned, a validation take will be held out inside each training fold.
 
 ## Limitations
 
 - 15 takes, 3 pieces, one dundun player, four jembe players in total, all recorded in the same sessions. Results hold within this corpus. They say nothing about other musicians or other rhythms.
-- The analysis notebooks `01` to `07` and `utils_V2.py` still read the faulty `_Onsets_Selected` files, so their Maraka and Woloso figures include the mix-up until they are ported to the event table. All results in this README come from the event table.
-- The CNN is below the feature baselines, most clearly on long windows, where there are 8 times fewer training windows for the same fixed 40 epochs. Given the full sequence (dundun and jembe), it reaches 0.86 to 0.87 on 4 and 8 cycles, still below logistic regression on the dundun pattern alone (0.99 to 1.00). Its settings have not been tuned. The transformer has not been evaluated yet, and the generation experiments in `archive/` were judged only by ear.
+- The CNN is below the feature baselines, most clearly on long windows, where there are 8 times fewer training windows for the same fixed 40 epochs. Its settings have not been tuned, and the transformer has not been evaluated.
 - The corpus licence (CC BY-NC-ND 4.0) forbids redistributing derived data. The event table, audio and any trained weights stay out of the repository. Only code, fold definitions, aggregate metrics and figures are versioned.
-
-## Next
-
-1. Evaluate the transformer on Colab, and tune both networks (epochs, size) on a validation take held out inside each training fold.
-2. Generation: a sequence model over strokes, conditioned on the piece, with a continuous timing head. It will be evaluated with distances between timing distributions per pulse, a check that the model does not copy its training data, and a blind listening test.
 
 ## Reproduce
 
 ```bash
-pip install -r requirements-train.txt
-python djembe_dataset.py download     # annotations only, about 10 MB from OSF
-python djembe_dataset.py build        # output/events.csv, about 7 s
-python djembe_dataset.py splits       # regenerates splits.json (deterministic)
-python -m pytest -q tests             # 56 cases, a few seconds
-python step0_rf_baseline.py           # results/step0_rf.json, about 20 s on 2 threads
-python recognition_baselines.py       # results/a2_recognition.json and figure, several minutes on 2 threads
-python tempo_control.py               # results/a2_tempo_control.json, a few minutes
-python sequence_models.py --models cnn --out results/a3_sequence_cnn_cpu.json   # about 20 min on 2 threads
-python make_figures.py                # docs/figures/
+pip install -e ".[dev]"
+python -m djembe.dataset download     # annotations only, about 10 MB from OSF
+python -m djembe.dataset build        # output/events.csv, about 7 s
+python -m djembe.dataset splits       # regenerates splits.json (deterministic)
+python -m pytest -q                   # a few seconds
+python experiments/recognition/step0_rf_baseline.py      # results/step0_rf.json, about 20 s
+python experiments/recognition/recognition_baselines.py  # results/a2_recognition.json and figure, several minutes
+python experiments/recognition/tempo_control.py          # results/a2_tempo_control.json, a few minutes
+python experiments/recognition/sequence_models.py --models cnn --out results/a3_sequence_cnn_cpu.json   # about 20 min on 2 threads
+python experiments/recognition/make_figures.py           # docs/figures/
 ```
-
-On Colab, open `colab/demo_listen_and_explore.ipynb` (listening demo), `colab/00_step0_dataset_baseline.ipynb` or `colab/01_a2_a3_recognition.ipynb` and run all cells. Notebooks are committed without outputs; `tests/test_repo_clean.py` and the pre-commit hook in `.pre-commit-config.yaml` enforce it, because outputs would embed corpus audio. The analysis notebooks and the interactive page need the audio (`python djembe_dataset.py download --audio`, about 900 MB) and the packages in `requirements.txt`. Their French documentation is in [`docs/GUIDE_FR.md`](docs/GUIDE_FR.md).
 
 ## Credits
 
 - Corpus: Polak, R., Tarsitani, S., & Clayton, M. (2018). *IEMP Malian Jembe* [Data set]. OSF. https://doi.org/10.17605/OSF.IO/M652X. Licence CC BY-NC-ND 4.0. Recordings, annotated onsets, metre and form annotations are theirs.
 - Founding thesis: Polak, R. (2004). *Festmusik als Arbeit, Trommeln als Beruf: Jenbe-Spieler in einer westafrikanischen Großstadt*. Berlin: Dietrich Reimer. ISBN 978-3-496-02771-3. Doctoral thesis, Universität Bayreuth, 2002. https://d-nb.info/971098840
 - Collection paper: Clayton, M., et al. (2021). The Interpersonal Entrainment in Music Performance Data Collection. *Empirical Musicology Review, 16*(1), 65–84. https://doi.org/10.18061/emr.v16i1.7555
-- Micro-timing findings reproduced in the notebooks: Polak, R. (2010). Rhythmic feel as meter. *Music Theory Online, 16*(4), https://doi.org/10.30535/mto.16.4.4. Polak, R., & London, J. (2014). Timing and meter in Mande drumming from Mali. *Music Theory Online, 20*(1), https://doi.org/10.30535/mto.20.1.1. Polak, R., London, J., & Jacoby, N. (2016). Both isochronous and non-isochronous metrical subdivision afford precise and stable ensemble entrainment: A corpus study of Malian jembe drumming. *Frontiers in Neuroscience, 10*, 285, https://doi.org/10.3389/fnins.2016.00285
-- Tools: librosa, scikit-learn, PyTorch, pandas, matplotlib, UMAP.
+- Micro-timing findings this work builds on: Polak, R. (2010). Rhythmic feel as meter. *Music Theory Online, 16*(4), https://doi.org/10.30535/mto.16.4.4. Polak, R., & London, J. (2014). Timing and meter in Mande drumming from Mali. *Music Theory Online, 20*(1), https://doi.org/10.30535/mto.20.1.1. Polak, R., London, J., & Jacoby, N. (2016). Both isochronous and non-isochronous metrical subdivision afford precise and stable ensemble entrainment: A corpus study of Malian jembe drumming. *Frontiers in Neuroscience, 10*, 285, https://doi.org/10.3389/fnins.2016.00285
+- Tools: pandas, scikit-learn, PyTorch, matplotlib.
 
 ## License
 
-The code in this repository is under the [MIT License](LICENSE). The IEMP Malian Jembe corpus is not part of it: it is licensed CC BY-NC-ND 4.0 by its authors, is not redistributed here, and is downloaded from OSF (https://osf.io/m652x/) by `djembe_dataset.py`.
+The code in this repository is under the [MIT License](LICENSE). The IEMP Malian Jembe corpus is not part of it: it is licensed CC BY-NC-ND 4.0 by its authors, is not redistributed here, and is downloaded from OSF (https://osf.io/m652x/) by `djembe/dataset.py`.
 
 Clément Dumeril · https://clement.dumeril.net · https://github.com/clementdumeril

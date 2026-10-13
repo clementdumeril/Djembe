@@ -31,7 +31,7 @@ All other annotation files of both takes are consistent, including `MJ_Maraka_5_
 
 3. **The `_Selected_Peak` files are correct for all 15 takes.** Each one carries its own take label, and 99.9 % to 100 % of its D1 onsets coincide (within 5 ms) with the raw dundun onsets of the same take.
 
-To reproduce (after `python djembe_dataset.py download`):
+To reproduce (after `python -m djembe.dataset download`):
 
 ```python
 import numpy as np, pandas as pd
@@ -51,6 +51,6 @@ The analysis notebooks (V1 and V2) loaded the `_Onsets_Selected` files. As a res
 
 ## Workaround
 
-`djembe_dataset.py` builds the event table from the `_Onsets_Selected_Peak` files. They hold the same metric positions, with onset times snapped to the raw onsets and a peak amplitude column. `load_take` raises an error if a file's `Take` column does not match its file name. `tests/test_splits.py` checks that guard on a mislabelled copy of a real file. With the clean input, the same classifier scores 15/15.
+`djembe/dataset.py` builds the event table from the `_Onsets_Selected_Peak` files. They hold the same metric positions, with onset times snapped to the raw onsets and a peak amplitude column. `load_take` raises an error if a file's `Take` column does not match its file name. `tests/test_splits.py` checks that guard on a mislabelled copy of a real file. With the clean input, the same classifier scores 15/15.
 
-The notebooks in the repository root still read the `_Onsets_Selected` files through `utils_V2.py`. Their Maraka and Woloso results include this error until they are ported to the event table.
+The analysis notebooks of the earlier stage (tag `v0.2-analysis`) read the `_Onsets_Selected` files through `utils_V2.py`, so their Maraka and Woloso figures include this error. Everything on `main` reads the event table.
