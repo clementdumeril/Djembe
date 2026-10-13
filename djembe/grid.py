@@ -6,7 +6,11 @@ instrument ``i`` (J1, J2, D1, D2) and three features ``f``:
 - ``hit``: 1 if the instrument plays on that pulse, else 0;
 - ``intensity``: log peak amplitude, z-scored per take and instrument (0 when no hit);
 - ``delta``: offset from the even 12-pulse grid in fractions of a pulse
-  (``dev_sd`` in the event table; 0 when no hit).
+  (``dev_sd`` in the event table; 0 when no hit). By default each take is shifted
+  by its own median offset (``align=True``): the annotated cycle starts do not sit
+  at the same reference in every take (take medians range from -27 to +17 ms), so
+  only offsets relative to the take's own playing are comparable across takes.
+  The shift is stored in ``delta_offset``.
 
 Times are never fed as seconds. An onset is described by its cycle, its pulse and
 its offset; the cycle duration ``T_c`` is kept apart as ``log_T`` so that tempo
@@ -64,11 +68,14 @@ class TakeGrid:
     in_signal: np.ndarray         # (n_cycles,) True if a signal phrase (break) overlaps the cycle
     present: np.ndarray           # (4,) True if the instrument is recorded in this take
     cycle_idx: np.ndarray = field(default_factory=lambda: np.zeros(0, int))
+    delta_offset: float = 0.0     # median offset removed from delta (fraction of a pulse)
 
 
-def take_grid(events: pd.DataFrame, take_id: str) -> TakeGrid:
+def take_grid(events: pd.DataFrame, take_id: str, align: bool = True) -> TakeGrid:
     """Grid of one take. Cycles without an end time (the last one) are dropped."""
     ev = events[(events["take_id"] == take_id) & events["cycle_dur_s"].notna()].copy()
+    near = ev["dev_sd"].abs() <= 0.5
+    offset = float(ev.loc[near, "dev_sd"].median()) if align else 0.0
     cycles = np.sort(ev["cycle_idx"].unique())
     pos = {c: n for n, c in enumerate(cycles)}
     x = np.zeros((len(cycles), N_SUBDIVISIONS, len(INSTRUMENTS), len(FEATURES)), np.float32)
@@ -83,7 +90,7 @@ def take_grid(events: pd.DataFrame, take_id: str) -> TakeGrid:
     i = ev["instrument"].map({name: n for n, name in enumerate(INSTRUMENTS)}).to_numpy()
     x[c, k, i, 0] = 1.0
     x[c, k, i, 1] = ev["intensity"].fillna(0.0).to_numpy()
-    x[c, k, i, 2] = ev["dev_sd"].fillna(0.0).to_numpy()
+    x[c, k, i, 2] = (ev["dev_sd"] - offset).fillna(0.0).to_numpy()
 
     per_cycle = ev.groupby("cycle_idx").agg(T=("cycle_dur_s", "first"),
                                             section=("section", lambda s: s.dropna().mode().iloc[0]
@@ -99,6 +106,7 @@ def take_grid(events: pd.DataFrame, take_id: str) -> TakeGrid:
         in_signal=per_cycle["in_signal"].to_numpy(bool),
         present=np.array([name in set(ev["instrument"]) for name in INSTRUMENTS]),
         cycle_idx=cycles,
+        delta_offset=offset,
     )
 
 

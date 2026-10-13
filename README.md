@@ -59,11 +59,42 @@ Breaks, strokes more than half a pulse off and positions with fewer than 30 stro
 
 Numbers: [`results/j1_beat_symmetry.json`](results/j1_beat_symmetry.json) (in fractions of a pulse, with intervals and noise floors).
 
+## Reference models: what the graph model has to beat
+
+[`djembe/baselines.py`](djembe/baselines.py) and [`experiments/baselines/run_baselines.py`](experiments/baselines/run_baselines.py) score two reference models on each held-out take (leave-one-take-out). Each model answers three questions for every pulse of every recorded drum: does it strike, with which offset, how hard. The score is the negative log-likelihood (nats; lower is better), the measure the graph model will be judged on.
+- **B1 (position)** turns Polak's description of the feel into a model. Per piece, drum and pulse, it has a strike rate, plus a Gaussian for the offset and one for the intensity.
+- **B2 (Markov)** adds memory along each drum's line. The strike depends on the two previous pulses (order-2 chain, shrunk towards B1 when a context is rare). The offset and the intensity follow B1's mean plus a fraction of the previous stroke's residual.
+- **Global** ignores the pulse altogether; it shows what position alone is worth.
+
+The table also scores the *distribution* of offsets drawn by each model at the take's real strokes. Per drum and pulse it reports histogram intersection and error of the mean, as in Mishra et al. (2025) for candombe.
+
+| Model (jembe 1, jembe 2, dundun 1) | Strikes | Offsets | Intensity | Histogram intersection | Error of the mean |
+|---|---|---|---|---|---|
+| Global | 0.632 | −0.388 | 1.403 | 0.62 | 11.0 ms |
+| B1 position | 0.311 | −0.577 | 1.300 | 0.73 | 4.6 ms |
+| B2 Markov | **0.256** | **−0.900** | **1.206** | 0.73 | 5.0 ms |
+
+![Negative log-likelihood per held-out take](docs/figures/j2_baselines.png)
+
+**What this says:**
+- **Position halves the uncertainty about strikes, and memory helps every likelihood.** B2 beats B1 on 14 of 15 takes for strikes, 15/15 for offsets and 13/15 for intensity.
+- **The drawn distributions are as good with or without memory.** A Gaussian per pulse already reproduces the per-pulse histograms to within about 5 ms. What memory adds is predicting the *next* stroke given the last ones: the drift and persistence of a player's timing.
+- **The graph model will be judged on two things:**
+  - lowering B2's likelihoods, which needs the interplay between drums that neither baseline sees;
+  - not losing B1's distributions.
+
+**Two data findings came out of this step:**
+- **Takes do not share one timing reference.** The median offset of a whole take ranges from −27 to +17 ms. Manjanin 1 sits about 30 ms earlier than the other Manjanin takes, on every drum, which points at where its cycle starts were annotated rather than at the playing. The grid therefore removes each take's median offset (one constant per take, stored in `delta_offset`). That alone brings the error of the mean from 8.4 to 4.6 ms; unaligned scores are kept in the JSON. This also removes any genuine take-wide "ahead of the beat" playing, which this corpus cannot separate from the annotation reference.
+- **The second dundun cannot be learned per piece.** It is recorded on 4 takes, and on only one take of Maraka and of Woloso, so it is scored apart. There, B1 and B2 are worse than the global model.
+
+Intensities are z-scored within each take, so a take's own loudness spread is used to score it; the graph model gets the same input.
+
 ## What is in the repository
 
 - [`djembe/dataset.py`](djembe/dataset.py): downloads the annotations from OSF and builds one event table. Each row is one stroke: take, instrument, player, cycle, subdivision, onset, peak amplitude, offset from the even grid (fraction of a pulse and ms), musical section. Every experiment reads only this table.
 - [`splits.json`](splits.json), [`tests/`](tests/): frozen leave-one-take-out folds and tests that fail if a take ends up on both sides of a split, if a window spans two takes, if a file's take label disagrees with its name, or if any audio is committed. CI runs them on every push.
 - [`djembe/grid.py`](djembe/grid.py): the cycle grid of a take (cycle × 12 pulses × 4 drums × hit, intensity, offset, with tempo as a separate log cycle duration) and the performance graph. It has three edge types: next pulse (a ring of 12), same pulse on another drum, and same pulse one cycle earlier. Tests check that rotating the cycle maps every edge type onto itself, and that each choice of positional input keeps exactly the intended rotations: C12, C4 or none.
+- [`djembe/baselines.py`](djembe/baselines.py): the B1 and B2 reference models, with synthetic tests that they recover the rates, the feel and the timing memory they are built for.
 - [`djembe/features.py`](djembe/features.py), [`experiments/recognition/`](experiments/recognition/): windows of 1 to 8 cycles, five feature sets (tempo, dundun pattern, jembe pattern, jembe timing per pulse, jembe feel per position in the beat), the classifiers, the two tempo controls, and a small CNN and transformer on stroke sequences.
 
 **Data notes.** The second dundun (D2) is recorded on 4 takes only (Manjanin 1 and 4, Maraka 6, Woloso 2), and the second jembe is missing on some takes; missing parts are masked, never imputed. Each drum has its own close microphone, so every track also hears the others. The onsets come from the corpus authors' detection and selection, but the peak amplitudes are measured on tracks with that bleed, so intensity is the least reliable variable.
@@ -108,6 +139,7 @@ python experiments/recognition/tempo_control.py          # results/a2_tempo_cont
 python experiments/recognition/sequence_models.py --models cnn --out results/a3_sequence_cnn_cpu.json   # about 20 min on 2 threads
 python experiments/recognition/make_figures.py           # docs/figures/
 python experiments/symmetry/beat_symmetry.py             # results/j1_beat_symmetry.json and figure, a few minutes
+python experiments/baselines/run_baselines.py            # results/j2_baselines.json and figure, a few minutes
 ```
 
 ## Credits
