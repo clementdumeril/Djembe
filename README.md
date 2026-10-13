@@ -85,7 +85,7 @@ The table also scores the *distribution* of offsets drawn by each model at the t
 
 **Two data findings came out of this step:**
 - **Takes do not share one timing reference.** The median offset of a whole take ranges from −27 to +17 ms. Manjanin 1 sits about 30 ms earlier than the other Manjanin takes, on every drum, which points at where its cycle starts were annotated rather than at the playing. The grid therefore removes each take's median offset (one constant per take, stored in `delta_offset`). That alone brings the error of the mean from 8.4 to 4.6 ms; unaligned scores are kept in the JSON. This also removes any genuine take-wide "ahead of the beat" playing, which this corpus cannot separate from the annotation reference.
-- **The second dundun cannot be learned per piece.** It is recorded on 4 takes, and on only one take of Maraka and of Woloso, so it is scored apart. There, B1 and B2 are worse than the global model.
+- **The second dundun cannot be learned per piece.** It is recorded on 4 takes, and on only one take of Maraka and of Woloso, so it is scored apart. There, B1 and B2 predict its strikes worse than the global model does.
 
 Intensities are z-scored within each take, so a take's own loudness spread is used to score it; the graph model gets the same input.
 
