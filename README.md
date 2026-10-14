@@ -108,9 +108,29 @@ The task: the network sees 4 consecutive cycles. The first 3 are fully known; of
 - **The training recipe, not the architecture, is the weak point.** The spread between seeds is large: 0.064 nats on average, up to 0.195 on one take. It is explained mostly by early stopping on a single validation take. The 35 runs that stopped within 12 epochs are 0.175 nats worse than B2; the 100 that trained longer are 0.012 better. The correlation between epochs run and the gap to B2 is −0.68.
 - **Symmetry does not help at this data size.** Both symmetric variants are behind B2 (beat symmetry +0.041, p = 0.05; pulse rotation +0.058, p = 0.03) and behind V0. Whether symmetry pays off when data is scarce is the question of the data-efficiency curve.
 - **Intensity.** Every network variant is far ahead of the references (about 0.91 against 1.29), consistently across seeds. This is **not yet a musical result**. A jembe stroke measures about half a standard deviation louder when two other drums strike on the same pulse. That fits microphone bleed (each close microphone also hears the other drums) as well as genuine accents on the pulses everyone plays, and the network sees who else strikes. A control that uses the small timing gaps between drums will separate the two.
-- **Next:** a steadier training recipe (validation on two takes, longer patience, an ensemble of the seeds), the bleed control, then the data-efficiency curve.
+- **Next:** the three fixes below, the bleed control, then the data-efficiency curve.
+
+### Three fixes (seed 0, laptop; three seeds on Colab pending)
+
+1. **Keep the last epoch.** The learning rate follows a cosine schedule down to zero, so the last epochs are stable. The best epoch on a single validation take is mostly chance: on two folds it was worse than the last epoch in 3 of 4 checks. All 40 epochs are now run and the final weights are scored (`--select last`).
+2. **Helix edge (V5).** In J3, pulse 1 received its "previous pulse" message from pulse 12 of the *same* cycle, which comes later in time and is unknown in the target cycle. Now pulse 12 feeds pulse 1 of the *next* cycle.
+3. **Correction to B1 (V4 = V5 + this).** B1's Gaussian is given to every node and the network predicts a correction to it, zero before training.
+
+| Offsets, seed 0, laptop | Score | vs B2, per take |
+|---|---|---|
+| B2 Markov, earlier cycles | −0.709 | |
+| GNN V0, best validation epoch (J3) | −0.758 | |
+| GNN V0, last epoch | −0.784 | better on 13 of 15 (p = 0.001) |
+| **GNN V5, last epoch + helix** | **−0.801** | **better on 13 of 15 (p = 0.001)** |
+| GNN V4, V5 + correction to B1 | −0.652 | better on 11 of 15 |
+
+- **The helix helps a little and consistently:** −0.021 against V0, better on 11 of 15 takes (p = 0.02).
+- **Keeping the last epoch is not yet proven by one seed:** −0.028 against the J3 laptop run, better on 8 of 15 (p = 0.21). Its expected benefit is a smaller spread between seeds, which only the three-seed run can show.
+- **The correction to B1 hurts:** worse than V5 on 14 of 15 takes, and worse than B1 itself on Manjanin 4 (+0.25 against −0.42). Starting from B1 does not stop the network from becoming overconfident where the test take departs from B1's averages. Dropped for now.
+- Intensity is unchanged (V5 0.878, V0 0.890) and still awaits the bleed control.
 
 Numbers:
+- [`results/j3b_humanize_seed0_cpu.json`](results/j3b_humanize_seed0_cpu.json): the three fixes, seed 0, on a laptop;
 - [`results/j3_humanize_3seeds_colab.json`](results/j3_humanize_3seeds_colab.json): three seeds on Colab, rebuilt from the Weights & Biases export [`results/j3_wandb_export.csv`](results/j3_wandb_export.csv) with [`experiments/gnn/fetch_wandb.py`](experiments/gnn/fetch_wandb.py);
 - [`results/j3_humanize_seed0_cpu.json`](results/j3_humanize_seed0_cpu.json): the first run, seed 0, on a laptop.
 
