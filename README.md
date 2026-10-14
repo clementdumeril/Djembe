@@ -89,6 +89,28 @@ The table also scores the *distribution* of offsets drawn by each model at the t
 
 Intensities are z-scored within each take, so a take's own loudness spread is used to score it; the graph model gets the same input.
 
+## First graph model: humanising a cycle (one seed)
+
+The task: the network sees 4 consecutive cycles. The first 3 are fully known; of the last, only which drums strike where. It predicts the offset and the intensity of every stroke of that last cycle, as Gaussians. It is scored exactly like the reference models, on the same strokes. In each fold the network trains on 13 takes and stops early on a 14th, while B1 and B2 are fitted on all 14. B2 here only remembers earlier cycles, since no offset of the target cycle is known.
+
+| Model (jembe 1, jembe 2, dundun 1) | Offsets | Takes where it beats B2 | Intensity |
+|---|---|---|---|
+| B1 position | −0.579 | 0/15 | 1.294 |
+| B2 Markov, earlier cycles | −0.709 | – | 1.286 |
+| **GNN V0, no symmetry** | **−0.758** | **12/15** | **0.887** |
+| GNN V1, beat symmetry (C4) | −0.670 | 7/15 | 0.912 |
+| GNN V3, pulse rotation (C12) | −0.687 | 4/15 | 0.909 |
+
+![Negative log-likelihood per held-out take](docs/figures/j3_humanize.png)
+
+**What this says, with one seed only:**
+- **Offsets.** The unconstrained network beats the best reference on 12 of 15 takes, the first sign that looking at the other drums helps.
+- **Symmetry does not help at this data size.** Beat symmetry (V1) is behind V0. It also stopped early on several folds, after 9 to 11 epochs on a noisy single-take validation, which says as much about the training recipe as about the symmetry. Whether symmetry pays off when data is scarce is the question of the next step, a data-efficiency curve.
+- **Intensity.** Every network variant is far ahead of the references (0.89 against 1.29). This is **not yet a musical result**. A jembe stroke measures about half a standard deviation louder when two other drums strike on the same pulse. That fits microphone bleed (each close microphone also hears the other drums) as well as genuine accents on the pulses everyone plays, and the network sees who else strikes. A control that uses the small timing gaps between drums will separate the two.
+- **Next:** three seeds (Colab notebook), a steadier validation, and the bleed control.
+
+Numbers: [`results/j3_humanize_seed0_cpu.json`](results/j3_humanize_seed0_cpu.json).
+
 ## What is in the repository
 
 - [`djembe/dataset.py`](djembe/dataset.py): downloads the annotations from OSF and builds one event table. Each row is one stroke: take, instrument, player, cycle, subdivision, onset, peak amplitude, offset from the even grid (fraction of a pulse and ms), musical section. Every experiment reads only this table.
@@ -141,6 +163,7 @@ python experiments/recognition/sequence_models.py --models cnn --out results/a3_
 python experiments/recognition/make_figures.py           # docs/figures/
 python experiments/symmetry/beat_symmetry.py             # results/j1_beat_symmetry.json and figure, a few minutes
 python experiments/baselines/run_baselines.py            # results/j2_baselines.json and figure, a few minutes
+python experiments/gnn/train_humanize.py --variants V0 V1 V3 --seeds 0 --out results/j3_humanize_seed0_cpu.json   # about 1.5 h on a laptop CPU
 ```
 
 ## Credits
