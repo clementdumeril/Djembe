@@ -24,14 +24,17 @@ takes = list(d.TAKES)
 fig, axes = plt.subplots(1, 2, figsize=(13, 4))
 for ax, key, title in zip(axes, ("nll_delta", "nll_intensity"), ("Offsets", "Intensity")):
     for m in models:
-        v = [np.mean([r[key] for r in rows if r["take"] == t and r["model"] == m]) for t in takes]
+        runs = [[r[key] for r in rows if r["take"] == t and r["model"] == m] for t in takes]
+        v, e = [np.mean(x) for x in runs], [np.std(x) for x in runs]
         c, s = styles[m]
-        ax.plot(range(len(takes)), v, s, color=c, ms=4, label=labels[m])
+        ax.errorbar(range(len(takes)), v, yerr=e if max(e) > 0 else None, fmt=s, color=c, ms=4, capsize=2,
+                    label=labels[m])
     ax.set_xticks(range(len(takes)))
     ax.set_xticklabels([t[:3] + t[-2:] for t in takes], rotation=90, fontsize=8)
     ax.set_title(f"{title}: nats per stroke on the held-out take, lower is better", fontsize=10)
 axes[0].legend(fontsize=8)
-fig.suptitle("Humanising a cycle (strikes known, offsets and intensities predicted); jembe 1, jembe 2, dundun 1", fontsize=11)
+fig.suptitle("Humanising a cycle (strikes known, offsets and intensities predicted); jembe 1, jembe 2, dundun 1. "
+             "Network: mean and spread over seeds", fontsize=11)
 fig.tight_layout()
 fig.savefig(dst, dpi=130)
 print("saved", dst)

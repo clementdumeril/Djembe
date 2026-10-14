@@ -101,15 +101,18 @@ The task: the network sees 4 consecutive cycles. The first 3 are fully known; of
 | GNN V1, beat symmetry (C4) | −0.674 | −0.670 | 0.904 |
 | GNN V3, pulse rotation (C12) | −0.659 | −0.687 | 0.918 |
 
-![Negative log-likelihood per held-out take, seed 0](docs/figures/j3_humanize.png)
+![Negative log-likelihood per held-out take, mean and spread over three seeds](docs/figures/j3_humanize.png)
 
 **What this says:**
-- **Offsets: the network only ties the best reference.** With one seed, the unconstrained network looked better than B2 on 12 of 15 takes. Averaged over three seeds it is level with it (−0.709 both). The run-to-run spread is large: early stopping on a single validation take is noisy, and some runs stop after 9 to 11 epochs. So the first claim does not hold; the training recipe has to be made steadier before comparing architectures.
-- **Symmetry does not help at this data size.** Both symmetric variants are behind V0. Whether symmetry pays off when data is scarce is the question of the next step, a data-efficiency curve.
-- **Intensity.** Every network variant is far ahead of the references (about 0.91 against 1.29). This is **not yet a musical result**. A jembe stroke measures about half a standard deviation louder when two other drums strike on the same pulse. That fits microphone bleed (each close microphone also hears the other drums) as well as genuine accents on the pulses everyone plays, and the network sees who else strikes. A control that uses the small timing gaps between drums will separate the two.
-- **Next:** a steadier training recipe (validation on more than one take, ensembles over seeds), the bleed control, then the data-efficiency curve.
+- **Offsets: the network only ties the best reference.** With one seed, the unconstrained network looked better than B2 on 12 of 15 takes. Over three seeds it is level with it (−0.709 both). Its mean over seeds beats B2 on 8 of 15 takes, and the paired difference is +0.010 (Wilcoxon p = 0.60). It is clearly better on Maraka 1 and the Manjanin takes, and worse on Maraka 2 to 5. So the one-seed claim does not hold.
+- **The training recipe, not the architecture, is the weak point.** The spread between seeds is large: 0.064 nats on average, up to 0.195 on one take. It is explained mostly by early stopping on a single validation take. The 35 runs that stopped within 12 epochs are 0.175 nats worse than B2; the 100 that trained longer are 0.012 better. The correlation between epochs run and the gap to B2 is −0.68.
+- **Symmetry does not help at this data size.** Both symmetric variants are behind B2 (beat symmetry +0.041, p = 0.05; pulse rotation +0.058, p = 0.03) and behind V0. Whether symmetry pays off when data is scarce is the question of the data-efficiency curve.
+- **Intensity.** Every network variant is far ahead of the references (about 0.91 against 1.29), consistently across seeds. This is **not yet a musical result**. A jembe stroke measures about half a standard deviation louder when two other drums strike on the same pulse. That fits microphone bleed (each close microphone also hears the other drums) as well as genuine accents on the pulses everyone plays, and the network sees who else strikes. A control that uses the small timing gaps between drums will separate the two.
+- **Next:** a steadier training recipe (validation on two takes, longer patience, an ensemble of the seeds), the bleed control, then the data-efficiency curve.
 
-Numbers: [`results/j3_humanize_seed0_cpu.json`](results/j3_humanize_seed0_cpu.json) (laptop, seed 0, per take); the three-seed Colab run is logged in Weights & Biases.
+Numbers:
+- [`results/j3_humanize_3seeds_colab.json`](results/j3_humanize_3seeds_colab.json): three seeds on Colab, rebuilt from the Weights & Biases export [`results/j3_wandb_export.csv`](results/j3_wandb_export.csv) with [`experiments/gnn/fetch_wandb.py`](experiments/gnn/fetch_wandb.py);
+- [`results/j3_humanize_seed0_cpu.json`](results/j3_humanize_seed0_cpu.json): the first run, seed 0, on a laptop.
 
 ## What is in the repository
 
