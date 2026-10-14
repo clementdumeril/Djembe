@@ -65,3 +65,32 @@ def test_model_learns_a_constant_feel():
     res = gnn.evaluate(model, windows, K=K, position="subpulse")
     assert hist[-1]["train_loss"] < hist[0]["train_loss"]
     assert res["nll_delta"] < -1.0          # offsets have sd 0.02 around -0.2: a good fit scores far below 0
+
+
+def flat_prior(mu_d=-0.2, sd_d=0.05, mu_i=0.0, sd_i=1.0):
+    p = np.zeros((12, 4, gnn.N_PRIOR), np.float32)
+    p[..., 0], p[..., 1], p[..., 2], p[..., 3] = mu_d, np.log(sd_d), mu_i, np.log(sd_i)
+    return {piece: p for piece in ("Manjanin", "Maraka", "Woloso")}
+
+
+def test_untrained_residual_model_predicts_the_prior_exactly():
+    torch.manual_seed(0)
+    windows = gnn.make_windows(synthetic_grid(np.random.default_rng(3)), K=K)
+    batch = gnn.collate(windows[:4], K, "full", helix=True, prior=flat_prior())
+    n_in = gnn.n_base_features() + position_features("full", 1).shape[1] + gnn.N_PRIOR
+    model = gnn.CycleGNN(n_in, dim=16, layers=2, residual=True).eval()
+    with torch.no_grad():
+        dm, dls, im, ils = model(batch["x"], batch["edges"], batch["prior"])
+    assert torch.allclose(dm, torch.full_like(dm, -0.2)) and torch.allclose(dls.exp(), torch.full_like(dls, 0.05))
+    assert torch.allclose(im, torch.zeros_like(im)) and torch.allclose(ils, torch.zeros_like(ils))
+
+
+def test_residual_model_trains_every_epoch_when_keeping_the_last():
+    rng = np.random.default_rng(4)
+    windows = gnn.make_windows(synthetic_grid(rng), K=K)
+    prior = flat_prior(sd_d=0.2)
+    model, hist = gnn.train(windows, windows[:8], K=K, position="full", dim=16, layers=1, epochs=12,
+                            batch_size=8, patience=1, select="last", helix=True, prior=prior)
+    assert len(hist) == 12
+    res = gnn.evaluate(model, windows, K=K, position="full", helix=True, prior=prior)
+    assert res["nll_delta"] < -1.0          # starts at the wide prior (about -0.7) and sharpens

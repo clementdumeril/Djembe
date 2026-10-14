@@ -10,6 +10,13 @@ negative log-likelihoods in the same units as the reference models
 The network is plain relational message passing on the graph of ``djembe.grid``:
 for each node, a linear map of itself plus, for each edge type, the mean of a
 linear map of its in-neighbours; then GELU, a residual connection and LayerNorm.
+
+Two options, both off by default so that the J3 runs are reproduced exactly:
+``helix=True`` links pulse 12 of a cycle to pulse 1 of the next cycle instead of
+pulse 1 of the same cycle (see ``graph_edges``); a ``prior`` from B1 (one Gaussian
+per piece, instrument and pulse, ``prior_from_b1``) is given to every node as input
+and the heads predict a correction to it, zero before training, so an untrained
+network already scores like B1.
 Every operation is node-wise or a mean over an edge set that rotation of the cycle
 maps onto itself, so the network is exactly as symmetric as its positional input:
 ``position="none"`` (rotation by any number of pulses, C12), ``"subpulse"``
@@ -47,6 +54,7 @@ class Window:
     present: tuple
     take_id: str
     cycle: int                      # index of the target cycle in the take grid
+    piece: str = ""
 
 
 def n_base_features() -> int:
@@ -84,28 +92,51 @@ def make_windows(grid: TakeGrid, K: int = 4) -> list[Window]:
         ii = np.zeros((K, 12, 4), np.float32)
         dd[-1], ii[-1] = d, I
         out.append(Window(x.reshape(-1, x.shape[-1]), dd.reshape(-1), ii.reshape(-1), md.reshape(-1),
-                          mi.reshape(-1), tuple(np.flatnonzero(grid.present)), grid.take_id, t))
+                          mi.reshape(-1), tuple(np.flatnonzero(grid.present)), grid.take_id, t, grid.piece))
+    return out
+
+
+N_PRIOR = 4                         # delta mean, delta log-sd, intensity mean, intensity log-sd
+
+
+def prior_from_b1(b1) -> dict:
+    """B1's Gaussians as arrays (12 pulses, 4 instruments, N_PRIOR), one per piece."""
+    out = {}
+    k = np.arange(12)
+    for piece in PIECES:
+        p = np.zeros((12, 4, N_PRIOR), np.float32)
+        for i in range(4):
+            for col, name in ((0, "d"), (2, "I")):
+                mu, sd = b1.mu_sd(name, piece, i, k)
+                p[:, i, col], p[:, i, col + 1] = mu, np.log(sd)
+        out[piece] = p
     return out
 
 
 @lru_cache(maxsize=None)
-def _edges(K: int, present: tuple) -> tuple:
-    e = graph_edges(K, instruments=present)
+def _edges(K: int, present: tuple, helix: bool = False) -> tuple:
+    e = graph_edges(K, instruments=present, helix=helix)
     return tuple(e[name] for name in EDGE_TYPES)
 
 
-def collate(windows: list[Window], K: int, position: str, device="cpu"):
-    """Stack windows into one disconnected graph."""
+def collate(windows: list[Window], K: int, position: str, device="cpu", *, helix=False, prior=None):
+    """Stack windows into one disconnected graph. ``prior``: output of ``prior_from_b1``."""
     pos = position_features(position, K)
-    xs, edges, n0 = [], [[] for _ in EDGE_TYPES], 0
+    xs, ps, edges, n0 = [], [], [[] for _ in EDGE_TYPES], 0
     for w in windows:
-        xs.append(np.concatenate([w.x, pos], axis=1))
-        for r, e in enumerate(_edges(K, w.present)):
+        cols = [w.x, pos]
+        if prior is not None:
+            p = np.broadcast_to(prior[w.piece][None], (K, 12, 4, N_PRIOR)).reshape(-1, N_PRIOR)
+            cols.append(p)
+            ps.append(p)
+        xs.append(np.concatenate(cols, axis=1))
+        for r, e in enumerate(_edges(K, w.present, helix)):
             edges[r].append(e + n0)
         n0 += w.x.shape[0]
     t = lambda a, dt=torch.float32: torch.as_tensor(np.concatenate(a), dtype=dt, device=device)
     return {
         "x": t(xs),
+        "prior": t(ps) if ps else None,
         "edges": [torch.as_tensor(np.concatenate(e, axis=1), dtype=torch.long, device=device) for e in edges],
         "delta": t([w.delta for w in windows]),
         "intensity": t([w.intensity for w in windows]),
@@ -136,18 +167,23 @@ class RelationalLayer(nn.Module):
 class CycleGNN(nn.Module):
     """Message passing on the performance graph; Gaussian heads for offset and intensity."""
 
-    def __init__(self, n_in: int, dim: int = 64, layers: int = 3, dropout: float = 0.1):
+    def __init__(self, n_in: int, dim: int = 64, layers: int = 3, dropout: float = 0.1, residual: bool = False):
         super().__init__()
         self.inp = nn.Sequential(nn.Linear(n_in, dim), nn.GELU(), nn.Linear(dim, dim))
         self.layers = nn.ModuleList(RelationalLayer(dim) for _ in range(layers))
         self.drop = nn.Dropout(dropout)
-        self.head = nn.Linear(dim, 4)     # delta mean, delta log-sd, intensity mean, intensity log-sd
+        self.head = nn.Linear(dim, N_PRIOR)   # delta mean, delta log-sd, intensity mean, intensity log-sd
+        if residual:                          # a correction to the prior, zero before training
+            nn.init.zeros_(self.head.weight)
+            nn.init.zeros_(self.head.bias)
 
-    def forward(self, x, edges):
+    def forward(self, x, edges, prior=None):
         h = self.inp(x)
         for layer in self.layers:
             h = self.drop(layer(h, edges))
         out = self.head(h)
+        if prior is not None:
+            out = out + prior
         return out[:, 0], out[:, 1].clamp(-5, 2), out[:, 2], out[:, 3].clamp(-5, 2)
 
 
@@ -156,7 +192,7 @@ def gaussian_nll(y, mu, log_sd):
 
 
 def losses(model, batch):
-    dm, dls, im, ils = model(batch["x"], batch["edges"])
+    dm, dls, im, ils = model(batch["x"], batch["edges"], batch["prior"])
     md, mi = batch["mask_delta"], batch["mask_intensity"]
     ld = gaussian_nll(batch["delta"][md], dm[md], dls[md])
     li = gaussian_nll(batch["intensity"][mi], im[mi], ils[mi])
@@ -164,22 +200,32 @@ def losses(model, batch):
 
 
 def train(train_w, val_w, *, K=4, position="subpulse", dim=64, layers=3, dropout=0.1, lr=2e-3,
-          weight_decay=1e-4, epochs=40, batch_size=32, patience=8, seed=0, device="cpu", log=None):
-    """Train with early stopping on the validation windows; returns the best model and its history."""
+          weight_decay=1e-4, epochs=40, batch_size=32, patience=8, select="best", helix=False, prior=None,
+          seed=0, device="cpu", log=None):
+    """Train; returns the model and its per-epoch history (validation scores always logged).
+
+    ``select="best"``: early stopping on the validation windows, the best epoch's weights are
+    kept (the J3 runs). ``select="last"``: all epochs are run and the final weights are kept;
+    the cosine schedule brings the learning rate to zero, so the last epochs are stable,
+    while the best epoch on a single validation take is mostly chance.
+    """
+    if select not in ("best", "last"):
+        raise ValueError(f"unknown select {select!r}")
     torch.manual_seed(seed)
     rng = np.random.default_rng(seed)
-    n_in = n_base_features() + position_features(position, 1).shape[1]
-    model = CycleGNN(n_in, dim, layers, dropout).to(device)
+    n_in = n_base_features() + position_features(position, 1).shape[1] + (N_PRIOR if prior is not None else 0)
+    model = CycleGNN(n_in, dim, layers, dropout, residual=prior is not None).to(device)
     opt = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=weight_decay)
     sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=epochs)
-    val_batch = collate(val_w, K, position, device)
+    graph = {"helix": helix, "prior": prior}
+    val_batch = collate(val_w, K, position, device, **graph)
     best, best_state, wait, history = np.inf, None, 0, []
     for epoch in range(epochs):
         model.train()
         order = rng.permutation(len(train_w))
         tot, n = 0.0, 0
         for b in range(0, len(order), batch_size):
-            batch = collate([train_w[j] for j in order[b:b + batch_size]], K, position, device)
+            batch = collate([train_w[j] for j in order[b:b + batch_size]], K, position, device, **graph)
             ld, li = losses(model, batch)
             loss = ld.mean() + li.mean()
             opt.zero_grad()
@@ -196,6 +242,8 @@ def train(train_w, val_w, *, K=4, position="subpulse", dim=64, layers=3, dropout
                         "val_nll_delta": ld.mean().item(), "val_nll_intensity": li.mean().item()})
         if log:
             log(history[-1])
+        if select == "last":
+            continue
         if val < best - 1e-4:
             best, wait = val, 0
             best_state = {k: v.detach().clone() for k, v in model.state_dict().items()}
@@ -203,18 +251,20 @@ def train(train_w, val_w, *, K=4, position="subpulse", dim=64, layers=3, dropout
             wait += 1
             if wait >= patience:
                 break
-    model.load_state_dict(best_state)
+    if select == "best":
+        model.load_state_dict(best_state)
+    model.eval()
     return model, history
 
 
 @torch.no_grad()
 def evaluate(model, windows, *, K=4, position="subpulse", device="cpu", batch_size=256,
-             instruments=(0, 1, 2, 3)) -> dict:
+             instruments=(0, 1, 2, 3), helix=False, prior=None) -> dict:
     """Mean NLL over the target strokes of the listed instruments (0-3 = J1, J2, D1, D2)."""
     model.eval()
     ld_all, li_all = [], []
     for b in range(0, len(windows), batch_size):
-        batch = collate(windows[b:b + batch_size], K, position, device)
+        batch = collate(windows[b:b + batch_size], K, position, device, helix=helix, prior=prior)
         keep = torch.isin(batch["inst"], torch.as_tensor(instruments, device=device))
         batch["mask_delta"] &= keep
         batch["mask_intensity"] &= keep

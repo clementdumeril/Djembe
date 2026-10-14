@@ -115,11 +115,16 @@ def node_index(n_cycles: int, n_inst: int = len(INSTRUMENTS)) -> np.ndarray:
     return np.arange(n_cycles * N_SUBDIVISIONS * n_inst).reshape(n_cycles, N_SUBDIVISIONS, n_inst)
 
 
-def graph_edges(n_cycles: int, instruments=range(len(INSTRUMENTS))) -> dict[str, np.ndarray]:
+def graph_edges(n_cycles: int, instruments=range(len(INSTRUMENTS)), helix: bool = False) -> dict[str, np.ndarray]:
     """Edge lists (2, E) of the three relations over a window of ``n_cycles`` cycles.
 
     Nodes of instruments not listed in ``instruments`` get no edges (a take without
     D2 simply has isolated, masked D2 nodes).
+
+    ``next_pulse`` links each pulse to the next one. By default it wraps inside the
+    cycle (pulse 12 -> pulse 1 of the same cycle), which keeps rotations of the cycle
+    exact symmetries. With ``helix=True`` it follows time instead: pulse 12 of a cycle
+    feeds pulse 1 of the next cycle, and pulse 1 of the first cycle has no predecessor.
     """
     idx = node_index(n_cycles)
     inst = list(instruments)
@@ -127,8 +132,12 @@ def graph_edges(n_cycles: int, instruments=range(len(INSTRUMENTS))) -> dict[str,
     for c in range(n_cycles):
         for k in range(N_SUBDIVISIONS):
             for i in inst:
-                src["next_pulse"].append(idx[c, k, i])
-                dst["next_pulse"].append(idx[c, (k + 1) % N_SUBDIVISIONS, i])
+                if not helix:
+                    src["next_pulse"].append(idx[c, k, i])
+                    dst["next_pulse"].append(idx[c, (k + 1) % N_SUBDIVISIONS, i])
+                elif k + 1 < N_SUBDIVISIONS or c + 1 < n_cycles:
+                    src["next_pulse"].append(idx[c, k, i])
+                    dst["next_pulse"].append(idx[c + (k + 1) // N_SUBDIVISIONS, (k + 1) % N_SUBDIVISIONS, i])
                 for j in inst:
                     if j != i:
                         src["same_pulse"].append(idx[c, k, j])

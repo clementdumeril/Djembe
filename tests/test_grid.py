@@ -46,6 +46,22 @@ def test_edge_counts():
     assert e["prev_cycle"].shape[1] == 1 * 12 * 2
 
 
+def test_helix_follows_time_across_cycles():
+    n_cycles = 3
+    idx = g.node_index(n_cycles)
+    ring = edge_set(g.graph_edges(n_cycles)["next_pulse"])
+    helix = edge_set(g.graph_edges(n_cycles, helix=True)["next_pulse"])
+    for i in range(4):
+        assert (idx[1, 11, i], idx[1, 0, i]) in ring and (idx[1, 11, i], idx[1, 0, i]) not in helix
+        assert (idx[0, 11, i], idx[1, 0, i]) in helix and (idx[1, 11, i], idx[2, 0, i]) in helix
+        assert (idx[1, 4, i], idx[1, 5, i]) in helix
+    # pulse 1 of the first cycle has no predecessor, pulse 12 of the last no successor
+    assert len(helix) == len(ring) - 4
+    # the other relations do not change
+    for name in ("same_pulse", "prev_cycle"):
+        assert edge_set(g.graph_edges(n_cycles)[name]) == edge_set(g.graph_edges(n_cycles, helix=True)[name])
+
+
 def test_section_classes():
     assert g.section_class("heating up / finale") == "heating"
     assert g.section_class("basic pattern 1  w variations") == "basic"
