@@ -40,6 +40,8 @@ import argparse
 import json
 import os
 import re
+import time
+import urllib.error
 import urllib.request
 from pathlib import Path
 
@@ -68,11 +70,27 @@ ANNOTATION_PATTERN = re.compile(r"_(Onsets_Selected_Peak|Metre|Annotation|Onsets
 
 
 # ───────────────────────────── download ─────────────────────────────
+def _fetch(url: str, timeout: int, attempts: int = 8) -> bytes:
+    """GET with retries. The corpus sits on OSF's Dropbox add-on, which answers
+    intermittently with 404, 429 or 5xx for requests that succeed seconds later."""
+    delay = 2.0
+    for attempt in range(1, attempts + 1):
+        try:
+            request = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+            with urllib.request.urlopen(request, timeout=timeout) as response:
+                return response.read()
+        except (urllib.error.HTTPError, urllib.error.URLError, TimeoutError) as error:
+            code = getattr(error, "code", None)
+            if attempt == attempts or (code is not None and code not in (404, 408, 429, 500, 502, 503, 504)):
+                raise
+            print(f"  OSF: {error} - retrying in {delay:.0f} s ({attempt}/{attempts})", flush=True)
+            time.sleep(delay)
+            delay = min(delay * 2, 60.0)
+
+
 def _osf_list(path: str) -> list[dict]:
     url = f"https://api.osf.io/v2/nodes/{OSF_NODE}/files/dropbox/{path}/?page%5Bsize%5D=200"
-    request = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-    with urllib.request.urlopen(request, timeout=60) as response:
-        return json.load(response)["data"]
+    return json.loads(_fetch(url, timeout=60))["data"]
 
 
 def download_corpus(corpus_dir: str | Path = DEFAULT_CORPUS, audio: bool = False, audio_takes=None,
@@ -101,9 +119,9 @@ def download_corpus(corpus_dir: str | Path = DEFAULT_CORPUS, audio: bool = False
                 dest = dest_dir / name
                 if dest.exists():
                     continue
-                request = urllib.request.Request(item["links"]["download"], headers={"User-Agent": "Mozilla/5.0"})
-                with urllib.request.urlopen(request, timeout=300) as response:
-                    dest.write_bytes(response.read())
+                tmp = dest.with_suffix(dest.suffix + ".part")
+                tmp.write_bytes(_fetch(item["links"]["download"], timeout=300))
+                tmp.replace(dest)
                 new += 1
         if verbose:
             print(f"{piece:9s} ok")
