@@ -128,6 +128,7 @@ The task: the network sees 4 consecutive cycles. The first 3 are fully known; of
 - **Keeping the last epoch is not yet proven by one seed:** −0.028 against the J3 laptop run, better on 8 of 15 (p = 0.21). Its expected benefit is a smaller spread between seeds, which only the three-seed run can show.
 - **The correction to B1 hurts:** worse than V5 on 14 of 15 takes, and worse than B1 itself on Manjanin 4 (+0.25 against −0.42). Starting from B1 does not stop the network from becoming overconfident where the test take departs from B1's averages. Dropped for now.
 - Intensity is unchanged (V5 0.878, V0 0.890) and still awaits the bleed control.
+- **The same J3 runs, repeated, do not give the same score.** J3 was rerun on Colab with identical code, settings and seeds. V0 scored −0.736 instead of −0.709, and single runs moved by 0.046 nats on average, up to 0.48. GPU arithmetic is not bit-exact, and picking the best validation epoch turns those tiny differences into different models. This supports keeping the last epoch. Runs: [`results/j3_rerun_wandb_export.csv`](results/j3_rerun_wandb_export.csv).
 
 Numbers:
 - [`results/j3b_humanize_seed0_cpu.json`](results/j3b_humanize_seed0_cpu.json): the three fixes, seed 0, on a laptop;
