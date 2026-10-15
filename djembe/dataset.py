@@ -43,6 +43,7 @@ import re
 import time
 import urllib.error
 import urllib.request
+import zipfile
 from pathlib import Path
 
 import numpy as np
@@ -72,7 +73,7 @@ ANNOTATION_PATTERN = re.compile(r"_(Onsets_Selected_Peak|Metre|Annotation|Onsets
 # ───────────────────────────── download ─────────────────────────────
 def _fetch(url: str, timeout: int, attempts: int = 8) -> bytes:
     """GET with retries. The corpus sits on OSF's Dropbox add-on, which answers
-    intermittently with 404, 429 or 5xx for requests that succeed seconds later."""
+    intermittently with 403, 404, 429 or 5xx for requests that succeed seconds later."""
     delay = 2.0
     for attempt in range(1, attempts + 1):
         try:
@@ -81,7 +82,7 @@ def _fetch(url: str, timeout: int, attempts: int = 8) -> bytes:
                 return response.read()
         except (urllib.error.HTTPError, urllib.error.URLError, TimeoutError) as error:
             code = getattr(error, "code", None)
-            if attempt == attempts or (code is not None and code not in (404, 408, 429, 500, 502, 503, 504)):
+            if attempt == attempts or (code is not None and code not in (403, 404, 408, 429, 500, 502, 503, 504)):
                 raise
             print(f"  OSF: {error} - retrying in {delay:.0f} s ({attempt}/{attempts})", flush=True)
             time.sleep(delay)
@@ -93,15 +94,31 @@ def _osf_list(path: str) -> list[dict]:
     return json.loads(_fetch(url, timeout=60))["data"]
 
 
+REQUIRED_ANNOTATIONS = ("Onsets_Selected_Peak", "Metre")
+
+
+def missing_annotations(corpus_dir: str | Path = DEFAULT_CORPUS) -> list[Path]:
+    """Annotation files that ``build_events`` needs and that are not in ``corpus_dir``."""
+    corpus_dir = Path(corpus_dir)
+    paths = [_annotation(corpus_dir, t, s) for t in TAKES for s in REQUIRED_ANNOTATIONS]
+    return [p for p in paths if not p.exists()]
+
+
 def download_corpus(corpus_dir: str | Path = DEFAULT_CORPUS, audio: bool = False, audio_takes=None,
                     verbose: bool = True) -> int:
     """Download annotations (and optionally the multitrack WAVs) from OSF.
 
-    Idempotent: files already present are skipped. Returns the number of new
-    files. Annotations are about 10 MB; all audio is about 900 MB. With
-    ``audio_takes`` (e.g. ``["Woloso_2"]``), only those takes' WAVs are fetched.
+    Idempotent: files already present are skipped, and OSF is not contacted at all
+    when every needed annotation is already there (e.g. copied from a private
+    backup). Returns the number of new files. Annotations are about 7 MB; all audio
+    is about 900 MB. With ``audio_takes`` (e.g. ``["Woloso_2"]``), only those takes'
+    WAVs are fetched. Raises if needed annotations are still missing at the end.
     """
     corpus_dir = Path(corpus_dir)
+    if not audio and not missing_annotations(corpus_dir):
+        if verbose:
+            print(f"all annotations already in {corpus_dir}, OSF not contacted")
+        return 0
     new = 0
     for piece in PIECES:
         target = corpus_dir / f"MJ_{piece}" / "annotations"
@@ -127,7 +144,24 @@ def download_corpus(corpus_dir: str | Path = DEFAULT_CORPUS, audio: bool = False
             print(f"{piece:9s} ok")
     if verbose:
         print(f"{new} new files in {corpus_dir}")
+    missing = missing_annotations(corpus_dir)
+    if missing:
+        raise RuntimeError(f"{len(missing)} annotation files still missing, e.g. {missing[0].name}")
     return new
+
+
+def pack_annotations(corpus_dir: str | Path = DEFAULT_CORPUS, out: str | Path = ROOT / "output" / "djembe_corpus.zip") -> Path:
+    """Zip the annotations of ``corpus_dir`` (paths MJ_<piece>/annotations/...) for a private
+    backup, e.g. in your own Google Drive for the Colab notebook. Not for redistribution."""
+    corpus_dir, out = Path(corpus_dir), Path(out)
+    missing = missing_annotations(corpus_dir)
+    if missing:
+        raise RuntimeError(f"{len(missing)} annotation files missing, e.g. {missing[0].name}: run download first")
+    out.parent.mkdir(parents=True, exist_ok=True)
+    with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
+        for path in sorted(corpus_dir.glob("MJ_*/annotations/*.csv")):
+            z.write(path, path.relative_to(corpus_dir).as_posix())
+    return out
 
 
 # ───────────────────────────── build ─────────────────────────────
@@ -275,7 +309,7 @@ def subdivision_profile(events: pd.DataFrame, instrument: str = "D1") -> pd.Data
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("command", choices=["download", "build", "splits"])
+    parser.add_argument("command", choices=["download", "build", "splits", "pack"])
     parser.add_argument("--corpus", default=str(DEFAULT_CORPUS))
     parser.add_argument("--out", default=str(DEFAULT_EVENTS))
     parser.add_argument("--audio", action="store_true", help="also download the WAVs (about 900 MB)")
@@ -284,6 +318,9 @@ def main() -> None:
 
     if args.command == "download":
         download_corpus(args.corpus, audio=args.audio, audio_takes=args.takes)
+    elif args.command == "pack":
+        out = pack_annotations(args.corpus)
+        print(f"annotations -> {out} ({out.stat().st_size / 1e6:.1f} MB), for your own private backup only")
     elif args.command == "build":
         events = build_events(args.corpus)
         Path(args.out).parent.mkdir(parents=True, exist_ok=True)

@@ -178,6 +178,7 @@ pip install -e ".[dev]"
 python -m djembe.dataset download     # annotations only, about 10 MB from OSF
 python -m djembe.dataset build        # output/events.csv, about 7 s
 python -m djembe.dataset splits       # regenerates splits.json (deterministic)
+python -m djembe.dataset pack         # optional: output/djembe_corpus.zip, a private backup of the annotations
 python -m pytest -q                   # a few seconds
 python experiments/recognition/step0_rf_baseline.py      # results/step0_rf.json, about 20 s
 python experiments/recognition/recognition_baselines.py  # results/a2_recognition.json and figure, several minutes
@@ -187,7 +188,10 @@ python experiments/recognition/make_figures.py           # docs/figures/
 python experiments/symmetry/beat_symmetry.py             # results/j1_beat_symmetry.json and figure, a few minutes
 python experiments/baselines/run_baselines.py            # results/j2_baselines.json and figure, a few minutes
 python experiments/gnn/train_humanize.py --variants V0 V1 V3 --seeds 0 --out results/j3_humanize_seed0_cpu.json   # about 1.5 h on a laptop CPU
+python experiments/gnn/train_humanize.py --variants V0 V4 V5 --seeds 0 --select last --out results/j3b_humanize_seed0_cpu.json   # about 2 h in 4 parallel parts (--takes)
 ```
+
+The Colab notebook [`colab/j3_humanize.ipynb`](colab/j3_humanize.ipynb) runs the three-seed version. OSF sometimes refuses downloads (403); if it does, upload the `djembe_corpus.zip` made by `pack` to the root of your own Google Drive and the notebook uses it without contacting OSF. Keep it private: the corpus licence (CC BY-NC-ND) does not allow redistributing it.
 
 ## Credits
 
