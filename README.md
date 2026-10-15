@@ -4,7 +4,7 @@ This repository models how Malian jembe ensembles *play* their rhythms: which st
 
 The question I am working on: with this little data, does building the symmetries of the metric cycle into the model work better than pretraining on a large drum corpus? Tempo is a time dilation, and these pieces repeat a 12-pulse cycle of four beats of three pulses. The plan is a graph neural network on the cycle grid, with the symmetry kept or broken on purpose, and its departure from symmetry measured.
 
-**Status (October 2026).** The dataset, the leakage-safe splits and the recognition results below are done; the generative model is in progress. The earlier analysis stage (notebooks, the *Boussole des rythmes* interactive page, Colab listening demo, a Markov generator) is preserved at tag [`v0.2-analysis`](https://github.com/clementdumeril/Djembe/tree/v0.2-analysis).
+**Status (October 2026).** The dataset, the leakage-safe splits and the recognition results below are done; the generative model is in progress. Its first task, predicting how late or early each stroke of a cycle falls, now works: the graph model beats the best reference model on 13 of 15 held-out takes (one seed, [details below](#three-fixes-seed-0-laptop-three-seeds-on-colab-pending); three seeds pending). The earlier analysis stage (notebooks, the *Boussole des rythmes* interactive page, Colab listening demo, a Markov generator) is preserved at tag [`v0.2-analysis`](https://github.com/clementdumeril/Djembe/tree/v0.2-analysis).
 
 ## Results
 
