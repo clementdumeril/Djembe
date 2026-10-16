@@ -13,13 +13,13 @@ All other annotation files of both takes are consistent, including `MJ_Maraka_5_
 
 ## Evidence
 
-1. **The file labels itself as Woloso_5.** Every row has `Take = Woloso_5` and `Piece = Woloso`, and the cycle labels use Woloso's half-cycle notation (`1.1|1`, `1.2|1`, ...). Maraka files use `1|1`. The first data row is
+1. The file labels itself as Woloso_5. Every row has `Take = Woloso_5` and `Piece = Woloso`, and the cycle labels use Woloso's half-cycle notation (`1.1|1`, `1.2|1`, ...). Maraka files use `1|1`. The first data row is
 
    ```
    Woloso_5,Woloso,3,1.1|1,1,4.471,4.452,4.47,,3,,,,Jeli Madi Kuyate,Drissa Kone,Madu Jakite,
    ```
 
-2. **Its onsets belong to the Woloso_5 audio.** The D1 onsets of the file were matched to the raw dundun onsets of each take (`*_Onsets_Raw_Dundun1.csv`). The table gives the share of selected D1 onsets that fall within a given tolerance of a raw onset:
+2. Its onsets belong to the Woloso_5 audio. The D1 onsets of the file were matched to the raw dundun onsets of each take (`*_Onsets_Raw_Dundun1.csv`). The table gives the share of selected D1 onsets that fall within a given tolerance of a raw onset:
 
    | Raw onsets of | 10 ms | 20 ms | 50 ms |
    |---|---|---|---|
@@ -29,7 +29,7 @@ All other annotation files of both takes are consistent, including `MJ_Maraka_5_
 
    Against Maraka_5, the match never rises clearly above chance. Against Woloso_5, it is near-complete from 10 ms. (Below 10 ms, the match drops for both takes, because the `_Selected` times are rounded and not snapped to the raw onsets.)
 
-3. **The `_Selected_Peak` files are correct for all 15 takes.** Each one carries its own take label, and 99.9 % to 100 % of its D1 onsets coincide (within 5 ms) with the raw dundun onsets of the same take.
+3. The `_Selected_Peak` files are correct for all 15 takes. Each one carries its own take label, and 99.9 % to 100 % of its D1 onsets coincide (within 5 ms) with the raw dundun onsets of the same take.
 
 To reproduce (after `python -m djembe.dataset download`):
 
@@ -47,10 +47,10 @@ for p in ("Woloso", "Maraka"):
 
 ## Effect on this project
 
-The analysis notebooks (V1 and V2) loaded the `_Onsets_Selected` files. As a result, one Woloso take was labelled Maraka, the real Maraka_5 annotations were never used, and Woloso_5 was missing. The take-level rhythm classifier scored 12/14 on that input. Its two errors were the mislabelled take, predicted "Woloso" (which is in fact correct), and Woloso_2, which lost to Maraka because Woloso had only three clean training takes.
+The analysis notebooks (V1 and V2) loaded the `_Onsets_Selected` files. As a result, one Woloso take was labeled Maraka, the real Maraka_5 annotations were never used, and Woloso_5 was missing. The take-level rhythm classifier scored 12/14 on that input. Its two errors were the mislabeled take, predicted "Woloso" (which is in fact correct), and Woloso_2, which lost to Maraka because Woloso had only three clean training takes.
 
 ## Workaround
 
-`djembe/dataset.py` builds the event table from the `_Onsets_Selected_Peak` files. They hold the same metric positions, with onset times snapped to the raw onsets and a peak amplitude column. `load_take` raises an error if a file's `Take` column does not match its file name. `tests/test_splits.py` checks that guard on a mislabelled copy of a real file. With the clean input, the same classifier scores 15/15.
+`djembe/dataset.py` builds the event table from the `_Onsets_Selected_Peak` files. They hold the same metric positions, with onset times snapped to the raw onsets and a peak amplitude column. `load_take` raises an error if a file's `Take` column does not match its file name. `tests/test_splits.py` checks that guard on a mislabeled copy of a real file. With the clean input, the same classifier scores 15/15.
 
 The analysis notebooks of the earlier stage (tag `v0.2-analysis`) read the `_Onsets_Selected` files through `utils_V2.py`, so their Maraka and Woloso figures include this error. Everything on `main` reads the event table.
