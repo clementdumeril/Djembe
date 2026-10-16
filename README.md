@@ -22,6 +22,10 @@ The dundun result is a ceiling: a nearest-centroid rule already separates the th
 
 The graph model sees 4 cycles: 3 fully known, and a last one where it only knows which drums strike where. It predicts each stroke's offset and intensity as Gaussians, scored by negative log-likelihood on held-out takes (nats, lower is better). References: B1, a Gaussian per piece, drum and pulse; B2, which adds Markov memory of earlier cycles.
 
+![The graph: one cycle with its rotation symmetry, and the window of 4 cycles with the helix edge](docs/figures/gnn_graph.png)
+
+*One node per pulse and drum; rotating the cycle maps the graph onto itself. I trained it with no symmetry (V0), beat symmetry C4 (V1) and full C12 equivariance (V3, no pulse index); the symmetric versions did not win at this data size ([details](docs/RESULTS.md)). Hit pattern illustrative ([script](experiments/gnn/plot_gnn_graph.py)).*
+
 Over three seeds on Colab, the first network only ties B2 (−0.709 both, better on 8 of 15 takes, p = 0.60). So my one-seed claim that it beat B2 on 12 of 15 takes does not hold. Symmetry did not help at this data size, even though the jembe feel is close to beat-symmetric in the data (the four beats differ by 1 to 2 ms, against a feel of 3 to 20 ms).
 
 ### Three fixes (seed 0, laptop; three seeds on Colab pending)
