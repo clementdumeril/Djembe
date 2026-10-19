@@ -4,11 +4,13 @@ Savio is UC Berkeley's SLURM cluster. Here it runs every (test take, seed) unit 
 
 Partition, QoS and GPU names below come from the Research IT user guide (checked October 2026): https://docs-research-it.berkeley.edu/services/high-performance-computing/user-guide/
 
+Use an allocation that covers this project. A course (instructional) allocation is meant for that course's work, so check with the course staff or Research IT before using one here; a faculty allowance (`fc_...`) for the project is the usual route.
+
 ## 1. Once: code and environment
 
 ```bash
 ssh $USER@hpc.brc.berkeley.edu
-sacctmgr -p show associations user=$USER format=account,user,partition,qos   # your account, e.g. fc_xxx
+sacctmgr -p show associations user=$USER format=account,user,partition,qos   # your accounts
 cd /global/scratch/users/$USER
 git clone https://github.com/clementdumeril/Djembe.git && cd Djembe
 bash savio/setup_env.sh        # venv in scratch on top of the ml/pytorch module
