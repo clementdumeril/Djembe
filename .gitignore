@@ -33,3 +33,6 @@ archive/**/*.csv
 # OS files
 .DS_Store
 Thumbs.db
+
+# SLURM logs (Savio)
+slurm/

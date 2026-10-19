@@ -63,7 +63,7 @@ python experiments/gnn/train_humanize.py --variants V0 V4 V5 --seeds 0 --select 
 
 Folds are frozen by take in [`splits.json`](splits.json); the tests fail if a take is on both sides. Full tables and commands: [`docs/RESULTS.md`](docs/RESULTS.md).
 
-[`colab/j3_humanize.ipynb`](colab/j3_humanize.ipynb) runs the three-seed version. If OSF refuses the download (403), run `python -m djembe.dataset pack` and put `output/djembe_corpus.zip` at the root of your Google Drive; the notebook then skips OSF. Keep that file private.
+[`colab/j3_humanize.ipynb`](colab/j3_humanize.ipynb) runs the three-seed version. On UC Berkeley's Savio cluster, [`savio/`](savio/README.md) runs every take and seed as one SLURM job array and merges the parts. If OSF refuses the download (403), run `python -m djembe.dataset pack` and put `output/djembe_corpus.zip` at the root of your Google Drive; the notebook then skips OSF. Keep that file private.
 
 ## License and credits
 
