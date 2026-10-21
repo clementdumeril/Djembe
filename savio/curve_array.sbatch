@@ -14,14 +14,15 @@
 # No -u: the ml/pytorch module's activation script reads unset variables.
 set -eo pipefail
 module load ml/pytorch/2.3.1-py3.11.7
-source /global/scratch/users/$USER/envs/djembe/bin/activate
+# DJEMBE_VENV / DJEMBE_OUT move the venv and the results off scratch (e.g. to $HOME) if scratch misbehaves
+source "${DJEMBE_VENV:-/global/scratch/users/$USER/envs/djembe}/bin/activate"
 export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK MKL_NUM_THREADS=$SLURM_CPUS_PER_TASK
 
 SEEDS=${SEEDS:-"0 1 2"}
 SIZES=${SIZES:-"2 4 8 13"}
 VARIANTS=${VARIANTS:-"V0 V1 V3 V5"}
 RUN=${RUN:-j4}
-OUT_DIR=/global/scratch/users/$USER/djembe_runs/$RUN/$SLURM_ARRAY_JOB_ID
+OUT_DIR=${DJEMBE_OUT:-/global/scratch/users/$USER/djembe_runs}/$RUN/$SLURM_ARRAY_JOB_ID
 mkdir -p "$OUT_DIR"
 
 ARGS=$(python experiments/gnn/array_task.py --index "$SLURM_ARRAY_TASK_ID" --seeds $SEEDS --n-train $SIZES)
