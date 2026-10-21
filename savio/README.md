@@ -42,6 +42,16 @@ python experiments/gnn/merge_results.py /global/scratch/users/$USER/djembe_runs/
 
 Before a long array, check one task on the debug QoS: `sbatch -A fc_YOURACCOUNT -q savio_debug --array=14 --time=00:30:00 savio/j3b_array.sbatch`.
 
+## Data-efficiency curve (J4)
+
+`savio/curve_array.sbatch` trains V0, V1 (beat symmetry), V3 (pulse rotation) and V5 on 2, 4, 8 and 13 training takes, with B1 and B2 fitted on the same takes: 15 takes x 3 repetitions x 4 sizes = 180 tasks, from about 2 minutes (2 takes) to about 10 minutes (13 takes) each.
+
+```bash
+sbatch -A fc_YOURACCOUNT --array=0-179 savio/curve_array.sbatch
+python experiments/gnn/merge_results.py /global/scratch/users/$USER/djembe_runs/j4/<JOBID>/part_*.json --out results/j4_curve_savio.json --expect-takes 15 --expect-seeds 3
+python experiments/gnn/plot_curve.py results/j4_curve_savio.json docs/figures/j4_curve.png
+```
+
 ## GPUs, for later
 
 The current model does not need one. For pretraining on a large drum corpus, the A5000 nodes are the regular-priority option under a faculty allowance (at most 4 GPUs per user):

@@ -44,3 +44,40 @@ def test_merge_rejects_conflicting_rows():
 def test_summary_weights_by_stroke_count():
     rows = [row("Maraka_1", "GNN_V0", 0, -1.0, n=300), row("Woloso_1", "GNN_V0", 0, 0.0, n=100)]
     assert summarise(rows)["GNN_V0"]["nll_delta"] == pytest.approx(-0.75)
+
+
+@pytest.mark.parametrize("sizes", [[2, 4, 8, 13], [13]])
+def test_array_with_sizes_covers_every_unit_once(sizes):
+    seeds = [0, 1, 2]
+    units = [array_task.task(i, seeds, sizes) for i in range(len(TAKES) * len(seeds) * len(sizes))]
+    assert sorted(units) == sorted((t, s, n) for t in TAKES for s in seeds for n in sizes)
+
+
+def test_curve_subsets_are_nested_and_contain_the_test_piece():
+    pytest.importorskip("torch")
+    import train_curve
+    from djembe.dataset import load_splits
+
+    for i, fold in enumerate(load_splits()["folds"]):
+        test = fold["test"][0]
+        piece = test.split("_")[0]
+        val = sorted(t for t in fold["train"] if t.startswith(piece))[0]
+        pool = [t for t in fold["train"] if t != val]
+        for rep in (0, 1, 2):
+            order = train_curve.subset_order(pool, piece, rep, i)
+            assert sorted(order) == sorted(pool)                      # a permutation of the pool
+            assert order == train_curve.subset_order(pool, piece, rep, i)  # deterministic
+            assert order[0].startswith(piece)                          # test piece from n = 1
+            assert {t.split("_")[0] for t in order[:3]} == {"Manjanin", "Maraka", "Woloso"}
+            assert test not in order and val not in order
+
+
+def test_merge_keeps_curve_sizes_apart():
+    def curve_row(take, model, rep, n, seed):
+        return {**row(take, model, seed, -0.5), "rep": rep, "n_train": n}
+    full = [curve_row("Maraka_1", m, 0, n, None if m.startswith("B") else 0)
+            for n in (2, 4) for m in ("B2_markov_cycle", "GNN_V0")]
+    rows = merge_results.merge([{"rows": full}])
+    assert len(rows) == 4
+    from djembe.results import summarise_curve
+    assert set(summarise_curve(rows)) == {"2", "4"}

@@ -15,3 +15,9 @@ def summarise(rows: list[dict]) -> dict:
                                               weights=[r["n_intensity"] for r in sel])),
             "runs": len(sel)}
     return summary
+
+
+def summarise_curve(rows: list[dict]) -> dict:
+    """Data-efficiency runs: one summary per number of training takes, keys as strings for JSON."""
+    sizes = sorted({r["n_train"] for r in rows})
+    return {str(n): summarise([r for r in rows if r["n_train"] == n]) for n in sizes}

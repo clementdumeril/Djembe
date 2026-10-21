@@ -14,9 +14,9 @@ import json
 import math
 from pathlib import Path
 
-from djembe.results import summarise
+from djembe.results import summarise, summarise_curve
 
-KEY = ("take", "model", "seed")
+KEY = ("take", "model", "seed", "n_train", "rep")  # the last two exist only in data-efficiency runs
 TOL = 1e-9
 
 
@@ -54,26 +54,38 @@ def main() -> None:
 
     parts = [json.loads(Path(p).read_text(encoding="utf-8")) for p in args.parts]
     rows = merge(parts)
+    # Coverage is checked per model and, in data-efficiency runs, per training size too:
+    # every (take, repetition) must be present at every size, references included.
     coverage = {}
     for r in rows:
-        c = coverage.setdefault(r["model"], {"takes": set(), "seeds": set()})
+        key = r["model"] if "n_train" not in r else f"{r['model']} n={r['n_train']}"
+        c = coverage.setdefault(key, {"takes": set(), "seeds": set(), "units": set()})
         c["takes"].add(r["take"])
-        c["seeds"].add(r["seed"])
+        c["seeds"].add(r["seed"] if "rep" not in r else r["rep"])
+        c["units"].add((r["take"], r.get("rep", r["seed"])))
     problems = []
-    for model, c in coverage.items():
+    for key, c in coverage.items():
         if args.expect_takes and len(c["takes"]) != args.expect_takes:
-            problems.append(f"{model}: {len(c['takes'])} takes")
-        if args.expect_seeds and model.startswith("GNN") and len(c["seeds"]) != args.expect_seeds:
-            problems.append(f"{model}: {len(c['seeds'])} seeds")
+            problems.append(f"{key}: {len(c['takes'])} takes")
+        repeated = key.startswith("GNN") or " n=" in key
+        if args.expect_seeds and repeated and len(c["seeds"]) != args.expect_seeds:
+            problems.append(f"{key}: {len(c['seeds'])} seeds")
+        if args.expect_takes and args.expect_seeds and repeated and len(c["units"]) != args.expect_takes * args.expect_seeds:
+            problems.append(f"{key}: {len(c['units'])} of {args.expect_takes * args.expect_seeds} (take, seed) units")
     if problems:
         raise SystemExit("incomplete merge: " + "; ".join(problems))
 
     configs = [p["config"] for p in parts]
+    curve = any("n_train" in r for r in rows)
     out = {"config": {"merged_from": [str(Path(p).name) for p in args.parts], "parts": configs},
-           "summary": summarise(rows), "rows": rows}
+           "summary": summarise_curve(rows) if curve else summarise(rows), "rows": rows}
     Path(args.out).write_text(json.dumps(out, indent=2), encoding="utf-8")
-    for name, s in out["summary"].items():
-        print(f"{name:16s} delta {s['nll_delta']:+.3f}  intensity {s['nll_intensity']:.3f}  ({s['runs']} runs)")
+    blocks = out["summary"].items() if curve else [("all", out["summary"])]
+    for n, summary in blocks:
+        if curve:
+            print(f"n_train = {n}")
+        for name, s in summary.items():
+            print(f"{name:16s} delta {s['nll_delta']:+.3f}  intensity {s['nll_intensity']:.3f}  ({s['runs']} runs)")
     print("->", args.out)
 
 
