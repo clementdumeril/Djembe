@@ -3,7 +3,8 @@
 #   bash savio/setup_env.sh
 # The graph model needs only PyTorch (no PyTorch Geometric), which the ml/pytorch
 # module provides; the venv adds the project and its light dependencies on top.
-set -euo pipefail
+# No -u: the ml/pytorch module's activation script reads unset variables.
+set -eo pipefail
 
 SCRATCH_DIR=/global/scratch/users/$USER
 REPO=$SCRATCH_DIR/Djembe

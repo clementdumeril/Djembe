@@ -13,7 +13,8 @@
 #SBATCH --time=01:30:00
 #SBATCH --output=slurm/%x_%A_%a.out
 
-set -euo pipefail
+# No -u: the ml/pytorch module's activation script reads unset variables.
+set -eo pipefail
 module load ml/pytorch/2.3.1-py3.11.7
 source /global/scratch/users/$USER/envs/djembe/bin/activate
 export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK MKL_NUM_THREADS=$SLURM_CPUS_PER_TASK
