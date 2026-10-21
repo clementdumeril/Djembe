@@ -1,6 +1,7 @@
 """Figure of the J3 results: negative log-likelihood per held-out take, network against references.
 
     python experiments/gnn/plot_humanize.py results/j3_humanize_seed0_cpu.json docs/figures/j3_humanize.png
+    python experiments/gnn/plot_humanize.py results/j3b_humanize_3seeds_savio.json docs/figures/j3b_humanize_3seeds_savio.png
 """
 import json
 import sys
@@ -15,11 +16,13 @@ from djembe import dataset as d
 
 src, dst = sys.argv[1], sys.argv[2]
 rows = json.load(open(src))["rows"]
-models = ["B1_position", "B2_markov_cycle", "GNN_V0", "GNN_V1", "GNN_V3"]
 labels = {"B1_position": "B1 position", "B2_markov_cycle": "B2 Markov (earlier cycles)",
-          "GNN_V0": "GNN V0 (no symmetry)", "GNN_V1": "GNN V1 (beat symmetry C4)", "GNN_V3": "GNN V3 (pulse rotation C12)"}
+          "GNN_V0": "GNN V0 (no symmetry)", "GNN_V1": "GNN V1 (beat symmetry C4)", "GNN_V3": "GNN V3 (pulse rotation C12)",
+          "GNN_V4": "GNN V4 (V5 + correction to B1)", "GNN_V5": "GNN V5 (V0 + helix edge)"}
 styles = {"B1_position": ("0.6", "s--"), "B2_markov_cycle": ("0.3", "s--"), "GNN_V0": ("C3", "o-"),
-          "GNN_V1": ("C0", "o-"), "GNN_V3": ("C2", "o-")}
+          "GNN_V1": ("C0", "o-"), "GNN_V3": ("C2", "o-"), "GNN_V4": ("C1", "o-"), "GNN_V5": ("C4", "o-")}
+present = {r["model"] for r in rows}
+models = [m for m in labels if m in present]  # plot whatever the result file contains, in a fixed order
 takes = list(d.TAKES)
 fig, axes = plt.subplots(1, 2, figsize=(13, 4))
 for ax, key, title in zip(axes, ("nll_delta", "nll_intensity"), ("Offsets", "Intensity")):

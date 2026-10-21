@@ -62,6 +62,27 @@ Source: [`j2_baselines.json`](../results/j2_baselines.json).
 
 Sources: [`j3_humanize_3seeds_colab.json`](../results/j3_humanize_3seeds_colab.json) (rebuilt from [`j3_wandb_export.csv`](../results/j3_wandb_export.csv) with [`fetch_wandb.py`](../experiments/gnn/fetch_wandb.py)), [`j3_humanize_seed0_cpu.json`](../results/j3_humanize_seed0_cpu.json), Colab rerun [`j3_rerun_wandb_export.csv`](../results/j3_rerun_wandb_export.csv). The three fixes: [`j3b_humanize_seed0_cpu.json`](../results/j3b_humanize_seed0_cpu.json).
 
+## Humanizing a cycle, three fixes and three seeds (J3b)
+
+Fixes: keep the last epoch (`--select last`), helix edge (V5), correction to B1 (V4, dropped after seed 0). V0 and V5 then ran with three seeds on Savio, one SLURM task per (take, seed).
+
+| Model | Offsets, 3 seeds (Savio) | Offsets, seed 0 (laptop) | Intensity, 3 seeds | Offsets vs B2, per take |
+|---|---|---|---|---|
+| B1 position | −0.579 | −0.579 | 1.294 | |
+| B2 Markov, earlier cycles | −0.709 | −0.709 | 1.286 | |
+| GNN V0, last epoch | −0.780 | −0.784 | 0.886 | better on 13 of 15 (Wilcoxon p = 0.003) |
+| GNN V5, last epoch + helix | −0.796 | −0.801 | 0.884 | better on 13 of 15 (Wilcoxon p = 0.005, sign test p = 0.007) |
+| GNN V4, V5 + correction to B1 | | −0.652 | | better on 11 of 15 (seed 0) |
+
+- Per-take tests on the seed mean of each take, two-sided. V5 against V0: better on 14 of 15, −0.020 (Wilcoxon p = 0.007).
+- Seeds: V5 overall −0.791 / −0.805 / −0.793; each seed beats B2 on 13, 13 and 14 takes; the per-take standard deviation across seeds has a median of 0.013 nats (max 0.046).
+- Exceptions: Woloso_1 ties B2 (−1.085 against −1.086); Manjanin_4 loses on all three seeds (V5 −0.421, V0 −0.494, B2 −0.590).
+- Reproducibility: B1 and B2 are identical on Savio and on the laptop; seed 0 of the network differs by 0.016 (V0) and 0.019 (V5) per take on average, 0.12 at most.
+
+![Negative log-likelihood per held-out take over three seeds](figures/j3b_humanize_3seeds_savio.png)
+
+Sources: [`j3b_humanize_3seeds_savio.json`](../results/j3b_humanize_3seeds_savio.json) (45 parts merged with [`merge_results.py`](../experiments/gnn/merge_results.py)), [`j3b_humanize_seed0_cpu.json`](../results/j3b_humanize_seed0_cpu.json).
+
 ## Commands
 
 ```bash
@@ -80,4 +101,7 @@ python experiments/symmetry/beat_symmetry.py             # results/j1_beat_symme
 python experiments/baselines/run_baselines.py            # results/j2_baselines.json and figure, a few minutes
 python experiments/gnn/train_humanize.py --variants V0 V1 V3 --seeds 0 --out results/j3_humanize_seed0_cpu.json   # about 1.5 h on a laptop CPU
 python experiments/gnn/train_humanize.py --variants V0 V4 V5 --seeds 0 --select last --out results/j3b_humanize_seed0_cpu.json   # about 2 h in 4 parallel parts (--takes)
+sbatch -A <account> --array=0-44 --time=00:30:00 savio/j3b_array.sbatch   # on Savio: V0 and V5, 15 takes x 3 seeds, about 5 min per task (savio/README.md)
+python experiments/gnn/merge_results.py <run dir>/part_*.json --out results/j3b_humanize_3seeds_savio.json --expect-takes 15 --expect-seeds 3
+python experiments/gnn/plot_humanize.py results/j3b_humanize_3seeds_savio.json docs/figures/j3b_humanize_3seeds_savio.png
 ```

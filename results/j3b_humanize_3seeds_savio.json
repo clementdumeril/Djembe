@@ -1,0 +1,2582 @@
+{
+  "config": {
+    "merged_from": [
+      "part_0.json",
+      "part_1.json",
+      "part_10.json",
+      "part_11.json",
+      "part_12.json",
+      "part_13.json",
+      "part_14.json",
+      "part_15.json",
+      "part_16.json",
+      "part_17.json",
+      "part_18.json",
+      "part_19.json",
+      "part_2.json",
+      "part_20.json",
+      "part_21.json",
+      "part_22.json",
+      "part_23.json",
+      "part_24.json",
+      "part_25.json",
+      "part_26.json",
+      "part_27.json",
+      "part_28.json",
+      "part_29.json",
+      "part_3.json",
+      "part_30.json",
+      "part_31.json",
+      "part_32.json",
+      "part_33.json",
+      "part_34.json",
+      "part_35.json",
+      "part_36.json",
+      "part_37.json",
+      "part_38.json",
+      "part_39.json",
+      "part_4.json",
+      "part_40.json",
+      "part_41.json",
+      "part_42.json",
+      "part_43.json",
+      "part_44.json",
+      "part_5.json",
+      "part_6.json",
+      "part_7.json",
+      "part_8.json",
+      "part_9.json"
+    ],
+    "parts": [
+      {
+        "events": "/global/scratch/users/clementdumeril/Djembe/output/events.csv",
+        "out": "/global/scratch/users/clementdumeril/djembe_runs/j3b/40265651/part_0.json",
+        "variants": [
+          "V0",
+          "V5"
+        ],
+        "seeds": [
+          0
+        ],
+        "takes": [
+          "Manjanin_1"
+        ],
+        "K": 4,
+        "epochs": 40,
+        "dim": 64,
+        "layers": 3,
+        "patience": 8,
+        "select": "last",
+        "group_prefix": "j3b",
+        "device": "cpu",
+        "wandb_project": null
+      },
+      {
+        "events": "/global/scratch/users/clementdumeril/Djembe/output/events.csv",
+        "out": "/global/scratch/users/clementdumeril/djembe_runs/j3b/40265651/part_1.json",
+        "variants": [
+          "V0",
+          "V5"
+        ],
+        "seeds": [
+          0
+        ],
+        "takes": [
+          "Manjanin_2"
+        ],
+        "K": 4,
+        "epochs": 40,
+        "dim": 64,
+        "layers": 3,
+        "patience": 8,
+        "select": "last",
+        "group_prefix": "j3b",
+        "device": "cpu",
+        "wandb_project": null
+      },
+      {
+        "events": "/global/scratch/users/clementdumeril/Djembe/output/events.csv",
+        "out": "/global/scratch/users/clementdumeril/djembe_runs/j3b/40265651/part_10.json",
+        "variants": [
+          "V0",
+          "V5"
+        ],
+        "seeds": [
+          0
+        ],
+        "takes": [
+          "Woloso_1"
+        ],
+        "K": 4,
+        "epochs": 40,
+        "dim": 64,
+        "layers": 3,
+        "patience": 8,
+        "select": "last",
+        "group_prefix": "j3b",
+        "device": "cpu",
+        "wandb_project": null
+      },
+      {
+        "events": "/global/scratch/users/clementdumeril/Djembe/output/events.csv",
+        "out": "/global/scratch/users/clementdumeril/djembe_runs/j3b/40265651/part_11.json",
+        "variants": [
+          "V0",
+          "V5"
+        ],
+        "seeds": [
+          0
+        ],
+        "takes": [
+          "Woloso_2"
+        ],
+        "K": 4,
+        "epochs": 40,
+        "dim": 64,
+        "layers": 3,
+        "patience": 8,
+        "select": "last",
+        "group_prefix": "j3b",
+        "device": "cpu",
+        "wandb_project": null
+      },
+      {
+        "events": "/global/scratch/users/clementdumeril/Djembe/output/events.csv",
+        "out": "/global/scratch/users/clementdumeril/djembe_runs/j3b/40265651/part_12.json",
+        "variants": [
+          "V0",
+          "V5"
+        ],
+        "seeds": [
+          0
+        ],
+        "takes": [
+          "Woloso_3"
+        ],
+        "K": 4,
+        "epochs": 40,
+        "dim": 64,
+        "layers": 3,
+        "patience": 8,
+        "select": "last",
+        "group_prefix": "j3b",
+        "device": "cpu",
+        "wandb_project": null
+      },
+      {
+        "events": "/global/scratch/users/clementdumeril/Djembe/output/events.csv",
+        "out": "/global/scratch/users/clementdumeril/djembe_runs/j3b/40265651/part_13.json",
+        "variants": [
+          "V0",
+          "V5"
+        ],
+        "seeds": [
+          0
+        ],
+        "takes": [
+          "Woloso_4"
+        ],
+        "K": 4,
+        "epochs": 40,
+        "dim": 64,
+        "layers": 3,
+        "patience": 8,
+        "select": "last",
+        "group_prefix": "j3b",
+        "device": "cpu",
+        "wandb_project": null
+      },
+      {
+        "events": "/global/scratch/users/clementdumeril/Djembe/output/events.csv",
+        "out": "/global/scratch/users/clementdumeril/djembe_runs/j3b/40265651/part_14.json",
+        "variants": [
+          "V0",
+          "V5"
+        ],
+        "seeds": [
+          0
+        ],
+        "takes": [
+          "Woloso_5"
+        ],
+        "K": 4,
+        "epochs": 40,
+        "dim": 64,
+        "layers": 3,
+        "patience": 8,
+        "select": "last",
+        "group_prefix": "j3b",
+        "device": "cpu",
+        "wandb_project": null
+      },
+      {
+        "events": "/global/scratch/users/clementdumeril/Djembe/output/events.csv",
+        "out": "/global/scratch/users/clementdumeril/djembe_runs/j3b/40265651/part_15.json",
+        "variants": [
+          "V0",
+          "V5"
+        ],
+        "seeds": [
+          1
+        ],
+        "takes": [
+          "Manjanin_1"
+        ],
+        "K": 4,
+        "epochs": 40,
+        "dim": 64,
+        "layers": 3,
+        "patience": 8,
+        "select": "last",
+        "group_prefix": "j3b",
+        "device": "cpu",
+        "wandb_project": null
+      },
+      {
+        "events": "/global/scratch/users/clementdumeril/Djembe/output/events.csv",
+        "out": "/global/scratch/users/clementdumeril/djembe_runs/j3b/40265651/part_16.json",
+        "variants": [
+          "V0",
+          "V5"
+        ],
+        "seeds": [
+          1
+        ],
+        "takes": [
+          "Manjanin_2"
+        ],
+        "K": 4,
+        "epochs": 40,
+        "dim": 64,
+        "layers": 3,
+        "patience": 8,
+        "select": "last",
+        "group_prefix": "j3b",
+        "device": "cpu",
+        "wandb_project": null
+      },
+      {
+        "events": "/global/scratch/users/clementdumeril/Djembe/output/events.csv",
+        "out": "/global/scratch/users/clementdumeril/djembe_runs/j3b/40265651/part_17.json",
+        "variants": [
+          "V0",
+          "V5"
+        ],
+        "seeds": [
+          1
+        ],
+        "takes": [
+          "Manjanin_3"
+        ],
+        "K": 4,
+        "epochs": 40,
+        "dim": 64,
+        "layers": 3,
+        "patience": 8,
+        "select": "last",
+        "group_prefix": "j3b",
+        "device": "cpu",
+        "wandb_project": null
+      },
+      {
+        "events": "/global/scratch/users/clementdumeril/Djembe/output/events.csv",
+        "out": "/global/scratch/users/clementdumeril/djembe_runs/j3b/40265651/part_18.json",
+        "variants": [
+          "V0",
+          "V5"
+        ],
+        "seeds": [
+          1
+        ],
+        "takes": [
+          "Manjanin_4"
+        ],
+        "K": 4,
+        "epochs": 40,
+        "dim": 64,
+        "layers": 3,
+        "patience": 8,
+        "select": "last",
+        "group_prefix": "j3b",
+        "device": "cpu",
+        "wandb_project": null
+      },
+      {
+        "events": "/global/scratch/users/clementdumeril/Djembe/output/events.csv",
+        "out": "/global/scratch/users/clementdumeril/djembe_runs/j3b/40265651/part_19.json",
+        "variants": [
+          "V0",
+          "V5"
+        ],
+        "seeds": [
+          1
+        ],
+        "takes": [
+          "Maraka_1"
+        ],
+        "K": 4,
+        "epochs": 40,
+        "dim": 64,
+        "layers": 3,
+        "patience": 8,
+        "select": "last",
+        "group_prefix": "j3b",
+        "device": "cpu",
+        "wandb_project": null
+      },
+      {
+        "events": "/global/scratch/users/clementdumeril/Djembe/output/events.csv",
+        "out": "/global/scratch/users/clementdumeril/djembe_runs/j3b/40265651/part_2.json",
+        "variants": [
+          "V0",
+          "V5"
+        ],
+        "seeds": [
+          0
+        ],
+        "takes": [
+          "Manjanin_3"
+        ],
+        "K": 4,
+        "epochs": 40,
+        "dim": 64,
+        "layers": 3,
+        "patience": 8,
+        "select": "last",
+        "group_prefix": "j3b",
+        "device": "cpu",
+        "wandb_project": null
+      },
+      {
+        "events": "/global/scratch/users/clementdumeril/Djembe/output/events.csv",
+        "out": "/global/scratch/users/clementdumeril/djembe_runs/j3b/40265651/part_20.json",
+        "variants": [
+          "V0",
+          "V5"
+        ],
+        "seeds": [
+          1
+        ],
+        "takes": [
+          "Maraka_2"
+        ],
+        "K": 4,
+        "epochs": 40,
+        "dim": 64,
+        "layers": 3,
+        "patience": 8,
+        "select": "last",
+        "group_prefix": "j3b",
+        "device": "cpu",
+        "wandb_project": null
+      },
+      {
+        "events": "/global/scratch/users/clementdumeril/Djembe/output/events.csv",
+        "out": "/global/scratch/users/clementdumeril/djembe_runs/j3b/40265651/part_21.json",
+        "variants": [
+          "V0",
+          "V5"
+        ],
+        "seeds": [
+          1
+        ],
+        "takes": [
+          "Maraka_3"
+        ],
+        "K": 4,
+        "epochs": 40,
+        "dim": 64,
+        "layers": 3,
+        "patience": 8,
+        "select": "last",
+        "group_prefix": "j3b",
+        "device": "cpu",
+        "wandb_project": null
+      },
+      {
+        "events": "/global/scratch/users/clementdumeril/Djembe/output/events.csv",
+        "out": "/global/scratch/users/clementdumeril/djembe_runs/j3b/40265651/part_22.json",
+        "variants": [
+          "V0",
+          "V5"
+        ],
+        "seeds": [
+          1
+        ],
+        "takes": [
+          "Maraka_4"
+        ],
+        "K": 4,
+        "epochs": 40,
+        "dim": 64,
+        "layers": 3,
+        "patience": 8,
+        "select": "last",
+        "group_prefix": "j3b",
+        "device": "cpu",
+        "wandb_project": null
+      },
+      {
+        "events": "/global/scratch/users/clementdumeril/Djembe/output/events.csv",
+        "out": "/global/scratch/users/clementdumeril/djembe_runs/j3b/40265651/part_23.json",
+        "variants": [
+          "V0",
+          "V5"
+        ],
+        "seeds": [
+          1
+        ],
+        "takes": [
+          "Maraka_5"
+        ],
+        "K": 4,
+        "epochs": 40,
+        "dim": 64,
+        "layers": 3,
+        "patience": 8,
+        "select": "last",
+        "group_prefix": "j3b",
+        "device": "cpu",
+        "wandb_project": null
+      },
+      {
+        "events": "/global/scratch/users/clementdumeril/Djembe/output/events.csv",
+        "out": "/global/scratch/users/clementdumeril/djembe_runs/j3b/40265651/part_24.json",
+        "variants": [
+          "V0",
+          "V5"
+        ],
+        "seeds": [
+          1
+        ],
+        "takes": [
+          "Maraka_6"
+        ],
+        "K": 4,
+        "epochs": 40,
+        "dim": 64,
+        "layers": 3,
+        "patience": 8,
+        "select": "last",
+        "group_prefix": "j3b",
+        "device": "cpu",
+        "wandb_project": null
+      },
+      {
+        "events": "/global/scratch/users/clementdumeril/Djembe/output/events.csv",
+        "out": "/global/scratch/users/clementdumeril/djembe_runs/j3b/40265651/part_25.json",
+        "variants": [
+          "V0",
+          "V5"
+        ],
+        "seeds": [
+          1
+        ],
+        "takes": [
+          "Woloso_1"
+        ],
+        "K": 4,
+        "epochs": 40,
+        "dim": 64,
+        "layers": 3,
+        "patience": 8,
+        "select": "last",
+        "group_prefix": "j3b",
+        "device": "cpu",
+        "wandb_project": null
+      },
+      {
+        "events": "/global/scratch/users/clementdumeril/Djembe/output/events.csv",
+        "out": "/global/scratch/users/clementdumeril/djembe_runs/j3b/40265651/part_26.json",
+        "variants": [
+          "V0",
+          "V5"
+        ],
+        "seeds": [
+          1
+        ],
+        "takes": [
+          "Woloso_2"
+        ],
+        "K": 4,
+        "epochs": 40,
+        "dim": 64,
+        "layers": 3,
+        "patience": 8,
+        "select": "last",
+        "group_prefix": "j3b",
+        "device": "cpu",
+        "wandb_project": null
+      },
+      {
+        "events": "/global/scratch/users/clementdumeril/Djembe/output/events.csv",
+        "out": "/global/scratch/users/clementdumeril/djembe_runs/j3b/40265651/part_27.json",
+        "variants": [
+          "V0",
+          "V5"
+        ],
+        "seeds": [
+          1
+        ],
+        "takes": [
+          "Woloso_3"
+        ],
+        "K": 4,
+        "epochs": 40,
+        "dim": 64,
+        "layers": 3,
+        "patience": 8,
+        "select": "last",
+        "group_prefix": "j3b",
+        "device": "cpu",
+        "wandb_project": null
+      },
+      {
+        "events": "/global/scratch/users/clementdumeril/Djembe/output/events.csv",
+        "out": "/global/scratch/users/clementdumeril/djembe_runs/j3b/40265651/part_28.json",
+        "variants": [
+          "V0",
+          "V5"
+        ],
+        "seeds": [
+          1
+        ],
+        "takes": [
+          "Woloso_4"
+        ],
+        "K": 4,
+        "epochs": 40,
+        "dim": 64,
+        "layers": 3,
+        "patience": 8,
+        "select": "last",
+        "group_prefix": "j3b",
+        "device": "cpu",
+        "wandb_project": null
+      },
+      {
+        "events": "/global/scratch/users/clementdumeril/Djembe/output/events.csv",
+        "out": "/global/scratch/users/clementdumeril/djembe_runs/j3b/40265651/part_29.json",
+        "variants": [
+          "V0",
+          "V5"
+        ],
+        "seeds": [
+          1
+        ],
+        "takes": [
+          "Woloso_5"
+        ],
+        "K": 4,
+        "epochs": 40,
+        "dim": 64,
+        "layers": 3,
+        "patience": 8,
+        "select": "last",
+        "group_prefix": "j3b",
+        "device": "cpu",
+        "wandb_project": null
+      },
+      {
+        "events": "/global/scratch/users/clementdumeril/Djembe/output/events.csv",
+        "out": "/global/scratch/users/clementdumeril/djembe_runs/j3b/40265651/part_3.json",
+        "variants": [
+          "V0",
+          "V5"
+        ],
+        "seeds": [
+          0
+        ],
+        "takes": [
+          "Manjanin_4"
+        ],
+        "K": 4,
+        "epochs": 40,
+        "dim": 64,
+        "layers": 3,
+        "patience": 8,
+        "select": "last",
+        "group_prefix": "j3b",
+        "device": "cpu",
+        "wandb_project": null
+      },
+      {
+        "events": "/global/scratch/users/clementdumeril/Djembe/output/events.csv",
+        "out": "/global/scratch/users/clementdumeril/djembe_runs/j3b/40265651/part_30.json",
+        "variants": [
+          "V0",
+          "V5"
+        ],
+        "seeds": [
+          2
+        ],
+        "takes": [
+          "Manjanin_1"
+        ],
+        "K": 4,
+        "epochs": 40,
+        "dim": 64,
+        "layers": 3,
+        "patience": 8,
+        "select": "last",
+        "group_prefix": "j3b",
+        "device": "cpu",
+        "wandb_project": null
+      },
+      {
+        "events": "/global/scratch/users/clementdumeril/Djembe/output/events.csv",
+        "out": "/global/scratch/users/clementdumeril/djembe_runs/j3b/40265651/part_31.json",
+        "variants": [
+          "V0",
+          "V5"
+        ],
+        "seeds": [
+          2
+        ],
+        "takes": [
+          "Manjanin_2"
+        ],
+        "K": 4,
+        "epochs": 40,
+        "dim": 64,
+        "layers": 3,
+        "patience": 8,
+        "select": "last",
+        "group_prefix": "j3b",
+        "device": "cpu",
+        "wandb_project": null
+      },
+      {
+        "events": "/global/scratch/users/clementdumeril/Djembe/output/events.csv",
+        "out": "/global/scratch/users/clementdumeril/djembe_runs/j3b/40265651/part_32.json",
+        "variants": [
+          "V0",
+          "V5"
+        ],
+        "seeds": [
+          2
+        ],
+        "takes": [
+          "Manjanin_3"
+        ],
+        "K": 4,
+        "epochs": 40,
+        "dim": 64,
+        "layers": 3,
+        "patience": 8,
+        "select": "last",
+        "group_prefix": "j3b",
+        "device": "cpu",
+        "wandb_project": null
+      },
+      {
+        "events": "/global/scratch/users/clementdumeril/Djembe/output/events.csv",
+        "out": "/global/scratch/users/clementdumeril/djembe_runs/j3b/40265651/part_33.json",
+        "variants": [
+          "V0",
+          "V5"
+        ],
+        "seeds": [
+          2
+        ],
+        "takes": [
+          "Manjanin_4"
+        ],
+        "K": 4,
+        "epochs": 40,
+        "dim": 64,
+        "layers": 3,
+        "patience": 8,
+        "select": "last",
+        "group_prefix": "j3b",
+        "device": "cpu",
+        "wandb_project": null
+      },
+      {
+        "events": "/global/scratch/users/clementdumeril/Djembe/output/events.csv",
+        "out": "/global/scratch/users/clementdumeril/djembe_runs/j3b/40265651/part_34.json",
+        "variants": [
+          "V0",
+          "V5"
+        ],
+        "seeds": [
+          2
+        ],
+        "takes": [
+          "Maraka_1"
+        ],
+        "K": 4,
+        "epochs": 40,
+        "dim": 64,
+        "layers": 3,
+        "patience": 8,
+        "select": "last",
+        "group_prefix": "j3b",
+        "device": "cpu",
+        "wandb_project": null
+      },
+      {
+        "events": "/global/scratch/users/clementdumeril/Djembe/output/events.csv",
+        "out": "/global/scratch/users/clementdumeril/djembe_runs/j3b/40265651/part_35.json",
+        "variants": [
+          "V0",
+          "V5"
+        ],
+        "seeds": [
+          2
+        ],
+        "takes": [
+          "Maraka_2"
+        ],
+        "K": 4,
+        "epochs": 40,
+        "dim": 64,
+        "layers": 3,
+        "patience": 8,
+        "select": "last",
+        "group_prefix": "j3b",
+        "device": "cpu",
+        "wandb_project": null
+      },
+      {
+        "events": "/global/scratch/users/clementdumeril/Djembe/output/events.csv",
+        "out": "/global/scratch/users/clementdumeril/djembe_runs/j3b/40265651/part_36.json",
+        "variants": [
+          "V0",
+          "V5"
+        ],
+        "seeds": [
+          2
+        ],
+        "takes": [
+          "Maraka_3"
+        ],
+        "K": 4,
+        "epochs": 40,
+        "dim": 64,
+        "layers": 3,
+        "patience": 8,
+        "select": "last",
+        "group_prefix": "j3b",
+        "device": "cpu",
+        "wandb_project": null
+      },
+      {
+        "events": "/global/scratch/users/clementdumeril/Djembe/output/events.csv",
+        "out": "/global/scratch/users/clementdumeril/djembe_runs/j3b/40265651/part_37.json",
+        "variants": [
+          "V0",
+          "V5"
+        ],
+        "seeds": [
+          2
+        ],
+        "takes": [
+          "Maraka_4"
+        ],
+        "K": 4,
+        "epochs": 40,
+        "dim": 64,
+        "layers": 3,
+        "patience": 8,
+        "select": "last",
+        "group_prefix": "j3b",
+        "device": "cpu",
+        "wandb_project": null
+      },
+      {
+        "events": "/global/scratch/users/clementdumeril/Djembe/output/events.csv",
+        "out": "/global/scratch/users/clementdumeril/djembe_runs/j3b/40265651/part_38.json",
+        "variants": [
+          "V0",
+          "V5"
+        ],
+        "seeds": [
+          2
+        ],
+        "takes": [
+          "Maraka_5"
+        ],
+        "K": 4,
+        "epochs": 40,
+        "dim": 64,
+        "layers": 3,
+        "patience": 8,
+        "select": "last",
+        "group_prefix": "j3b",
+        "device": "cpu",
+        "wandb_project": null
+      },
+      {
+        "events": "/global/scratch/users/clementdumeril/Djembe/output/events.csv",
+        "out": "/global/scratch/users/clementdumeril/djembe_runs/j3b/40265651/part_39.json",
+        "variants": [
+          "V0",
+          "V5"
+        ],
+        "seeds": [
+          2
+        ],
+        "takes": [
+          "Maraka_6"
+        ],
+        "K": 4,
+        "epochs": 40,
+        "dim": 64,
+        "layers": 3,
+        "patience": 8,
+        "select": "last",
+        "group_prefix": "j3b",
+        "device": "cpu",
+        "wandb_project": null
+      },
+      {
+        "events": "/global/scratch/users/clementdumeril/Djembe/output/events.csv",
+        "out": "/global/scratch/users/clementdumeril/djembe_runs/j3b/40265651/part_4.json",
+        "variants": [
+          "V0",
+          "V5"
+        ],
+        "seeds": [
+          0
+        ],
+        "takes": [
+          "Maraka_1"
+        ],
+        "K": 4,
+        "epochs": 40,
+        "dim": 64,
+        "layers": 3,
+        "patience": 8,
+        "select": "last",
+        "group_prefix": "j3b",
+        "device": "cpu",
+        "wandb_project": null
+      },
+      {
+        "events": "/global/scratch/users/clementdumeril/Djembe/output/events.csv",
+        "out": "/global/scratch/users/clementdumeril/djembe_runs/j3b/40265651/part_40.json",
+        "variants": [
+          "V0",
+          "V5"
+        ],
+        "seeds": [
+          2
+        ],
+        "takes": [
+          "Woloso_1"
+        ],
+        "K": 4,
+        "epochs": 40,
+        "dim": 64,
+        "layers": 3,
+        "patience": 8,
+        "select": "last",
+        "group_prefix": "j3b",
+        "device": "cpu",
+        "wandb_project": null
+      },
+      {
+        "events": "/global/scratch/users/clementdumeril/Djembe/output/events.csv",
+        "out": "/global/scratch/users/clementdumeril/djembe_runs/j3b/40265651/part_41.json",
+        "variants": [
+          "V0",
+          "V5"
+        ],
+        "seeds": [
+          2
+        ],
+        "takes": [
+          "Woloso_2"
+        ],
+        "K": 4,
+        "epochs": 40,
+        "dim": 64,
+        "layers": 3,
+        "patience": 8,
+        "select": "last",
+        "group_prefix": "j3b",
+        "device": "cpu",
+        "wandb_project": null
+      },
+      {
+        "events": "/global/scratch/users/clementdumeril/Djembe/output/events.csv",
+        "out": "/global/scratch/users/clementdumeril/djembe_runs/j3b/40265651/part_42.json",
+        "variants": [
+          "V0",
+          "V5"
+        ],
+        "seeds": [
+          2
+        ],
+        "takes": [
+          "Woloso_3"
+        ],
+        "K": 4,
+        "epochs": 40,
+        "dim": 64,
+        "layers": 3,
+        "patience": 8,
+        "select": "last",
+        "group_prefix": "j3b",
+        "device": "cpu",
+        "wandb_project": null
+      },
+      {
+        "events": "/global/scratch/users/clementdumeril/Djembe/output/events.csv",
+        "out": "/global/scratch/users/clementdumeril/djembe_runs/j3b/40265651/part_43.json",
+        "variants": [
+          "V0",
+          "V5"
+        ],
+        "seeds": [
+          2
+        ],
+        "takes": [
+          "Woloso_4"
+        ],
+        "K": 4,
+        "epochs": 40,
+        "dim": 64,
+        "layers": 3,
+        "patience": 8,
+        "select": "last",
+        "group_prefix": "j3b",
+        "device": "cpu",
+        "wandb_project": null
+      },
+      {
+        "events": "/global/scratch/users/clementdumeril/Djembe/output/events.csv",
+        "out": "/global/scratch/users/clementdumeril/djembe_runs/j3b/40265651/part_44.json",
+        "variants": [
+          "V0",
+          "V5"
+        ],
+        "seeds": [
+          2
+        ],
+        "takes": [
+          "Woloso_5"
+        ],
+        "K": 4,
+        "epochs": 40,
+        "dim": 64,
+        "layers": 3,
+        "patience": 8,
+        "select": "last",
+        "group_prefix": "j3b",
+        "device": "cpu",
+        "wandb_project": null
+      },
+      {
+        "events": "/global/scratch/users/clementdumeril/Djembe/output/events.csv",
+        "out": "/global/scratch/users/clementdumeril/djembe_runs/j3b/40265651/part_5.json",
+        "variants": [
+          "V0",
+          "V5"
+        ],
+        "seeds": [
+          0
+        ],
+        "takes": [
+          "Maraka_2"
+        ],
+        "K": 4,
+        "epochs": 40,
+        "dim": 64,
+        "layers": 3,
+        "patience": 8,
+        "select": "last",
+        "group_prefix": "j3b",
+        "device": "cpu",
+        "wandb_project": null
+      },
+      {
+        "events": "/global/scratch/users/clementdumeril/Djembe/output/events.csv",
+        "out": "/global/scratch/users/clementdumeril/djembe_runs/j3b/40265651/part_6.json",
+        "variants": [
+          "V0",
+          "V5"
+        ],
+        "seeds": [
+          0
+        ],
+        "takes": [
+          "Maraka_3"
+        ],
+        "K": 4,
+        "epochs": 40,
+        "dim": 64,
+        "layers": 3,
+        "patience": 8,
+        "select": "last",
+        "group_prefix": "j3b",
+        "device": "cpu",
+        "wandb_project": null
+      },
+      {
+        "events": "/global/scratch/users/clementdumeril/Djembe/output/events.csv",
+        "out": "/global/scratch/users/clementdumeril/djembe_runs/j3b/40265651/part_7.json",
+        "variants": [
+          "V0",
+          "V5"
+        ],
+        "seeds": [
+          0
+        ],
+        "takes": [
+          "Maraka_4"
+        ],
+        "K": 4,
+        "epochs": 40,
+        "dim": 64,
+        "layers": 3,
+        "patience": 8,
+        "select": "last",
+        "group_prefix": "j3b",
+        "device": "cpu",
+        "wandb_project": null
+      },
+      {
+        "events": "/global/scratch/users/clementdumeril/Djembe/output/events.csv",
+        "out": "/global/scratch/users/clementdumeril/djembe_runs/j3b/40265651/part_8.json",
+        "variants": [
+          "V0",
+          "V5"
+        ],
+        "seeds": [
+          0
+        ],
+        "takes": [
+          "Maraka_5"
+        ],
+        "K": 4,
+        "epochs": 40,
+        "dim": 64,
+        "layers": 3,
+        "patience": 8,
+        "select": "last",
+        "group_prefix": "j3b",
+        "device": "cpu",
+        "wandb_project": null
+      },
+      {
+        "events": "/global/scratch/users/clementdumeril/Djembe/output/events.csv",
+        "out": "/global/scratch/users/clementdumeril/djembe_runs/j3b/40265651/part_9.json",
+        "variants": [
+          "V0",
+          "V5"
+        ],
+        "seeds": [
+          0
+        ],
+        "takes": [
+          "Maraka_6"
+        ],
+        "K": 4,
+        "epochs": 40,
+        "dim": 64,
+        "layers": 3,
+        "patience": 8,
+        "select": "last",
+        "group_prefix": "j3b",
+        "device": "cpu",
+        "wandb_project": null
+      }
+    ]
+  },
+  "summary": {
+    "B1_position": {
+      "nll_delta": -0.5785852793319152,
+      "nll_intensity": 1.2944058281595279,
+      "runs": 15
+    },
+    "B2_markov_cycle": {
+      "nll_delta": -0.7092218776226854,
+      "nll_intensity": 1.2863190885600257,
+      "runs": 15
+    },
+    "GNN_V0": {
+      "nll_delta": -0.7804558198566779,
+      "nll_intensity": 0.8856550304392443,
+      "runs": 45
+    },
+    "GNN_V5": {
+      "nll_delta": -0.7962525579826061,
+      "nll_intensity": 0.8836626902563444,
+      "runs": 45
+    }
+  },
+  "rows": [
+    {
+      "take": "Manjanin_1",
+      "piece": "Manjanin",
+      "model": "B1_position",
+      "seed": null,
+      "nll_delta": -0.3855911530362407,
+      "n_delta": 4321,
+      "nll_intensity": 2.0070731904950385,
+      "n_intensity": 4450
+    },
+    {
+      "take": "Manjanin_1",
+      "piece": "Manjanin",
+      "model": "B2_markov_cycle",
+      "seed": null,
+      "nll_delta": -0.5272685357854195,
+      "n_delta": 4321,
+      "nll_intensity": 1.9814952979578655,
+      "n_intensity": 4450
+    },
+    {
+      "take": "Manjanin_1",
+      "piece": "Manjanin",
+      "model": "GNN_V0",
+      "seed": 0,
+      "nll_delta": -0.6451175212860107,
+      "n_delta": 4321,
+      "nll_intensity": 1.104850172996521,
+      "n_intensity": 4450,
+      "epochs_run": 40,
+      "best_val": 0.5351362824440002,
+      "seconds": 108.4
+    },
+    {
+      "take": "Manjanin_1",
+      "piece": "Manjanin",
+      "model": "GNN_V0",
+      "seed": 1,
+      "nll_delta": -0.6783908605575562,
+      "n_delta": 4321,
+      "nll_intensity": 1.0731719732284546,
+      "n_intensity": 4450,
+      "epochs_run": 40,
+      "best_val": 0.48191094398498535,
+      "seconds": 123.3
+    },
+    {
+      "take": "Manjanin_1",
+      "piece": "Manjanin",
+      "model": "GNN_V0",
+      "seed": 2,
+      "nll_delta": -0.6806771755218506,
+      "n_delta": 4321,
+      "nll_intensity": 1.0453765392303467,
+      "n_intensity": 4450,
+      "epochs_run": 40,
+      "best_val": 0.5263874530792236,
+      "seconds": 109.5
+    },
+    {
+      "take": "Manjanin_1",
+      "piece": "Manjanin",
+      "model": "GNN_V5",
+      "seed": 0,
+      "nll_delta": -0.6790586709976196,
+      "n_delta": 4321,
+      "nll_intensity": 1.0891307592391968,
+      "n_intensity": 4450,
+      "epochs_run": 40,
+      "best_val": 0.5300890803337097,
+      "seconds": 110.7
+    },
+    {
+      "take": "Manjanin_1",
+      "piece": "Manjanin",
+      "model": "GNN_V5",
+      "seed": 1,
+      "nll_delta": -0.6710507869720459,
+      "n_delta": 4321,
+      "nll_intensity": 1.031786561012268,
+      "n_intensity": 4450,
+      "epochs_run": 40,
+      "best_val": 0.520398736000061,
+      "seconds": 121.9
+    },
+    {
+      "take": "Manjanin_1",
+      "piece": "Manjanin",
+      "model": "GNN_V5",
+      "seed": 2,
+      "nll_delta": -0.6894832849502563,
+      "n_delta": 4321,
+      "nll_intensity": 1.0253596305847168,
+      "n_intensity": 4450,
+      "epochs_run": 40,
+      "best_val": 0.5287922620773315,
+      "seconds": 106.7
+    },
+    {
+      "take": "Manjanin_2",
+      "piece": "Manjanin",
+      "model": "B1_position",
+      "seed": null,
+      "nll_delta": -0.06838955924746612,
+      "n_delta": 2346,
+      "nll_intensity": 1.4117531937195043,
+      "n_intensity": 2438
+    },
+    {
+      "take": "Manjanin_2",
+      "piece": "Manjanin",
+      "model": "B2_markov_cycle",
+      "seed": null,
+      "nll_delta": -0.4490315214000655,
+      "n_delta": 2346,
+      "nll_intensity": 1.359716859324594,
+      "n_intensity": 2438
+    },
+    {
+      "take": "Manjanin_2",
+      "piece": "Manjanin",
+      "model": "GNN_V0",
+      "seed": 0,
+      "nll_delta": -0.5123509764671326,
+      "n_delta": 2346,
+      "nll_intensity": 1.0964159965515137,
+      "n_intensity": 2438,
+      "epochs_run": 40,
+      "best_val": 0.44107645750045776,
+      "seconds": 105.5
+    },
+    {
+      "take": "Manjanin_2",
+      "piece": "Manjanin",
+      "model": "GNN_V0",
+      "seed": 1,
+      "nll_delta": -0.55302494764328,
+      "n_delta": 2346,
+      "nll_intensity": 1.0955700874328613,
+      "n_intensity": 2438,
+      "epochs_run": 40,
+      "best_val": 0.42602401971817017,
+      "seconds": 120.2
+    },
+    {
+      "take": "Manjanin_2",
+      "piece": "Manjanin",
+      "model": "GNN_V0",
+      "seed": 2,
+      "nll_delta": -0.5172999501228333,
+      "n_delta": 2346,
+      "nll_intensity": 1.0791739225387573,
+      "n_intensity": 2438,
+      "epochs_run": 40,
+      "best_val": 0.4235086441040039,
+      "seconds": 110.8
+    },
+    {
+      "take": "Manjanin_2",
+      "piece": "Manjanin",
+      "model": "GNN_V5",
+      "seed": 0,
+      "nll_delta": -0.5540816187858582,
+      "n_delta": 2346,
+      "nll_intensity": 1.1165440082550049,
+      "n_intensity": 2438,
+      "epochs_run": 40,
+      "best_val": 0.4227221608161926,
+      "seconds": 102.8
+    },
+    {
+      "take": "Manjanin_2",
+      "piece": "Manjanin",
+      "model": "GNN_V5",
+      "seed": 1,
+      "nll_delta": -0.5706183314323425,
+      "n_delta": 2346,
+      "nll_intensity": 1.1166495084762573,
+      "n_intensity": 2438,
+      "epochs_run": 40,
+      "best_val": 0.44361966848373413,
+      "seconds": 117.5
+    },
+    {
+      "take": "Manjanin_2",
+      "piece": "Manjanin",
+      "model": "GNN_V5",
+      "seed": 2,
+      "nll_delta": -0.542385995388031,
+      "n_delta": 2346,
+      "nll_intensity": 1.1009166240692139,
+      "n_intensity": 2438,
+      "epochs_run": 40,
+      "best_val": 0.3948516249656677,
+      "seconds": 103.2
+    },
+    {
+      "take": "Manjanin_3",
+      "piece": "Manjanin",
+      "model": "B1_position",
+      "seed": null,
+      "nll_delta": -0.2937858160606538,
+      "n_delta": 2761,
+      "nll_intensity": 1.1167536690884703,
+      "n_intensity": 2846
+    },
+    {
+      "take": "Manjanin_3",
+      "piece": "Manjanin",
+      "model": "B2_markov_cycle",
+      "seed": null,
+      "nll_delta": -0.5299027973923409,
+      "n_delta": 2761,
+      "nll_intensity": 1.1125919350448625,
+      "n_intensity": 2846
+    },
+    {
+      "take": "Manjanin_3",
+      "piece": "Manjanin",
+      "model": "GNN_V0",
+      "seed": 0,
+      "nll_delta": -0.5872911214828491,
+      "n_delta": 2761,
+      "nll_intensity": 0.7522727847099304,
+      "n_intensity": 2846,
+      "epochs_run": 40,
+      "best_val": 0.4438004493713379,
+      "seconds": 107.6
+    },
+    {
+      "take": "Manjanin_3",
+      "piece": "Manjanin",
+      "model": "GNN_V0",
+      "seed": 1,
+      "nll_delta": -0.5589494109153748,
+      "n_delta": 2761,
+      "nll_intensity": 0.7473355531692505,
+      "n_intensity": 2846,
+      "epochs_run": 40,
+      "best_val": 0.353459894657135,
+      "seconds": 124.0
+    },
+    {
+      "take": "Manjanin_3",
+      "piece": "Manjanin",
+      "model": "GNN_V0",
+      "seed": 2,
+      "nll_delta": -0.5926421880722046,
+      "n_delta": 2761,
+      "nll_intensity": 0.7377363443374634,
+      "n_intensity": 2846,
+      "epochs_run": 40,
+      "best_val": 0.31978410482406616,
+      "seconds": 145.0
+    },
+    {
+      "take": "Manjanin_3",
+      "piece": "Manjanin",
+      "model": "GNN_V5",
+      "seed": 0,
+      "nll_delta": -0.6216034889221191,
+      "n_delta": 2761,
+      "nll_intensity": 0.7513146996498108,
+      "n_intensity": 2846,
+      "epochs_run": 40,
+      "best_val": 0.4241771101951599,
+      "seconds": 110.6
+    },
+    {
+      "take": "Manjanin_3",
+      "piece": "Manjanin",
+      "model": "GNN_V5",
+      "seed": 1,
+      "nll_delta": -0.6180725693702698,
+      "n_delta": 2761,
+      "nll_intensity": 0.7437334656715393,
+      "n_intensity": 2846,
+      "epochs_run": 40,
+      "best_val": 0.3661080002784729,
+      "seconds": 122.1
+    },
+    {
+      "take": "Manjanin_3",
+      "piece": "Manjanin",
+      "model": "GNN_V5",
+      "seed": 2,
+      "nll_delta": -0.6372525095939636,
+      "n_delta": 2761,
+      "nll_intensity": 0.7538413405418396,
+      "n_intensity": 2846,
+      "epochs_run": 40,
+      "best_val": 0.3143094778060913,
+      "seconds": 129.8
+    },
+    {
+      "take": "Manjanin_4",
+      "piece": "Manjanin",
+      "model": "B1_position",
+      "seed": null,
+      "nll_delta": -0.4214616657186688,
+      "n_delta": 4368,
+      "nll_intensity": 1.227726061211283,
+      "n_intensity": 4424
+    },
+    {
+      "take": "Manjanin_4",
+      "piece": "Manjanin",
+      "model": "B2_markov_cycle",
+      "seed": null,
+      "nll_delta": -0.5901346302332872,
+      "n_delta": 4368,
+      "nll_intensity": 1.221861190891218,
+      "n_intensity": 4424
+    },
+    {
+      "take": "Manjanin_4",
+      "piece": "Manjanin",
+      "model": "GNN_V0",
+      "seed": 0,
+      "nll_delta": -0.44164445996284485,
+      "n_delta": 4368,
+      "nll_intensity": 0.8505957722663879,
+      "n_intensity": 4424,
+      "epochs_run": 40,
+      "best_val": 0.45349401235580444,
+      "seconds": 96.7
+    },
+    {
+      "take": "Manjanin_4",
+      "piece": "Manjanin",
+      "model": "GNN_V0",
+      "seed": 1,
+      "nll_delta": -0.5682188868522644,
+      "n_delta": 4368,
+      "nll_intensity": 0.8085289597511292,
+      "n_intensity": 4424,
+      "epochs_run": 40,
+      "best_val": 0.4262322783470154,
+      "seconds": 118.7
+    },
+    {
+      "take": "Manjanin_4",
+      "piece": "Manjanin",
+      "model": "GNN_V0",
+      "seed": 2,
+      "nll_delta": -0.4707200527191162,
+      "n_delta": 4368,
+      "nll_intensity": 0.8734554648399353,
+      "n_intensity": 4424,
+      "epochs_run": 40,
+      "best_val": 0.43940043449401855,
+      "seconds": 132.7
+    },
+    {
+      "take": "Manjanin_4",
+      "piece": "Manjanin",
+      "model": "GNN_V5",
+      "seed": 0,
+      "nll_delta": -0.3984558582305908,
+      "n_delta": 4368,
+      "nll_intensity": 0.8489444851875305,
+      "n_intensity": 4424,
+      "epochs_run": 40,
+      "best_val": 0.4888664484024048,
+      "seconds": 99.0
+    },
+    {
+      "take": "Manjanin_4",
+      "piece": "Manjanin",
+      "model": "GNN_V5",
+      "seed": 1,
+      "nll_delta": -0.47326570749282837,
+      "n_delta": 4368,
+      "nll_intensity": 0.821683406829834,
+      "n_intensity": 4424,
+      "epochs_run": 40,
+      "best_val": 0.3878515958786011,
+      "seconds": 127.8
+    },
+    {
+      "take": "Manjanin_4",
+      "piece": "Manjanin",
+      "model": "GNN_V5",
+      "seed": 2,
+      "nll_delta": -0.39002346992492676,
+      "n_delta": 4368,
+      "nll_intensity": 0.8608362078666687,
+      "n_intensity": 4424,
+      "epochs_run": 40,
+      "best_val": 0.4708428382873535,
+      "seconds": 121.1
+    },
+    {
+      "take": "Maraka_1",
+      "piece": "Maraka",
+      "model": "B1_position",
+      "seed": null,
+      "nll_delta": 0.33360907002334267,
+      "n_delta": 2613,
+      "nll_intensity": 1.2197398319413069,
+      "n_intensity": 2665
+    },
+    {
+      "take": "Maraka_1",
+      "piece": "Maraka",
+      "model": "B2_markov_cycle",
+      "seed": null,
+      "nll_delta": 0.17955806406139066,
+      "n_delta": 2613,
+      "nll_intensity": 1.2278264949461601,
+      "n_intensity": 2665
+    },
+    {
+      "take": "Maraka_1",
+      "piece": "Maraka",
+      "model": "GNN_V0",
+      "seed": 0,
+      "nll_delta": -0.04180213436484337,
+      "n_delta": 2613,
+      "nll_intensity": 0.9124042391777039,
+      "n_intensity": 2665,
+      "epochs_run": 40,
+      "best_val": -0.17617619037628174,
+      "seconds": 117.6
+    },
+    {
+      "take": "Maraka_1",
+      "piece": "Maraka",
+      "model": "GNN_V0",
+      "seed": 1,
+      "nll_delta": -0.11159233003854752,
+      "n_delta": 2613,
+      "nll_intensity": 0.8832024931907654,
+      "n_intensity": 2665,
+      "epochs_run": 40,
+      "best_val": -0.18571573495864868,
+      "seconds": 141.8
+    },
+    {
+      "take": "Maraka_1",
+      "piece": "Maraka",
+      "model": "GNN_V0",
+      "seed": 2,
+      "nll_delta": -0.12131309509277344,
+      "n_delta": 2613,
+      "nll_intensity": 0.9267347455024719,
+      "n_intensity": 2665,
+      "epochs_run": 40,
+      "best_val": -0.1720116138458252,
+      "seconds": 122.2
+    },
+    {
+      "take": "Maraka_1",
+      "piece": "Maraka",
+      "model": "GNN_V5",
+      "seed": 0,
+      "nll_delta": -0.1933356076478958,
+      "n_delta": 2613,
+      "nll_intensity": 0.8827845454216003,
+      "n_intensity": 2665,
+      "epochs_run": 40,
+      "best_val": -0.21308648586273193,
+      "seconds": 128.7
+    },
+    {
+      "take": "Maraka_1",
+      "piece": "Maraka",
+      "model": "GNN_V5",
+      "seed": 1,
+      "nll_delta": -0.1935378611087799,
+      "n_delta": 2613,
+      "nll_intensity": 0.8990288376808167,
+      "n_intensity": 2665,
+      "epochs_run": 40,
+      "best_val": -0.19771122932434082,
+      "seconds": 138.9
+    },
+    {
+      "take": "Maraka_1",
+      "piece": "Maraka",
+      "model": "GNN_V5",
+      "seed": 2,
+      "nll_delta": -0.23659108579158783,
+      "n_delta": 2613,
+      "nll_intensity": 0.9108356237411499,
+      "n_intensity": 2665,
+      "epochs_run": 40,
+      "best_val": -0.20248669385910034,
+      "seconds": 120.7
+    },
+    {
+      "take": "Maraka_2",
+      "piece": "Maraka",
+      "model": "B1_position",
+      "seed": null,
+      "nll_delta": -0.8521321952879257,
+      "n_delta": 1803,
+      "nll_intensity": 1.1252155893665594,
+      "n_intensity": 1810
+    },
+    {
+      "take": "Maraka_2",
+      "piece": "Maraka",
+      "model": "B2_markov_cycle",
+      "seed": null,
+      "nll_delta": -0.9289363423203939,
+      "n_delta": 1803,
+      "nll_intensity": 1.1176186262039471,
+      "n_intensity": 1810
+    },
+    {
+      "take": "Maraka_2",
+      "piece": "Maraka",
+      "model": "GNN_V0",
+      "seed": 0,
+      "nll_delta": -1.0777689218521118,
+      "n_delta": 1803,
+      "nll_intensity": 0.9499589800834656,
+      "n_intensity": 1810,
+      "epochs_run": 40,
+      "best_val": 0.5830659866333008,
+      "seconds": 131.8
+    },
+    {
+      "take": "Maraka_2",
+      "piece": "Maraka",
+      "model": "GNN_V0",
+      "seed": 1,
+      "nll_delta": -1.0816034078598022,
+      "n_delta": 1803,
+      "nll_intensity": 0.9249575138092041,
+      "n_intensity": 1810,
+      "epochs_run": 40,
+      "best_val": 0.6150610446929932,
+      "seconds": 143.1
+    },
+    {
+      "take": "Maraka_2",
+      "piece": "Maraka",
+      "model": "GNN_V0",
+      "seed": 2,
+      "nll_delta": -1.0885214805603027,
+      "n_delta": 1803,
+      "nll_intensity": 0.9379884004592896,
+      "n_intensity": 1810,
+      "epochs_run": 40,
+      "best_val": 0.6343206763267517,
+      "seconds": 128.2
+    },
+    {
+      "take": "Maraka_2",
+      "piece": "Maraka",
+      "model": "GNN_V5",
+      "seed": 0,
+      "nll_delta": -1.1062190532684326,
+      "n_delta": 1803,
+      "nll_intensity": 0.9190730452537537,
+      "n_intensity": 1810,
+      "epochs_run": 40,
+      "best_val": 0.6166737079620361,
+      "seconds": 127.4
+    },
+    {
+      "take": "Maraka_2",
+      "piece": "Maraka",
+      "model": "GNN_V5",
+      "seed": 1,
+      "nll_delta": -1.1113438606262207,
+      "n_delta": 1803,
+      "nll_intensity": 0.9256501197814941,
+      "n_intensity": 1810,
+      "epochs_run": 40,
+      "best_val": 0.5885366201400757,
+      "seconds": 153.3
+    },
+    {
+      "take": "Maraka_2",
+      "piece": "Maraka",
+      "model": "GNN_V5",
+      "seed": 2,
+      "nll_delta": -1.1070225238800049,
+      "n_delta": 1803,
+      "nll_intensity": 0.922376811504364,
+      "n_intensity": 1810,
+      "epochs_run": 40,
+      "best_val": 0.6008269190788269,
+      "seconds": 124.8
+    },
+    {
+      "take": "Maraka_3",
+      "piece": "Maraka",
+      "model": "B1_position",
+      "seed": null,
+      "nll_delta": -0.8344066271875796,
+      "n_delta": 2135,
+      "nll_intensity": 1.060603512543278,
+      "n_intensity": 2135
+    },
+    {
+      "take": "Maraka_3",
+      "piece": "Maraka",
+      "model": "B2_markov_cycle",
+      "seed": null,
+      "nll_delta": -0.926221981862325,
+      "n_delta": 2135,
+      "nll_intensity": 1.0199849787234385,
+      "n_intensity": 2135
+    },
+    {
+      "take": "Maraka_3",
+      "piece": "Maraka",
+      "model": "GNN_V0",
+      "seed": 0,
+      "nll_delta": -1.0453284978866577,
+      "n_delta": 2135,
+      "nll_intensity": 0.7815569043159485,
+      "n_intensity": 2135,
+      "epochs_run": 40,
+      "best_val": 0.6701972484588623,
+      "seconds": 132.1
+    },
+    {
+      "take": "Maraka_3",
+      "piece": "Maraka",
+      "model": "GNN_V0",
+      "seed": 1,
+      "nll_delta": -1.054456114768982,
+      "n_delta": 2135,
+      "nll_intensity": 0.771704375743866,
+      "n_intensity": 2135,
+      "epochs_run": 40,
+      "best_val": 0.49373409152030945,
+      "seconds": 119.8
+    },
+    {
+      "take": "Maraka_3",
+      "piece": "Maraka",
+      "model": "GNN_V0",
+      "seed": 2,
+      "nll_delta": -1.0444090366363525,
+      "n_delta": 2135,
+      "nll_intensity": 0.7757988572120667,
+      "n_intensity": 2135,
+      "epochs_run": 40,
+      "best_val": 0.6120253205299377,
+      "seconds": 122.0
+    },
+    {
+      "take": "Maraka_3",
+      "piece": "Maraka",
+      "model": "GNN_V5",
+      "seed": 0,
+      "nll_delta": -1.0527503490447998,
+      "n_delta": 2135,
+      "nll_intensity": 0.7623353600502014,
+      "n_intensity": 2135,
+      "epochs_run": 40,
+      "best_val": 0.5600574016571045,
+      "seconds": 127.8
+    },
+    {
+      "take": "Maraka_3",
+      "piece": "Maraka",
+      "model": "GNN_V5",
+      "seed": 1,
+      "nll_delta": -1.0634605884552002,
+      "n_delta": 2135,
+      "nll_intensity": 0.7832809090614319,
+      "n_intensity": 2135,
+      "epochs_run": 40,
+      "best_val": 0.5955250263214111,
+      "seconds": 117.5
+    },
+    {
+      "take": "Maraka_3",
+      "piece": "Maraka",
+      "model": "GNN_V5",
+      "seed": 2,
+      "nll_delta": -1.0514717102050781,
+      "n_delta": 2135,
+      "nll_intensity": 0.7770909070968628,
+      "n_intensity": 2135,
+      "epochs_run": 40,
+      "best_val": 0.5657852292060852,
+      "seconds": 121.3
+    },
+    {
+      "take": "Maraka_4",
+      "piece": "Maraka",
+      "model": "B1_position",
+      "seed": null,
+      "nll_delta": -0.8242111457532895,
+      "n_delta": 1752,
+      "nll_intensity": 1.096540669179785,
+      "n_intensity": 1758
+    },
+    {
+      "take": "Maraka_4",
+      "piece": "Maraka",
+      "model": "B2_markov_cycle",
+      "seed": null,
+      "nll_delta": -0.9235142175256766,
+      "n_delta": 1752,
+      "nll_intensity": 1.0894510342446964,
+      "n_intensity": 1758
+    },
+    {
+      "take": "Maraka_4",
+      "piece": "Maraka",
+      "model": "GNN_V0",
+      "seed": 0,
+      "nll_delta": -1.1089946031570435,
+      "n_delta": 1752,
+      "nll_intensity": 0.5843679904937744,
+      "n_intensity": 1758,
+      "epochs_run": 40,
+      "best_val": 0.652561604976654,
+      "seconds": 126.2
+    },
+    {
+      "take": "Maraka_4",
+      "piece": "Maraka",
+      "model": "GNN_V0",
+      "seed": 1,
+      "nll_delta": -1.1145853996276855,
+      "n_delta": 1752,
+      "nll_intensity": 0.5845154523849487,
+      "n_intensity": 1758,
+      "epochs_run": 40,
+      "best_val": 0.6589597463607788,
+      "seconds": 128.3
+    },
+    {
+      "take": "Maraka_4",
+      "piece": "Maraka",
+      "model": "GNN_V0",
+      "seed": 2,
+      "nll_delta": -1.1175339221954346,
+      "n_delta": 1752,
+      "nll_intensity": 0.5833501219749451,
+      "n_intensity": 1758,
+      "epochs_run": 40,
+      "best_val": 0.6191184520721436,
+      "seconds": 121.3
+    },
+    {
+      "take": "Maraka_4",
+      "piece": "Maraka",
+      "model": "GNN_V5",
+      "seed": 0,
+      "nll_delta": -1.1216641664505005,
+      "n_delta": 1752,
+      "nll_intensity": 0.5751042366027832,
+      "n_intensity": 1758,
+      "epochs_run": 40,
+      "best_val": 0.5377622842788696,
+      "seconds": 126.9
+    },
+    {
+      "take": "Maraka_4",
+      "piece": "Maraka",
+      "model": "GNN_V5",
+      "seed": 1,
+      "nll_delta": -1.1355717182159424,
+      "n_delta": 1752,
+      "nll_intensity": 0.5787994265556335,
+      "n_intensity": 1758,
+      "epochs_run": 40,
+      "best_val": 0.5321950912475586,
+      "seconds": 128.3
+    },
+    {
+      "take": "Maraka_4",
+      "piece": "Maraka",
+      "model": "GNN_V5",
+      "seed": 2,
+      "nll_delta": -1.1354210376739502,
+      "n_delta": 1752,
+      "nll_intensity": 0.581762433052063,
+      "n_intensity": 1758,
+      "epochs_run": 40,
+      "best_val": 0.5446175932884216,
+      "seconds": 112.4
+    },
+    {
+      "take": "Maraka_5",
+      "piece": "Maraka",
+      "model": "B1_position",
+      "seed": null,
+      "nll_delta": -0.7892949961313641,
+      "n_delta": 1084,
+      "nll_intensity": 1.2399695425021042,
+      "n_intensity": 1089
+    },
+    {
+      "take": "Maraka_5",
+      "piece": "Maraka",
+      "model": "B2_markov_cycle",
+      "seed": null,
+      "nll_delta": -0.8716630461489799,
+      "n_delta": 1084,
+      "nll_intensity": 1.262906485704448,
+      "n_intensity": 1089
+    },
+    {
+      "take": "Maraka_5",
+      "piece": "Maraka",
+      "model": "GNN_V0",
+      "seed": 0,
+      "nll_delta": -0.9820531606674194,
+      "n_delta": 1084,
+      "nll_intensity": 0.9177902340888977,
+      "n_intensity": 1089,
+      "epochs_run": 40,
+      "best_val": 0.6662336587905884,
+      "seconds": 127.2
+    },
+    {
+      "take": "Maraka_5",
+      "piece": "Maraka",
+      "model": "GNN_V0",
+      "seed": 1,
+      "nll_delta": -1.0345678329467773,
+      "n_delta": 1084,
+      "nll_intensity": 0.9525201320648193,
+      "n_intensity": 1089,
+      "epochs_run": 40,
+      "best_val": 0.5721657276153564,
+      "seconds": 128.3
+    },
+    {
+      "take": "Maraka_5",
+      "piece": "Maraka",
+      "model": "GNN_V0",
+      "seed": 2,
+      "nll_delta": -0.9713789224624634,
+      "n_delta": 1084,
+      "nll_intensity": 0.9306605458259583,
+      "n_intensity": 1089,
+      "epochs_run": 40,
+      "best_val": 0.6783049702644348,
+      "seconds": 125.3
+    },
+    {
+      "take": "Maraka_5",
+      "piece": "Maraka",
+      "model": "GNN_V5",
+      "seed": 0,
+      "nll_delta": -0.9811545610427856,
+      "n_delta": 1084,
+      "nll_intensity": 0.9079012274742126,
+      "n_intensity": 1089,
+      "epochs_run": 40,
+      "best_val": 0.5785617828369141,
+      "seconds": 123.4
+    },
+    {
+      "take": "Maraka_5",
+      "piece": "Maraka",
+      "model": "GNN_V5",
+      "seed": 1,
+      "nll_delta": -1.0247423648834229,
+      "n_delta": 1084,
+      "nll_intensity": 0.9283968210220337,
+      "n_intensity": 1089,
+      "epochs_run": 40,
+      "best_val": 0.6196547150611877,
+      "seconds": 116.5
+    },
+    {
+      "take": "Maraka_5",
+      "piece": "Maraka",
+      "model": "GNN_V5",
+      "seed": 2,
+      "nll_delta": -1.0153565406799316,
+      "n_delta": 1084,
+      "nll_intensity": 0.9167405366897583,
+      "n_intensity": 1089,
+      "epochs_run": 40,
+      "best_val": 0.5966774821281433,
+      "seconds": 123.1
+    },
+    {
+      "take": "Maraka_6",
+      "piece": "Maraka",
+      "model": "B1_position",
+      "seed": null,
+      "nll_delta": -0.6485780981062431,
+      "n_delta": 3397,
+      "nll_intensity": 1.1546572726759112,
+      "n_intensity": 3466
+    },
+    {
+      "take": "Maraka_6",
+      "piece": "Maraka",
+      "model": "B2_markov_cycle",
+      "seed": null,
+      "nll_delta": -0.7551854362417603,
+      "n_delta": 3397,
+      "nll_intensity": 1.1336348765815516,
+      "n_intensity": 3466
+    },
+    {
+      "take": "Maraka_6",
+      "piece": "Maraka",
+      "model": "GNN_V0",
+      "seed": 0,
+      "nll_delta": -0.7610026001930237,
+      "n_delta": 3397,
+      "nll_intensity": 0.710330605506897,
+      "n_intensity": 3466,
+      "epochs_run": 40,
+      "best_val": 0.6221810579299927,
+      "seconds": 115.3
+    },
+    {
+      "take": "Maraka_6",
+      "piece": "Maraka",
+      "model": "GNN_V0",
+      "seed": 1,
+      "nll_delta": -0.8267943859100342,
+      "n_delta": 3397,
+      "nll_intensity": 0.7374138832092285,
+      "n_intensity": 3466,
+      "epochs_run": 40,
+      "best_val": 0.592471718788147,
+      "seconds": 128.2
+    },
+    {
+      "take": "Maraka_6",
+      "piece": "Maraka",
+      "model": "GNN_V0",
+      "seed": 2,
+      "nll_delta": -0.7561190128326416,
+      "n_delta": 3397,
+      "nll_intensity": 0.7366538047790527,
+      "n_intensity": 3466,
+      "epochs_run": 40,
+      "best_val": 0.5263824462890625,
+      "seconds": 120.3
+    },
+    {
+      "take": "Maraka_6",
+      "piece": "Maraka",
+      "model": "GNN_V5",
+      "seed": 0,
+      "nll_delta": -0.811238706111908,
+      "n_delta": 3397,
+      "nll_intensity": 0.7177596092224121,
+      "n_intensity": 3466,
+      "epochs_run": 40,
+      "best_val": 0.6184293627738953,
+      "seconds": 111.9
+    },
+    {
+      "take": "Maraka_6",
+      "piece": "Maraka",
+      "model": "GNN_V5",
+      "seed": 1,
+      "nll_delta": -0.8432779908180237,
+      "n_delta": 3397,
+      "nll_intensity": 0.7266086339950562,
+      "n_intensity": 3466,
+      "epochs_run": 40,
+      "best_val": 0.5948286652565002,
+      "seconds": 121.3
+    },
+    {
+      "take": "Maraka_6",
+      "piece": "Maraka",
+      "model": "GNN_V5",
+      "seed": 2,
+      "nll_delta": -0.7709773778915405,
+      "n_delta": 3397,
+      "nll_intensity": 0.7315452098846436,
+      "n_intensity": 3466,
+      "epochs_run": 40,
+      "best_val": 0.5522338151931763,
+      "seconds": 115.1
+    },
+    {
+      "take": "Woloso_1",
+      "piece": "Woloso",
+      "model": "B1_position",
+      "seed": null,
+      "nll_delta": -1.031834332622984,
+      "n_delta": 2540,
+      "nll_intensity": 1.188701561751435,
+      "n_intensity": 2543
+    },
+    {
+      "take": "Woloso_1",
+      "piece": "Woloso",
+      "model": "B2_markov_cycle",
+      "seed": null,
+      "nll_delta": -1.085614444019215,
+      "n_delta": 2540,
+      "nll_intensity": 1.2346577655684592,
+      "n_intensity": 2543
+    },
+    {
+      "take": "Woloso_1",
+      "piece": "Woloso",
+      "model": "GNN_V0",
+      "seed": 0,
+      "nll_delta": -1.0742473602294922,
+      "n_delta": 2540,
+      "nll_intensity": 0.8758007884025574,
+      "n_intensity": 2543,
+      "epochs_run": 40,
+      "best_val": -0.020562589168548584,
+      "seconds": 123.9
+    },
+    {
+      "take": "Woloso_1",
+      "piece": "Woloso",
+      "model": "GNN_V0",
+      "seed": 1,
+      "nll_delta": -1.0674747228622437,
+      "n_delta": 2540,
+      "nll_intensity": 0.8734266757965088,
+      "n_intensity": 2543,
+      "epochs_run": 40,
+      "best_val": 0.03424966335296631,
+      "seconds": 117.6
+    },
+    {
+      "take": "Woloso_1",
+      "piece": "Woloso",
+      "model": "GNN_V0",
+      "seed": 2,
+      "nll_delta": -1.0728671550750732,
+      "n_delta": 2540,
+      "nll_intensity": 0.8902487754821777,
+      "n_intensity": 2543,
+      "epochs_run": 40,
+      "best_val": 0.031810641288757324,
+      "seconds": 124.0
+    },
+    {
+      "take": "Woloso_1",
+      "piece": "Woloso",
+      "model": "GNN_V5",
+      "seed": 0,
+      "nll_delta": -1.0848087072372437,
+      "n_delta": 2540,
+      "nll_intensity": 0.8731666803359985,
+      "n_intensity": 2543,
+      "epochs_run": 40,
+      "best_val": -0.014789700508117676,
+      "seconds": 120.8
+    },
+    {
+      "take": "Woloso_1",
+      "piece": "Woloso",
+      "model": "GNN_V5",
+      "seed": 1,
+      "nll_delta": -1.074187994003296,
+      "n_delta": 2540,
+      "nll_intensity": 0.8860725164413452,
+      "n_intensity": 2543,
+      "epochs_run": 40,
+      "best_val": 0.07499063014984131,
+      "seconds": 116.8
+    },
+    {
+      "take": "Woloso_1",
+      "piece": "Woloso",
+      "model": "GNN_V5",
+      "seed": 2,
+      "nll_delta": -1.0947620868682861,
+      "n_delta": 2540,
+      "nll_intensity": 0.9140480756759644,
+      "n_intensity": 2543,
+      "epochs_run": 40,
+      "best_val": 0.06237590312957764,
+      "seconds": 118.7
+    },
+    {
+      "take": "Woloso_2",
+      "piece": "Woloso",
+      "model": "B1_position",
+      "seed": null,
+      "nll_delta": -0.9130118016377383,
+      "n_delta": 2513,
+      "nll_intensity": 1.1706303244993082,
+      "n_intensity": 2515
+    },
+    {
+      "take": "Woloso_2",
+      "piece": "Woloso",
+      "model": "B2_markov_cycle",
+      "seed": null,
+      "nll_delta": -0.9574915422689526,
+      "n_delta": 2513,
+      "nll_intensity": 1.1625087171494208,
+      "n_intensity": 2515
+    },
+    {
+      "take": "Woloso_2",
+      "piece": "Woloso",
+      "model": "GNN_V0",
+      "seed": 0,
+      "nll_delta": -0.9870572686195374,
+      "n_delta": 2513,
+      "nll_intensity": 0.8705923557281494,
+      "n_intensity": 2515,
+      "epochs_run": 40,
+      "best_val": -0.22655397653579712,
+      "seconds": 129.4
+    },
+    {
+      "take": "Woloso_2",
+      "piece": "Woloso",
+      "model": "GNN_V0",
+      "seed": 1,
+      "nll_delta": -0.9972119331359863,
+      "n_delta": 2513,
+      "nll_intensity": 0.8699337244033813,
+      "n_intensity": 2515,
+      "epochs_run": 40,
+      "best_val": -0.2108016014099121,
+      "seconds": 127.9
+    },
+    {
+      "take": "Woloso_2",
+      "piece": "Woloso",
+      "model": "GNN_V0",
+      "seed": 2,
+      "nll_delta": -1.0209038257598877,
+      "n_delta": 2513,
+      "nll_intensity": 0.8806688189506531,
+      "n_intensity": 2515,
+      "epochs_run": 40,
+      "best_val": -0.18418949842453003,
+      "seconds": 119.5
+    },
+    {
+      "take": "Woloso_2",
+      "piece": "Woloso",
+      "model": "GNN_V5",
+      "seed": 0,
+      "nll_delta": -1.0062695741653442,
+      "n_delta": 2513,
+      "nll_intensity": 0.8815374374389648,
+      "n_intensity": 2515,
+      "epochs_run": 40,
+      "best_val": -0.23009413480758667,
+      "seconds": 125.2
+    },
+    {
+      "take": "Woloso_2",
+      "piece": "Woloso",
+      "model": "GNN_V5",
+      "seed": 1,
+      "nll_delta": -1.0060381889343262,
+      "n_delta": 2513,
+      "nll_intensity": 0.8847734928131104,
+      "n_intensity": 2515,
+      "epochs_run": 40,
+      "best_val": -0.2174709439277649,
+      "seconds": 122.4
+    },
+    {
+      "take": "Woloso_2",
+      "piece": "Woloso",
+      "model": "GNN_V5",
+      "seed": 2,
+      "nll_delta": -1.031042218208313,
+      "n_delta": 2513,
+      "nll_intensity": 0.8966437578201294,
+      "n_intensity": 2515,
+      "epochs_run": 40,
+      "best_val": -0.2114657163619995,
+      "seconds": 117.1
+    },
+    {
+      "take": "Woloso_3",
+      "piece": "Woloso",
+      "model": "B1_position",
+      "seed": null,
+      "nll_delta": -1.021844024454486,
+      "n_delta": 1624,
+      "nll_intensity": 1.2266453191982076,
+      "n_intensity": 1625
+    },
+    {
+      "take": "Woloso_3",
+      "piece": "Woloso",
+      "model": "B2_markov_cycle",
+      "seed": null,
+      "nll_delta": -1.0504053792839607,
+      "n_delta": 1624,
+      "nll_intensity": 1.2169966151538982,
+      "n_intensity": 1625
+    },
+    {
+      "take": "Woloso_3",
+      "piece": "Woloso",
+      "model": "GNN_V0",
+      "seed": 0,
+      "nll_delta": -1.0963579416275024,
+      "n_delta": 1624,
+      "nll_intensity": 1.0980697870254517,
+      "n_intensity": 1625,
+      "epochs_run": 40,
+      "best_val": -0.3172460198402405,
+      "seconds": 128.5
+    },
+    {
+      "take": "Woloso_3",
+      "piece": "Woloso",
+      "model": "GNN_V0",
+      "seed": 1,
+      "nll_delta": -1.083216905593872,
+      "n_delta": 1624,
+      "nll_intensity": 1.091797947883606,
+      "n_intensity": 1625,
+      "epochs_run": 40,
+      "best_val": -0.30414026975631714,
+      "seconds": 156.8
+    },
+    {
+      "take": "Woloso_3",
+      "piece": "Woloso",
+      "model": "GNN_V0",
+      "seed": 2,
+      "nll_delta": -1.0968669652938843,
+      "n_delta": 1624,
+      "nll_intensity": 1.0911563634872437,
+      "n_intensity": 1625,
+      "epochs_run": 40,
+      "best_val": -0.30652564764022827,
+      "seconds": 124.2
+    },
+    {
+      "take": "Woloso_3",
+      "piece": "Woloso",
+      "model": "GNN_V5",
+      "seed": 0,
+      "nll_delta": -1.1137477159500122,
+      "n_delta": 1624,
+      "nll_intensity": 1.1010751724243164,
+      "n_intensity": 1625,
+      "epochs_run": 40,
+      "best_val": -0.33001601696014404,
+      "seconds": 129.0
+    },
+    {
+      "take": "Woloso_3",
+      "piece": "Woloso",
+      "model": "GNN_V5",
+      "seed": 1,
+      "nll_delta": -1.1156314611434937,
+      "n_delta": 1624,
+      "nll_intensity": 1.1217477321624756,
+      "n_intensity": 1625,
+      "epochs_run": 40,
+      "best_val": -0.3087090253829956,
+      "seconds": 145.4
+    },
+    {
+      "take": "Woloso_3",
+      "piece": "Woloso",
+      "model": "GNN_V5",
+      "seed": 2,
+      "nll_delta": -1.0882903337478638,
+      "n_delta": 1624,
+      "nll_intensity": 1.0865174531936646,
+      "n_intensity": 1625,
+      "epochs_run": 40,
+      "best_val": -0.31335872411727905,
+      "seconds": 119.9
+    },
+    {
+      "take": "Woloso_4",
+      "piece": "Woloso",
+      "model": "B1_position",
+      "seed": null,
+      "nll_delta": -0.8864708931630306,
+      "n_delta": 1943,
+      "nll_intensity": 1.2408540767778142,
+      "n_intensity": 1949
+    },
+    {
+      "take": "Woloso_4",
+      "piece": "Woloso",
+      "model": "B2_markov_cycle",
+      "seed": null,
+      "nll_delta": -0.9596088307074836,
+      "n_delta": 1943,
+      "nll_intensity": 1.2374517491086268,
+      "n_intensity": 1949
+    },
+    {
+      "take": "Woloso_4",
+      "piece": "Woloso",
+      "model": "GNN_V0",
+      "seed": 0,
+      "nll_delta": -1.0298233032226562,
+      "n_delta": 1943,
+      "nll_intensity": 0.929655134677887,
+      "n_intensity": 1949,
+      "epochs_run": 40,
+      "best_val": -0.3442143201828003,
+      "seconds": 123.9
+    },
+    {
+      "take": "Woloso_4",
+      "piece": "Woloso",
+      "model": "GNN_V0",
+      "seed": 1,
+      "nll_delta": -1.023380160331726,
+      "n_delta": 1943,
+      "nll_intensity": 0.9521107077598572,
+      "n_intensity": 1949,
+      "epochs_run": 40,
+      "best_val": -0.29480332136154175,
+      "seconds": 156.3
+    },
+    {
+      "take": "Woloso_4",
+      "piece": "Woloso",
+      "model": "GNN_V0",
+      "seed": 2,
+      "nll_delta": -1.0316795110702515,
+      "n_delta": 1943,
+      "nll_intensity": 0.9539563059806824,
+      "n_intensity": 1949,
+      "epochs_run": 40,
+      "best_val": -0.320148229598999,
+      "seconds": 126.7
+    },
+    {
+      "take": "Woloso_4",
+      "piece": "Woloso",
+      "model": "GNN_V5",
+      "seed": 0,
+      "nll_delta": -1.0440471172332764,
+      "n_delta": 1943,
+      "nll_intensity": 0.9425638318061829,
+      "n_intensity": 1949,
+      "epochs_run": 40,
+      "best_val": -0.36211729049682617,
+      "seconds": 119.7
+    },
+    {
+      "take": "Woloso_4",
+      "piece": "Woloso",
+      "model": "GNN_V5",
+      "seed": 1,
+      "nll_delta": -1.0478891134262085,
+      "n_delta": 1943,
+      "nll_intensity": 0.9367550611495972,
+      "n_intensity": 1949,
+      "epochs_run": 40,
+      "best_val": -0.3294718861579895,
+      "seconds": 147.3
+    },
+    {
+      "take": "Woloso_4",
+      "piece": "Woloso",
+      "model": "GNN_V5",
+      "seed": 2,
+      "nll_delta": -1.0351835489273071,
+      "n_delta": 1943,
+      "nll_intensity": 0.9413066506385803,
+      "n_intensity": 1949,
+      "epochs_run": 40,
+      "best_val": -0.33401381969451904,
+      "seconds": 112.6
+    },
+    {
+      "take": "Woloso_5",
+      "piece": "Woloso",
+      "model": "B1_position",
+      "seed": null,
+      "nll_delta": -1.0390464114906353,
+      "n_delta": 1393,
+      "nll_intensity": 1.3185227984426724,
+      "n_intensity": 1393
+    },
+    {
+      "take": "Woloso_5",
+      "piece": "Woloso",
+      "model": "B2_markov_cycle",
+      "seed": null,
+      "nll_delta": -1.1016514331448566,
+      "n_delta": 1393,
+      "nll_intensity": 1.3497852620327804,
+      "n_intensity": 1393
+    },
+    {
+      "take": "Woloso_5",
+      "piece": "Woloso",
+      "model": "GNN_V0",
+      "seed": 0,
+      "nll_delta": -1.1156047582626343,
+      "n_delta": 1393,
+      "nll_intensity": 0.8343454003334045,
+      "n_intensity": 1393,
+      "epochs_run": 40,
+      "best_val": -0.3330668807029724,
+      "seconds": 123.4
+    },
+    {
+      "take": "Woloso_5",
+      "piece": "Woloso",
+      "model": "GNN_V0",
+      "seed": 1,
+      "nll_delta": -1.123510479927063,
+      "n_delta": 1393,
+      "nll_intensity": 0.8300803303718567,
+      "n_intensity": 1393,
+      "epochs_run": 40,
+      "best_val": -0.3005022406578064,
+      "seconds": 146.2
+    },
+    {
+      "take": "Woloso_5",
+      "piece": "Woloso",
+      "model": "GNN_V0",
+      "seed": 2,
+      "nll_delta": -1.1082817316055298,
+      "n_delta": 1393,
+      "nll_intensity": 0.8587523698806763,
+      "n_intensity": 1393,
+      "epochs_run": 40,
+      "best_val": -0.321951687335968,
+      "seconds": 135.2
+    },
+    {
+      "take": "Woloso_5",
+      "piece": "Woloso",
+      "model": "GNN_V5",
+      "seed": 0,
+      "nll_delta": -1.156928300857544,
+      "n_delta": 1393,
+      "nll_intensity": 0.8397867679595947,
+      "n_intensity": 1393,
+      "epochs_run": 40,
+      "best_val": -0.3659364581108093,
+      "seconds": 119.7
+    },
+    {
+      "take": "Woloso_5",
+      "piece": "Woloso",
+      "model": "GNN_V5",
+      "seed": 1,
+      "nll_delta": -1.1365565061569214,
+      "n_delta": 1393,
+      "nll_intensity": 0.831045389175415,
+      "n_intensity": 1393,
+      "epochs_run": 40,
+      "best_val": -0.35476386547088623,
+      "seconds": 141.3
+    },
+    {
+      "take": "Woloso_5",
+      "piece": "Woloso",
+      "model": "GNN_V5",
+      "seed": 2,
+      "nll_delta": -1.1330398321151733,
+      "n_delta": 1393,
+      "nll_intensity": 0.8658077716827393,
+      "n_intensity": 1393,
+      "epochs_run": 40,
+      "best_val": -0.3337157368659973,
+      "seconds": 127.5
+    }
+  ]
+}
