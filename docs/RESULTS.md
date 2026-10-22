@@ -83,6 +83,33 @@ Fixes: keep the last epoch (`--select last`), helix edge (V5), correction to B1 
 
 Sources: [`j3b_humanize_3seeds_savio.json`](../results/j3b_humanize_3seeds_savio.json) (45 parts merged with [`merge_results.py`](../experiments/gnn/merge_results.py)), [`j3b_humanize_seed0_cpu.json`](../results/j3b_humanize_seed0_cpu.json).
 
+## Data-efficiency curve (J4)
+
+Every variant trained on 2, 4, 8 and 13 takes, B1 and B2 fitted on the same takes; nested subsets (round robin across pieces, the test piece first), 3 repetitions varying subset and seed, `--select last`. 180 Savio tasks ([`train_curve.py`](../experiments/gnn/train_curve.py)).
+
+| Training takes | B1 | B2 | V0 | V1 (C4) | V3 (C12) | V5 (helix) |
+|---|---|---|---|---|---|---|
+| 2 | −0.150 | −0.310 | −0.558 | −0.547 | −0.560 | −0.558 |
+| 4 | −0.505 | −0.631 | −0.652 | −0.632 | −0.627 | −0.633 |
+| 8 | −0.550 | −0.676 | −0.733 | −0.628 | −0.685 | −0.729 |
+| 13 | −0.565 | −0.691 | −0.780 | −0.739 | −0.748 | −0.795 |
+
+Per-take tests on the mean of the 3 repetitions, two-sided Wilcoxon; "wins" = takes where the first model scores lower:
+
+| Training takes | V0 vs B2 | V1 vs V0 | V3 vs V0 | V5 vs V0 |
+|---|---|---|---|---|
+| 2 | 11/15, −0.276, p = 0.003 | 9/15, +0.005, p = 0.89 | 8/15, +0.010, p = 0.89 | 8/15, −0.002, p = 0.98 |
+| 4 | 12/15, −0.039, p = 0.015 | 4/15, +0.016, p = 0.035 | 3/15, +0.031, p = 0.022 | 6/15, +0.009, p = 0.85 |
+| 8 | 14/15, −0.066, p = 0.007 | 1/15, +0.076, p < 0.001 | 0/15, +0.047, p < 0.001 | 12/15, −0.002, p = 0.11 |
+| 13 | 14/15, −0.094, p = 0.001 | 1/15, +0.041, p < 0.001 | 3/15, +0.037, p = 0.008 | 12/15, −0.017, p = 0.012 |
+
+- Spread over repetitions (overall score, min to max): within 0.04 for V0 and V3 at every size; up to 0.085 for V1 and V5 with 2 and 4 takes; V1 at 8 takes spans −0.693 to −0.496 because one run diverged (Manjanin_4, repetition 2, +1.245 against about −0.4 for the other two).
+- B2 is fitted per piece, so with 2 takes it sees one take of the test piece; the network pools all takes, which accounts for part of its lead at that size.
+
+![Data-efficiency curve](figures/j4_curve.png)
+
+Source: [`j4_curve_savio.json`](../results/j4_curve_savio.json) (180 parts merged with [`merge_results.py`](../experiments/gnn/merge_results.py)).
+
 ## Commands
 
 ```bash
@@ -105,4 +132,6 @@ sbatch -A <account> --array=0-44 --time=00:30:00 savio/j3b_array.sbatch   # on S
 python experiments/gnn/merge_results.py <run dir>/part_*.json --out results/j3b_humanize_3seeds_savio.json --expect-takes 15 --expect-seeds 3
 python experiments/gnn/plot_humanize.py results/j3b_humanize_3seeds_savio.json docs/figures/j3b_humanize_3seeds_savio.png
 sbatch -A <account> --array=0-179 savio/curve_array.sbatch   # on Savio: data-efficiency curve, V0 V1 V3 V5 on 2, 4, 8, 13 takes x 3 repetitions
+python experiments/gnn/merge_results.py <run dir>/part_*.json --out results/j4_curve_savio.json --expect-takes 15 --expect-seeds 3
+python experiments/gnn/plot_curve.py results/j4_curve_savio.json docs/figures/j4_curve.png
 ```
