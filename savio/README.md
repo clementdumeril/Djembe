@@ -52,6 +52,18 @@ python experiments/gnn/merge_results.py /global/scratch/users/$USER/djembe_runs/
 python experiments/gnn/plot_curve.py results/j4_curve_savio.json docs/figures/j4_curve.png
 ```
 
+## Generation (J5)
+
+`savio/gen_array.sbatch` trains the strike model and the timing model (V5) per fold, generates the held-out take from its first 3 real cycles, with the GNN and with the Markov reference, and compares both with the real take: 15 takes x 3 seeds = 45 tasks of about 5 to 10 minutes. Generated grids are saved next to the parts, for rendering.
+
+```bash
+DJEMBE_VENV=$HOME/envs/djembe DJEMBE_OUT=$HOME/djembe_runs sbatch -A fc_YOURACCOUNT --array=0-44 savio/gen_array.sbatch
+python experiments/generation/summarise_generation.py $HOME/djembe_runs/j5/<JOBID>/part_*.json --out results/j5_generation_savio.json --expect-takes 15 --expect-seeds 3
+python -m djembe.render $HOME/djembe_runs/j5/<JOBID>/grids/Woloso_5_s0_GNN.npz output/Woloso_5_GNN.wav
+```
+
+Generated audio and grids come from a model trained on the corpus: keep them out of the repository.
+
 ## GPUs, for later
 
 The current model does not need one. For pretraining on a large drum corpus, the A5000 nodes are the regular-priority option under a faculty allowance (at most 4 GPUs per user):

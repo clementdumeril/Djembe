@@ -134,4 +134,6 @@ python experiments/gnn/plot_humanize.py results/j3b_humanize_3seeds_savio.json d
 sbatch -A <account> --array=0-179 savio/curve_array.sbatch   # on Savio: data-efficiency curve, V0 V1 V3 V5 on 2, 4, 8, 13 takes x 3 repetitions
 python experiments/gnn/merge_results.py <run dir>/part_*.json --out results/j4_curve_savio.json --expect-takes 15 --expect-seeds 3
 python experiments/gnn/plot_curve.py results/j4_curve_savio.json docs/figures/j4_curve.png
+DJEMBE_VENV=$HOME/envs/djembe DJEMBE_OUT=$HOME/djembe_runs sbatch -A <account> --array=0-44 savio/gen_array.sbatch   # J5 generation, see savio/README.md
+python experiments/generation/generate_eval.py --takes Woloso_5 --seeds 0 --epochs 2   # quick local check, about a minute
 ```
