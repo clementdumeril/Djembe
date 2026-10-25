@@ -64,6 +64,16 @@ python -m djembe.render $HOME/djembe_runs/j5/<JOBID>/grids/Woloso_5_s0_GNN.npz o
 
 Generated audio and grids come from a model trained on the corpus: keep them out of the repository.
 
+## Soloist generation (J5b)
+
+Jembe 1 is the soloist of the corpus. `savio/solo_array.sbatch` trains the soloist models per fold, scores their predictions against B2, picks the sampling temperature on the validation take, generates the held-out take's soloist over its real ensemble (strikes pulse by pulse) and compares it, and a Markov soloist, with the real one: 15 takes x 3 seeds = 45 tasks of about 5 to 10 minutes.
+
+```bash
+DJEMBE_VENV=$HOME/envs/djembe DJEMBE_OUT=$HOME/djembe_runs sbatch -A fc_YOURACCOUNT --array=0-44 savio/solo_array.sbatch
+python experiments/generation/summarise_solo.py $HOME/djembe_runs/j5b/<JOBID>/part_*.json --out results/j5b_solo_savio.json --expect-takes 15 --expect-seeds 3
+python -m djembe.render $HOME/djembe_runs/j5b/<JOBID>/grids/Maraka_2_s0_GNN_solo.npz output/Maraka_2_solo.wav --solo-emphasis 1.8
+```
+
 ## GPUs, for later
 
 The current model does not need one. For pretraining on a large drum corpus, the A5000 nodes are the regular-priority option under a faculty allowance (at most 4 GPUs per user):

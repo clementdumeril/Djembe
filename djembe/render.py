@@ -15,6 +15,7 @@ Two voices:
 
     python -m djembe.render output/j5_grids/Woloso_5_s0_GNN.npz output/Woloso_5_GNN.wav
     python -m djembe.render output/j5_grids/Woloso_5_s0_GNN.npz output/Woloso_5_GNN_synth.wav --voice synth
+    python -m djembe.render output/j5b_grids/Woloso_5_s0_GNN_solo.npz output/Woloso_5_solo.wav --solo-emphasis 1.8
 """
 from __future__ import annotations
 
@@ -75,8 +76,11 @@ def sample_name(inst: int, intensity: float) -> str:
 
 
 def render(x: np.ndarray, log_T: np.ndarray, present, start_cycle: int = 0, n_cycles: int | None = None,
-           seed: int = 0, voice: str | None = None) -> np.ndarray:
-    """Stereo float array (samples, 2) for cycles [start_cycle, start_cycle + n_cycles)."""
+           seed: int = 0, voice: str | None = None, solo_emphasis: float = 1.0) -> np.ndarray:
+    """Stereo float array (samples, 2) for cycles [start_cycle, start_cycle + n_cycles).
+
+    ``solo_emphasis`` > 1 puts the soloist (jembe 1) forward: that much louder and centred.
+    """
     if voice is None:
         voice = "samples" if all((SAMPLES_DIR / f).exists() for f in SAMPLE_FILES.values()) else "synth"
     bank = load_samples() if voice == "samples" else None
@@ -91,12 +95,13 @@ def render(x: np.ndarray, log_T: np.ndarray, present, start_cycle: int = 0, n_cy
                 hit, inten, delta = x[start_cycle + c, k, i]
                 if hit <= 0:
                     continue
-                gain = float(np.exp(0.25 * np.clip(inten, -3, 3))) * 0.25
+                gain = float(np.exp(0.25 * np.clip(inten, -3, 3))) * 0.25 * (solo_emphasis if i == 0 else 1.0)
+                pan = 0.0 if (i == 0 and solo_emphasis > 1) else PAN[i]
                 s = gain * bank[sample_name(i, inten)] if bank else _synth_stroke(i, gain, rng)
                 n0 = max(int((t0 + (k + delta) / 12 * dur) * SR), 0)
                 n1 = min(n0 + s.size, out.shape[0])
-                out[n0:n1, 0] += s[:n1 - n0] * (1 - PAN[i]) / 2
-                out[n0:n1, 1] += s[:n1 - n0] * (1 + PAN[i]) / 2
+                out[n0:n1, 0] += s[:n1 - n0] * (1 - pan) / 2
+                out[n0:n1, 1] += s[:n1 - n0] * (1 + pan) / 2
     return out / max(np.abs(out).max(), 1e-9) * 0.9
 
 
@@ -115,11 +120,12 @@ def main() -> None:
     ap.add_argument("dst")
     ap.add_argument("--voice", choices=("samples", "synth"), default=None)
     ap.add_argument("--cycles", type=int, default=24)
+    ap.add_argument("--solo-emphasis", type=float, default=1.0, help="soloist gain factor (>1 also centres it)")
     args = ap.parse_args()
     z = np.load(args.src, allow_pickle=False)
     start = int(z["n_context"]) if "n_context" in z else 0
     write_wav(args.dst, render(z["x"], z["log_T"], z["present"], start_cycle=start, n_cycles=args.cycles,
-                               voice=args.voice))
+                               voice=args.voice, solo_emphasis=args.solo_emphasis))
     print("->", args.dst)
 
 

@@ -136,4 +136,6 @@ python experiments/gnn/merge_results.py <run dir>/part_*.json --out results/j4_c
 python experiments/gnn/plot_curve.py results/j4_curve_savio.json docs/figures/j4_curve.png
 DJEMBE_VENV=$HOME/envs/djembe DJEMBE_OUT=$HOME/djembe_runs sbatch -A <account> --array=0-44 savio/gen_array.sbatch   # J5 generation, see savio/README.md
 python experiments/generation/generate_eval.py --takes Woloso_5 --seeds 0 --epochs 2   # quick local check, about a minute
+DJEMBE_VENV=$HOME/envs/djembe DJEMBE_OUT=$HOME/djembe_runs sbatch -A <account> --array=0-44 savio/solo_array.sbatch   # J5b soloist over the real ensemble
+python experiments/generation/solo_eval.py --takes Woloso_5 --seeds 0 --epochs 2   # quick local check
 ```
