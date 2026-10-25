@@ -29,8 +29,15 @@ def test_notebook_has_no_outputs(path):
     assert not dirty, f"cells with outputs: {dirty}. Run: nbstripout {path.name}"
 
 
+SAMPLES = ROOT / "assets" / "samples"
+
+
 def test_no_audio_files_tracked():
-    assert not [p for p in tracked() if p.suffix.lower() in AUDIO_EXT]
+    # Only the CC0 drum samples of assets/samples may be tracked, and each must be listed in its CREDITS.md.
+    credits = (SAMPLES / "CREDITS.md").read_text(encoding="utf-8") if (SAMPLES / "CREDITS.md").exists() else ""
+    audio = [p for p in tracked() if p.suffix.lower() in AUDIO_EXT]
+    stray = [p.relative_to(ROOT).as_posix() for p in audio if p.parent != SAMPLES or f"`{p.name}`" not in credits]
+    assert not stray, f"audio outside the credited CC0 samples: {stray}"
 
 
 def test_no_base64_audio_in_tracked_files():
