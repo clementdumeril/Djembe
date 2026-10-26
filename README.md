@@ -45,7 +45,7 @@ On seed 0 the correction to B1 hurt (V4, −0.652, worse than V5 on 14 of 15 tak
 
 ![Negative log-likelihood per held-out take over three seeds: V5 below B2 on 13 takes, above it on Manjanin_4](docs/figures/j3b_humanize_3seeds_savio.png)
 
-V5 beats B2 by 0.10 nats per stroke on average, so it gives the real offsets about 10 % more probability. The lead does not depend on the seed this time: each seed alone beats B2 on 13 or 14 takes, and V5's overall score moves by 0.013 between seeds. The helix helps a little but steadily: V5 beats V0 on 14 of 15 takes (−0.020, p = 0.007).
+V5 beats B2 by 0.087 nats per stroke (0.10 averaged over takes), so it gives the real offsets about 9 % more probability. The lead does not depend on the seed this time: each seed alone beats B2 on 13 or 14 takes, and V5's overall score moves by 0.013 between seeds. The helix helps a little but steadily: V5 beats V0 on 14 of 15 takes (−0.020, p = 0.007).
 
 The two exceptions: Woloso_1 is a tie (−1.085 against −1.086), and on Manjanin_4 the network loses on all three seeds (−0.42 against −0.59). It is the only Manjanin take whose jembe 1 player plays no other Manjanin take, so the network may have learned the regular players rather than the piece; I have not tested that yet, the scores are not split by drum. On intensity V5 wins on all 15 takes (0.88 against 1.29), but a gap that size may be microphone bleed. Next: the bleed control and per-drum scores.
 
@@ -64,7 +64,7 @@ Symmetry shares one rule across the beats (V1) or across all 12 pulses (V3), so 
 
 With 2 takes the four networks tie (V1 and V3 against V0: p = 0.89 per take). From 4 takes on, both symmetric versions lose to V0, more clearly as data grows: V1 beats V0 on 4, 1 and 1 of 15 takes at 4, 8 and 13 takes, V3 on 3, 0 and 3 (p from 0.035 down to below 0.001). So the symmetry never pays off here. It costs nothing when data is scarce and costs more as data grows. My reading, not tested: the feel itself is nearly beat-symmetric, but the absolute pulse also tells the network where it is in the dundun figure and the cycle, and that information is worth more than the shared statistics.
 
-The network beats B2 at every size (11, 12, 14 and 14 of 15 takes). Part of its large lead with 2 takes comes from pooling across pieces: B2 is fitted piece by piece, so it learns each piece from one take, while the network uses both. The bump of V1 at 8 takes is one diverged run (Manjanin_4, repetition 2, +1.25); without it V1 still loses on 14 of 15 takes. The helix (V5) ties V0 up to 8 takes and helps at 13 (12 of 15, p = 0.012). At 13 takes B1 and B2 are fitted on the network's 13 takes rather than 14, hence B2 at −0.691 here against −0.709 above.
+The network beats B2 at every size (11, 12, 14 and 14 of 15 takes). Part of its large lead with 2 takes comes from pooling across pieces: B2 is fitted piece by piece, so it learns each piece from one take, while the network uses both. The bump of V1 at 8 takes is one diverged run (Manjanin_4, repetition 2, +1.25); without repetition 2 of that take (dropped for both models) V1 still loses on 14 of 15 takes. The helix (V5) ties V0 up to 8 takes and helps at 13 (12 of 15, p = 0.012). At 13 takes B1 and B2 are fitted on the network's 13 takes rather than 14, hence B2 at −0.691 here against −0.709 above.
 
 ## Limitations
 
@@ -77,7 +77,7 @@ Corpus erratum: one published OSF file holds the wrong take; I use the correct o
 ## Install and run
 
 ```bash
-pip install -e ".[dev]"
+pip install -e ".[dev,train]"   # train: torch, torch-geometric, wandb (needed by train_humanize.py)
 python -m djembe.dataset download     # annotations only, about 10 MB from OSF
 python -m djembe.dataset build        # output/events.csv, about 7 s
 python -m pytest -q                   # a few seconds

@@ -113,7 +113,7 @@ Source: [`j4_curve_savio.json`](../results/j4_curve_savio.json) (180 parts merge
 ## Commands
 
 ```bash
-pip install -e ".[dev]"
+pip install -e ".[dev,train]"   # train: torch, torch-geometric, wandb (needed by train_humanize.py)
 python -m djembe.dataset download     # annotations only, about 10 MB from OSF
 python -m djembe.dataset build        # output/events.csv, about 7 s
 python -m djembe.dataset splits       # regenerates splits.json (deterministic)
