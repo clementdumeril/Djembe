@@ -105,7 +105,7 @@ Corpus erratum: one published OSF file holds the wrong take; I use the correct o
 ## Install and run
 
 ```bash
-pip install -e ".[dev,train]"   # train: torch, torch-geometric, wandb (needed by train_humanize.py)
+pip install -e ".[dev,train,audio]"   # train: torch, torch-geometric, wandb; audio: soundfile, for rendering with the samples
 python -m djembe.dataset download     # annotations only, about 10 MB from OSF
 python -m djembe.dataset build        # output/events.csv, about 7 s
 python -m pytest -q                   # a few seconds
