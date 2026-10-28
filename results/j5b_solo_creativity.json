@@ -1,0 +1,554 @@
+{
+  "summary": {
+    "GNN": {
+      "exact_copy": 0.4164,
+      "ham1": 0.3747,
+      "ham2plus": 0.2089,
+      "in_run4": 0.0971,
+      "run4_varied": 0.11,
+      "self_repeat": 0.4936,
+      "distinct": 0.5064
+    },
+    "Markov": {
+      "exact_copy": 0.3435,
+      "ham1": 0.4685,
+      "ham2plus": 0.188,
+      "in_run4": 0.0007,
+      "run4_varied": 0.75,
+      "self_repeat": 0.2322,
+      "distinct": 0.7678
+    },
+    "real soloist": {
+      "exact_copy": 0.6795,
+      "ham1": 0.2165,
+      "ham2plus": 0.1039,
+      "in_run4": 0.1564,
+      "run4_varied": 0.0517,
+      "self_repeat": 0.6388,
+      "distinct": 0.3612
+    }
+  },
+  "copied_figures_by_soloist": {
+    "real soloist": {
+      "Drissa Kone": 0.4747,
+      "Sedu Balo": 0.2561,
+      "Jeli Madi Kuyate": 0.1566,
+      "Isa Coulibaly": 0.1126
+    },
+    "GNN": {
+      "Drissa Kone": 0.3521,
+      "Sedu Balo": 0.323,
+      "Jeli Madi Kuyate": 0.1784,
+      "Isa Coulibaly": 0.1465
+    },
+    "Markov": {
+      "Drissa Kone": 0.4249,
+      "Sedu Balo": 0.2748,
+      "Jeli Madi Kuyate": 0.1611,
+      "Isa Coulibaly": 0.1391
+    }
+  },
+  "takes_per_soloist": {
+    "Drissa Kone": 7,
+    "Sedu Balo": 3,
+    "Jeli Madi Kuyate": 3,
+    "Isa Coulibaly": 2
+  },
+  "per_take": [
+    {
+      "source": "GNN",
+      "take": "Manjanin_1",
+      "exact_copy": 0.2835,
+      "ham1": 0.4579,
+      "ham2plus": 0.2586,
+      "in_run4": 0.0545,
+      "run4_varied": 0.0078,
+      "self_repeat": 0.4097,
+      "distinct": 0.5903
+    },
+    {
+      "source": "GNN",
+      "take": "Manjanin_2",
+      "exact_copy": 0.2759,
+      "ham1": 0.5315,
+      "ham2plus": 0.1926,
+      "in_run4": 0.0167,
+      "run4_varied": 0.3333,
+      "self_repeat": 0.6574,
+      "distinct": 0.3426
+    },
+    {
+      "source": "GNN",
+      "take": "Manjanin_3",
+      "exact_copy": 0.3698,
+      "ham1": 0.3966,
+      "ham2plus": 0.2336,
+      "in_run4": 0.0973,
+      "run4_varied": 0.0163,
+      "self_repeat": 0.4672,
+      "distinct": 0.5328
+    },
+    {
+      "source": "GNN",
+      "take": "Manjanin_4",
+      "exact_copy": 0.2532,
+      "ham1": 0.4037,
+      "ham2plus": 0.3432,
+      "in_run4": 0.0647,
+      "run4_varied": 0.02,
+      "self_repeat": 0.4712,
+      "distinct": 0.5288
+    },
+    {
+      "source": "GNN",
+      "take": "Maraka_1",
+      "exact_copy": 0.3585,
+      "ham1": 0.3754,
+      "ham2plus": 0.2661,
+      "in_run4": 0.0756,
+      "run4_varied": 0.0055,
+      "self_repeat": 0.4146,
+      "distinct": 0.5854
+    },
+    {
+      "source": "GNN",
+      "take": "Maraka_2",
+      "exact_copy": 0.4938,
+      "ham1": 0.321,
+      "ham2plus": 0.1852,
+      "in_run4": 0.0658,
+      "run4_varied": 0.0294,
+      "self_repeat": 0.4609,
+      "distinct": 0.5391
+    },
+    {
+      "source": "GNN",
+      "take": "Maraka_3",
+      "exact_copy": 0.4194,
+      "ham1": 0.4265,
+      "ham2plus": 0.1541,
+      "in_run4": 0.0466,
+      "run4_varied": 0.5,
+      "self_repeat": 0.4767,
+      "distinct": 0.5233
+    },
+    {
+      "source": "GNN",
+      "take": "Maraka_4",
+      "exact_copy": 0.6627,
+      "ham1": 0.249,
+      "ham2plus": 0.0884,
+      "in_run4": 0.1325,
+      "run4_varied": 0.0222,
+      "self_repeat": 0.5703,
+      "distinct": 0.4297
+    },
+    {
+      "source": "GNN",
+      "take": "Maraka_5",
+      "exact_copy": 0.557,
+      "ham1": 0.3291,
+      "ham2plus": 0.1139,
+      "in_run4": 0.1392,
+      "run4_varied": 0.3418,
+      "self_repeat": 0.5316,
+      "distinct": 0.4684
+    },
+    {
+      "source": "GNN",
+      "take": "Maraka_6",
+      "exact_copy": 0.5216,
+      "ham1": 0.3294,
+      "ham2plus": 0.149,
+      "in_run4": 0.1216,
+      "run4_varied": 0.0025,
+      "self_repeat": 0.6039,
+      "distinct": 0.3961
+    },
+    {
+      "source": "GNN",
+      "take": "Woloso_1",
+      "exact_copy": 0.3838,
+      "ham1": 0.3669,
+      "ham2plus": 0.2493,
+      "in_run4": 0.1008,
+      "run4_varied": 0.0212,
+      "self_repeat": 0.4174,
+      "distinct": 0.5826
+    },
+    {
+      "source": "GNN",
+      "take": "Woloso_2",
+      "exact_copy": 0.3219,
+      "ham1": 0.3447,
+      "ham2plus": 0.3333,
+      "in_run4": 0.0598,
+      "run4_varied": 0.0048,
+      "self_repeat": 0.3276,
+      "distinct": 0.6724
+    },
+    {
+      "source": "GNN",
+      "take": "Woloso_3",
+      "exact_copy": 0.5345,
+      "ham1": 0.2733,
+      "ham2plus": 0.1922,
+      "in_run4": 0.2012,
+      "run4_varied": 0.0032,
+      "self_repeat": 0.5736,
+      "distinct": 0.4264
+    },
+    {
+      "source": "GNN",
+      "take": "Woloso_4",
+      "exact_copy": 0.3077,
+      "ham1": 0.3956,
+      "ham2plus": 0.2967,
+      "in_run4": 0.0952,
+      "run4_varied": 0.3241,
+      "self_repeat": 0.4689,
+      "distinct": 0.5311
+    },
+    {
+      "source": "GNN",
+      "take": "Woloso_5",
+      "exact_copy": 0.5026,
+      "ham1": 0.4205,
+      "ham2plus": 0.0769,
+      "in_run4": 0.1846,
+      "run4_varied": 0.0171,
+      "self_repeat": 0.5538,
+      "distinct": 0.4462
+    },
+    {
+      "source": "Markov",
+      "take": "Manjanin_1",
+      "exact_copy": 0.2305,
+      "ham1": 0.5156,
+      "ham2plus": 0.2539,
+      "in_run4": 0.0,
+      "run4_varied": NaN,
+      "self_repeat": 0.1682,
+      "distinct": 0.8318
+    },
+    {
+      "source": "Markov",
+      "take": "Manjanin_2",
+      "exact_copy": 0.2093,
+      "ham1": 0.4963,
+      "ham2plus": 0.2944,
+      "in_run4": 0.0,
+      "run4_varied": NaN,
+      "self_repeat": 0.1389,
+      "distinct": 0.8611
+    },
+    {
+      "source": "Markov",
+      "take": "Manjanin_3",
+      "exact_copy": 0.2117,
+      "ham1": 0.5231,
+      "ham2plus": 0.2652,
+      "in_run4": 0.0,
+      "run4_varied": NaN,
+      "self_repeat": 0.1363,
+      "distinct": 0.8637
+    },
+    {
+      "source": "Markov",
+      "take": "Manjanin_4",
+      "exact_copy": 0.2729,
+      "ham1": 0.4669,
+      "ham2plus": 0.2602,
+      "in_run4": 0.0,
+      "run4_varied": NaN,
+      "self_repeat": 0.2757,
+      "distinct": 0.7243
+    },
+    {
+      "source": "Markov",
+      "take": "Maraka_1",
+      "exact_copy": 0.423,
+      "ham1": 0.4454,
+      "ham2plus": 0.1317,
+      "in_run4": 0.0,
+      "run4_varied": NaN,
+      "self_repeat": 0.2129,
+      "distinct": 0.7871
+    },
+    {
+      "source": "Markov",
+      "take": "Maraka_2",
+      "exact_copy": 0.3292,
+      "ham1": 0.4938,
+      "ham2plus": 0.177,
+      "in_run4": 0.0,
+      "run4_varied": NaN,
+      "self_repeat": 0.1111,
+      "distinct": 0.8889
+    },
+    {
+      "source": "Markov",
+      "take": "Maraka_3",
+      "exact_copy": 0.3728,
+      "ham1": 0.4875,
+      "ham2plus": 0.1398,
+      "in_run4": 0.0,
+      "run4_varied": NaN,
+      "self_repeat": 0.1398,
+      "distinct": 0.8602
+    },
+    {
+      "source": "Markov",
+      "take": "Maraka_4",
+      "exact_copy": 0.3655,
+      "ham1": 0.506,
+      "ham2plus": 0.1285,
+      "in_run4": 0.0,
+      "run4_varied": NaN,
+      "self_repeat": 0.1325,
+      "distinct": 0.8675
+    },
+    {
+      "source": "Markov",
+      "take": "Maraka_5",
+      "exact_copy": 0.3586,
+      "ham1": 0.5021,
+      "ham2plus": 0.1392,
+      "in_run4": 0.0,
+      "run4_varied": NaN,
+      "self_repeat": 0.1308,
+      "distinct": 0.8692
+    },
+    {
+      "source": "Markov",
+      "take": "Maraka_6",
+      "exact_copy": 0.4725,
+      "ham1": 0.4235,
+      "ham2plus": 0.1039,
+      "in_run4": 0.0,
+      "run4_varied": NaN,
+      "self_repeat": 0.3745,
+      "distinct": 0.6255
+    },
+    {
+      "source": "Markov",
+      "take": "Woloso_1",
+      "exact_copy": 0.3557,
+      "ham1": 0.465,
+      "ham2plus": 0.1793,
+      "in_run4": 0.0,
+      "run4_varied": NaN,
+      "self_repeat": 0.3221,
+      "distinct": 0.6779
+    },
+    {
+      "source": "Markov",
+      "take": "Woloso_2",
+      "exact_copy": 0.4103,
+      "ham1": 0.4046,
+      "ham2plus": 0.1852,
+      "in_run4": 0.0057,
+      "run4_varied": 0.5,
+      "self_repeat": 0.3704,
+      "distinct": 0.6296
+    },
+    {
+      "source": "Markov",
+      "take": "Woloso_3",
+      "exact_copy": 0.3604,
+      "ham1": 0.4655,
+      "ham2plus": 0.1742,
+      "in_run4": 0.0,
+      "run4_varied": NaN,
+      "self_repeat": 0.3183,
+      "distinct": 0.6817
+    },
+    {
+      "source": "Markov",
+      "take": "Woloso_4",
+      "exact_copy": 0.359,
+      "ham1": 0.4579,
+      "ham2plus": 0.1832,
+      "in_run4": 0.0,
+      "run4_varied": NaN,
+      "self_repeat": 0.3333,
+      "distinct": 0.6667
+    },
+    {
+      "source": "Markov",
+      "take": "Woloso_5",
+      "exact_copy": 0.4205,
+      "ham1": 0.3744,
+      "ham2plus": 0.2051,
+      "in_run4": 0.0051,
+      "run4_varied": 1.0,
+      "self_repeat": 0.3179,
+      "distinct": 0.6821
+    },
+    {
+      "source": "real soloist",
+      "take": "Manjanin_1",
+      "exact_copy": 0.7804,
+      "ham1": 0.1729,
+      "ham2plus": 0.0467,
+      "in_run4": 0.2523,
+      "run4_varied": 0.2068,
+      "self_repeat": 0.7243,
+      "distinct": 0.2757
+    },
+    {
+      "source": "real soloist",
+      "take": "Manjanin_2",
+      "exact_copy": 0.8833,
+      "ham1": 0.1,
+      "ham2plus": 0.0167,
+      "in_run4": 0.3778,
+      "run4_varied": 0.1889,
+      "self_repeat": 0.7722,
+      "distinct": 0.2278
+    },
+    {
+      "source": "real soloist",
+      "take": "Manjanin_3",
+      "exact_copy": 0.4818,
+      "ham1": 0.2993,
+      "ham2plus": 0.219,
+      "in_run4": 0.0438,
+      "run4_varied": 0.0494,
+      "self_repeat": 0.5693,
+      "distinct": 0.4307
+    },
+    {
+      "source": "real soloist",
+      "take": "Manjanin_4",
+      "exact_copy": 0.3924,
+      "ham1": 0.3249,
+      "ham2plus": 0.2827,
+      "in_run4": 0.0422,
+      "run4_varied": 0.049,
+      "self_repeat": 0.5738,
+      "distinct": 0.4262
+    },
+    {
+      "source": "real soloist",
+      "take": "Maraka_1",
+      "exact_copy": 0.7479,
+      "ham1": 0.1849,
+      "ham2plus": 0.0672,
+      "in_run4": 0.0588,
+      "run4_varied": 0.0323,
+      "self_repeat": 0.6387,
+      "distinct": 0.3613
+    },
+    {
+      "source": "real soloist",
+      "take": "Maraka_2",
+      "exact_copy": 0.6296,
+      "ham1": 0.358,
+      "ham2plus": 0.0123,
+      "in_run4": 0.0617,
+      "run4_varied": 0.0312,
+      "self_repeat": 0.6049,
+      "distinct": 0.3951
+    },
+    {
+      "source": "real soloist",
+      "take": "Maraka_3",
+      "exact_copy": 0.6559,
+      "ham1": 0.3011,
+      "ham2plus": 0.043,
+      "in_run4": 0.0753,
+      "run4_varied": 0.0462,
+      "self_repeat": 0.5699,
+      "distinct": 0.4301
+    },
+    {
+      "source": "real soloist",
+      "take": "Maraka_4",
+      "exact_copy": 0.6867,
+      "ham1": 0.241,
+      "ham2plus": 0.0723,
+      "in_run4": 0.1205,
+      "run4_varied": 0.027,
+      "self_repeat": 0.6145,
+      "distinct": 0.3855
+    },
+    {
+      "source": "real soloist",
+      "take": "Maraka_5",
+      "exact_copy": 0.7848,
+      "ham1": 0.1646,
+      "ham2plus": 0.0506,
+      "in_run4": 0.0886,
+      "run4_varied": 0.0057,
+      "self_repeat": 0.6076,
+      "distinct": 0.3924
+    },
+    {
+      "source": "real soloist",
+      "take": "Maraka_6",
+      "exact_copy": 0.3118,
+      "ham1": 0.3706,
+      "ham2plus": 0.3176,
+      "in_run4": 0.0588,
+      "run4_varied": 0.0092,
+      "self_repeat": 0.5353,
+      "distinct": 0.4647
+    },
+    {
+      "source": "real soloist",
+      "take": "Woloso_1",
+      "exact_copy": 0.7983,
+      "ham1": 0.1513,
+      "ham2plus": 0.0504,
+      "in_run4": 0.2521,
+      "run4_varied": 0.0374,
+      "self_repeat": 0.6723,
+      "distinct": 0.3277
+    },
+    {
+      "source": "real soloist",
+      "take": "Woloso_2",
+      "exact_copy": 0.7009,
+      "ham1": 0.2222,
+      "ham2plus": 0.0769,
+      "in_run4": 0.2222,
+      "run4_varied": 0.0343,
+      "self_repeat": 0.6496,
+      "distinct": 0.3504
+    },
+    {
+      "source": "real soloist",
+      "take": "Woloso_3",
+      "exact_copy": 0.9369,
+      "ham1": 0.0631,
+      "ham2plus": 0.0,
+      "in_run4": 0.2793,
+      "run4_varied": 0.0304,
+      "self_repeat": 0.8108,
+      "distinct": 0.1892
+    },
+    {
+      "source": "real soloist",
+      "take": "Woloso_4",
+      "exact_copy": 0.6484,
+      "ham1": 0.1868,
+      "ham2plus": 0.1648,
+      "in_run4": 0.1209,
+      "run4_varied": 0.0091,
+      "self_repeat": 0.5934,
+      "distinct": 0.4066
+    },
+    {
+      "source": "real soloist",
+      "take": "Woloso_5",
+      "exact_copy": 0.7538,
+      "ham1": 0.1077,
+      "ham2plus": 0.1385,
+      "in_run4": 0.2923,
+      "run4_varied": 0.0182,
+      "self_repeat": 0.6462,
+      "distinct": 0.3538
+    }
+  ]
+}

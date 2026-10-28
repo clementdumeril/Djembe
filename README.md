@@ -4,7 +4,7 @@ I model how Malian jembe ensembles play: which strokes, exactly when, how hard, 
 
 The question: with this little data, does building the symmetries of the 12-pulse cycle into a graph neural network work better than pretraining on a large drum corpus?
 
-Status (October 2026): the dataset and recognition results are done; the generative model is in progress. On its first task, predicting how late or early each stroke falls, the graph model beats the best reference model on 13 of 15 held-out takes, and all three seeds agree on those 13 ([details below](#three-fixes-then-three-seeds-on-savio)). Building the rotation symmetry of the cycle into the network never helps: with 2 training takes it ties, from 4 takes on it loses ([data-efficiency curve](#does-symmetry-help-with-less-data)). The earlier analysis stage (notebooks, listening demo) is at tag [`v0.2-analysis`](https://github.com/clementdumeril/Djembe/tree/v0.2-analysis).
+Status (October 2026): the dataset and recognition results are done; the generative model is in progress. On its first task, predicting how late or early each stroke falls, the graph model beats the best reference model on 13 of 15 held-out takes, and all three seeds agree on those 13 ([details below](#three-fixes-then-three-seeds-on-savio)). Building the rotation symmetry of the cycle into the network never helps: with 2 training takes it ties, from 4 takes on it loses ([data-efficiency curve](#does-symmetry-help-with-less-data)). Generating the soloist over the real ensemble, the network phrases more like a real soloist than a Markov chain does: it returns to its own figures more often and keeps their variety closer to a real soloist's ([details](#generating-the-soloist)). The earlier analysis stage (notebooks, listening demo) is at tag [`v0.2-analysis`](https://github.com/clementdumeril/Djembe/tree/v0.2-analysis).
 
 ![Dundun 1 pattern and micro-timing in Manjanin, Maraka and Woloso](docs/figures/hero_d1_pattern_timing.png)
 
@@ -66,10 +66,38 @@ With 2 takes the four networks tie (V1 and V3 against V0: p = 0.89 per take). Fr
 
 The network beats B2 at every size (11, 12, 14 and 14 of 15 takes). Part of its large lead with 2 takes comes from pooling across pieces: B2 is fitted piece by piece, so it learns each piece from one take, while the network uses both. The bump of V1 at 8 takes is one diverged run (Manjanin_4, repetition 2, +1.25); without repetition 2 of that take (dropped for both models) V1 still loses on 14 of 15 takes. The helix (V5) ties V0 up to 8 takes and helps at 13 (12 of 15, p = 0.012). At 13 takes B1 and B2 are fitted on the network's 13 takes rather than 14, hence B2 at −0.691 here against −0.709 above.
 
+## Generating the soloist
+
+Prediction scores say whether a model knows what comes next; generation asks it to play. I first generated the whole ensemble cycle by cycle, drawing the 48 strikes of each cycle independently from the network's probabilities. The network predicted next-cycle strikes better than B2 on all 15 takes (0.196 against 0.256 nats per pulse), yet its free-running takes were less faithful than the Markov chain's (strike profile further from the real take on 14 of 15). Drawn independently, the strikes of one cycle mix several figures.
+
+So I changed two things. Only the soloist is generated: jembe 1 is the corpus' soloist (its most frequent cycle covers 17 % of its cycles, against 95 % for jembe 2), and the accompaniment stays real everywhere, including in the cycle being played. And its strikes are drawn one pulse after the other, by a strike model trained on random prefixes of the cycle. The sampling temperature is chosen on the validation take (0.8 in 44 of 45 runs).
+
+| Soloist, held-out takes | GNN | Markov (B2) | GNN better on |
+|---|---|---|---|
+| Strike prediction, nats per pulse | **0.424** | 0.538 | 15 of 15 takes |
+| Offset prediction, nats | **−0.783** | −0.659 | 12 of 15 |
+| Intensity prediction, nats | **1.240** | 1.398 | 15 of 15 |
+
+In free generation, over the real ensemble of each held-out take:
+
+| Generated soloist | Real soloist | GNN | Markov |
+|---|---|---|---|
+| Distinct figures per cycle | 36 % | **51 %** | 77 % |
+| Cycles returning to a figure played earlier in the take | 64 % | **49 %** | 23 % |
+| Timing distance to the real soloist (another real take: 7.9 ms) | | 7.3 ms | 6.2 ms |
+| Strike-profile distance (another real take: 0.118) | | 0.150 | 0.127 |
+
+![Copying, varying, inventing: generated and real soloists against the other takes](docs/figures/j5b_solo.png)
+
+The network's variety of figures is closer to the real soloist than Markov's on 14 of 15 takes (p = 0.0001). Markov matches the per-pulse averages slightly better, which is what it is built from, but changes figure almost every cycle. On timing both stay within the gap between two real takes of the same piece.
+
+Does it copy? Not phrases: runs of 4 or more cycles identical to another take are one figure repeated 89 % of the time (95 % for the real soloists), and the figures it reuses come from all four soloists of the corpus, less concentrated on the most present one than the real soloists themselves (35 % against 47 %). 42 % of its cycles are figures known from other takes (68 % for real soloists, who share a vocabulary), 37 % are one pulse away from one, and 21 % are two or more pulses away, twice the real rate. My reading: it recombines and varies the corpus' vocabulary and returns to its own figures, a statistical form of stylistic variation. It says nothing about intention, and the network is somewhat more inventive than the real soloists. A blind listening test is the next check.
+
 ## Limitations
 
 - 15 takes, 3 pieces, one dundun player, same sessions. Results hold within this corpus only.
 - The curve has 3 repetitions per size, and subsets of 2 or 4 takes give some pieces one take or none, so its left end is noisier than its right end.
+- Audio renders use recorded CC0 samples ([credits](assets/samples/CREDITS.md)), but the stroke type (bass, tone, slap) is a fixed rule on intensity, not a prediction. Generated audio is not published.
 - Runs are not bit-exact: seed 0 on Savio and on the laptop differ by 0.02 per take on average (up to 0.12), and rerunning J3 on Colab gave V0 −0.736 instead of −0.709. Three seeds are enough to see that the V5 lead is larger than this noise, not to measure it precisely.
 
 Corpus erratum: one published OSF file holds the wrong take; I use the correct ones ([details](docs/CORPUS_ERRATUM.md)).

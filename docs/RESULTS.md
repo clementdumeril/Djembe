@@ -110,6 +110,48 @@ Per-take tests on the mean of the 3 repetitions, two-sided Wilcoxon; "wins" = ta
 
 Source: [`j4_curve_savio.json`](../results/j4_curve_savio.json) (180 parts merged with [`merge_results.py`](../experiments/gnn/merge_results.py)).
 
+## Generation of the whole ensemble (J5)
+
+Strike model (V5 graph, target strikes hidden) plus the timing model; every held-out take generated from 3 real cycles, all 48 strikes of a cycle drawn independently; Markov (B2) generator as reference. 15 takes x 3 seeds on Savio.
+
+| | GNN | Markov (B2) | Another real take |
+|---|---|---|---|
+| Next-cycle strike prediction, nats per pulse | 0.196 | 0.256 | |
+| Strike-profile distance to the real take | 0.103 | 0.074 | 0.075 |
+| Timing distance, ms | 6.8 | 6.3 | 8.4 |
+| Cycles identical to a training cycle (real takes: 56 %) | 10 % | 24 % | 53 % |
+| Windows recognised as the right piece | 96 % | 99 % | 100 % |
+
+Per take: strike prediction better on 15/15 (Wilcoxon p < 0.001); in generation the strike profile is closer for Markov on 14/15 (p < 0.001), timing ties (6/15, p = 0.64). Source: [`j5_generation_savio.json`](../results/j5_generation_savio.json).
+
+## Generation of the soloist (J5b)
+
+Jembe 1 only, over the real ensemble (accompaniment known in the target cycle too); strikes drawn pulse by pulse by a strike model trained on random prefixes; temperature chosen on the validation take (0.8 in 44 of 45 runs). 15 takes x 3 seeds on Savio.
+
+| Prediction on the held-out soloist | GNN | B2 | GNN better on (Wilcoxon p) |
+|---|---|---|---|
+| Strikes, sequential NLL per pulse | 0.424 | 0.538 | 15/15 (0.0001) |
+| Offsets, NLL | −0.783 | −0.659 | 12/15 (0.010) |
+| Intensities, NLL | 1.240 | 1.398 | 15/15 (0.0001) |
+
+| Generated soloist | GNN | Markov | Another real take | Real soloist |
+|---|---|---|---|---|
+| Strike-profile distance | 0.150 | 0.127 | 0.118 | 0 |
+| Timing distance, ms | 7.3 | 6.2 | 7.9 | 0 |
+| Distinct figures per cycle | 51 % | 77 % | 33 % | 36 % |
+| Figure known from another take | 42 % | 34 % | | 68 % |
+| One pulse from a known figure | 37 % | 47 % | | 22 % |
+| Two or more pulses from any known figure | 21 % | 19 % | | 10 % |
+| Returns to a figure played earlier in the take | 49 % | 23 % | | 64 % |
+| In a run of 4+ cycles identical to another take | 10 % | 0.1 % | | 16 % |
+| Of those runs, share with 2+ different figures | 11 % | | | 5 % |
+
+GNN against Markov, per take, "closer to the real soloist": distinct-figure rate 14/15 (p = 0.0001), strike profile 5/15 (p = 0.055), timing 3/15 (p = 0.004), intensity 2/15 (p = 0.004). Figures reused from other takes, by soloist (share of copied figures): GNN 35 / 32 / 18 / 15 %, real soloists 47 / 26 / 16 / 11 % (the most present soloist plays 7 of the 15 takes).
+
+![Generated and real soloists](figures/j5b_solo.png)
+
+Sources: [`j5b_solo_savio.json`](../results/j5b_solo_savio.json), [`j5b_solo_creativity.json`](../results/j5b_solo_creativity.json) ([`solo_creativity.py`](../experiments/generation/solo_creativity.py)).
+
 ## Commands
 
 ```bash
@@ -138,4 +180,6 @@ DJEMBE_VENV=$HOME/envs/djembe DJEMBE_OUT=$HOME/djembe_runs sbatch -A <account> -
 python experiments/generation/generate_eval.py --takes Woloso_5 --seeds 0 --epochs 2   # quick local check, about a minute
 DJEMBE_VENV=$HOME/envs/djembe DJEMBE_OUT=$HOME/djembe_runs sbatch -A <account> --array=0-44 savio/solo_array.sbatch   # J5b soloist over the real ensemble
 python experiments/generation/solo_eval.py --takes Woloso_5 --seeds 0 --epochs 2   # quick local check
+python experiments/generation/summarise_solo.py <run dir>/part_*.json --out results/j5b_solo_savio.json --expect-takes 15 --expect-seeds 3
+python experiments/generation/solo_creativity.py <run dir>/grids --out results/j5b_solo_creativity.json --figure docs/figures/j5b_solo.png
 ```
