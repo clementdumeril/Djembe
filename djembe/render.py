@@ -50,10 +50,21 @@ def _synth_stroke(inst: int, gain: float, rng) -> np.ndarray:
     return gain * env * ((1 - noise) * tone + noise * burst)
 
 
+def samples_available() -> bool:
+    try:
+        import soundfile  # noqa: F401
+    except ImportError:
+        return False
+    return all((SAMPLES_DIR / f).exists() for f in SAMPLE_FILES.values())
+
+
 @lru_cache(maxsize=None)
 def load_samples(directory: str = str(SAMPLES_DIR)) -> dict:
     """Mono float arrays at SR, peak-normalised, keyed by sound name."""
-    import soundfile as sf
+    try:
+        import soundfile as sf
+    except ImportError as e:
+        raise ImportError("rendering with samples needs soundfile: pip install soundfile (or use --voice synth)") from e
     from scipy.signal import resample_poly
 
     out = {}
@@ -82,7 +93,9 @@ def render(x: np.ndarray, log_T: np.ndarray, present, start_cycle: int = 0, n_cy
     ``solo_emphasis`` > 1 puts the soloist (jembe 1) forward: that much louder and centred.
     """
     if voice is None:
-        voice = "samples" if all((SAMPLES_DIR / f).exists() for f in SAMPLE_FILES.values()) else "synth"
+        voice = "samples" if samples_available() else "synth"
+        if voice == "synth":
+            print("render: samples or soundfile missing (pip install soundfile), using the synthetic voice")
     bank = load_samples() if voice == "samples" else None
     rng = np.random.default_rng(seed)
     stop = x.shape[0] if n_cycles is None else min(x.shape[0], start_cycle + n_cycles)

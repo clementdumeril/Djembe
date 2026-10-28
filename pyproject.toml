@@ -22,6 +22,8 @@ dependencies = [
 # Graph model (Colab or local): PyTorch, PyTorch Geometric, Weights & Biases.
 train = ["torch>=2.3", "torch-geometric>=2.5", "wandb>=0.17"]
 dev = ["pytest>=8", "pre-commit>=3"]
+# Audio rendering with the recorded samples in assets/samples (MP3 decoding needs libsndfile >= 1.1).
+audio = ["soundfile>=0.12"]
 
 [tool.setuptools]
 packages = ["djembe"]
