@@ -2,9 +2,11 @@
 
 Short clips mixed two or three strokes (a pulse lasts about 0.12 s), so this page plays
 continuous passages of the soloist's isolated track with a marker at every annotated
-onset. Selecting a marker plays that stroke alone (cut just before the next one);
-keys 1/2/3/0 label it bass / tone / slap / unsure and move on. The whole passage can be
-played at normal or reduced speed. Predictions are never shown; they stay in the key file.
+onset. Two ways to label: stroke by stroke (each stroke is played in context, the
+previous and next strokes at reduced speed, then alone; buttons or keys 1/2/3/0 for
+bass / tone / slap / unsure), or tapping along while the passage plays slowly, each tap
+going to the stroke that just passed the playhead. Predictions are never shown; they
+stay in the key file.
 
 Audio is embedded in the page (works offline from a double-click). It is corpus audio
 (CC BY-NC-ND): the page lives in ``output/`` and is never published.
@@ -31,55 +33,94 @@ SR_OUT = 24000
 PAGE = r"""<!doctype html><html lang="fr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1"><title>Stroke timeline</title>
 <style>
-:root{--bg:#fbfaf7;--ink:#1f1f1e;--muted:#6b6a63;--line:#e4e3dc;--wave:#9ec5f4;--sel:#eb6834;--b:#184f95;--t:#1baf7a;--s:#eda100}
+:root{--bg:#fbfaf7;--ink:#1f1f1e;--muted:#6b6a63;--line:#e4e3dc;--wave:#9ec5f4;--sel:#eb6834;--b:#184f95;--t:#1baf7a;--s:#c98500;--ph:#d55181}
 @media (prefers-color-scheme:dark){:root{--bg:#1a1a19;--ink:#f1f0ea;--muted:#a9a89f;--line:#3a3a36;--wave:#3d6ea8}}
 body{background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,sans-serif;max-width:1000px;margin:0 auto;padding:16px}
-h1{font-size:1.3rem;margin:.2em 0}.muted{color:var(--muted)}canvas{width:100%;height:190px;border:1px solid var(--line);border-radius:8px;cursor:pointer;display:block}
+h1{font-size:1.3rem;margin:.2em 0}h2{font-size:1rem;margin:1em 0 .3em}.muted{color:var(--muted)}
+canvas{width:100%;height:200px;border:1px solid var(--line);border-radius:8px;cursor:pointer;display:block}
 button,select{font:inherit;padding:6px 10px;border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:6px;cursor:pointer}
+button.big{font-size:1.1rem;padding:10px 18px;min-width:110px;font-weight:600}
+button.on{background:var(--sel);color:#fff;border-color:var(--sel)}
 .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:10px 0}.k{display:inline-block;border:1px solid var(--line);border-radius:4px;padding:0 6px;font-size:.85em}
-.leg span{margin-right:14px}.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px;vertical-align:middle}
+#status{font-weight:600}ol{margin:.2em 0 .5em 1.2em;padding:0}li{margin:.15em 0}
+details{border:1px solid var(--line);border-radius:8px;padding:8px 12px}
 </style></head><body>
-<h1>Coups du soliste, en continu</h1>
-<p class="muted">Clique sur un repère (ou <span class="k">←</span> <span class="k">→</span>) pour entendre <b>cette frappe seule</b>, puis <span class="k">1</span> basse, <span class="k">2</span> ton, <span class="k">3</span> claque, <span class="k">0</span> je ne sais pas : la page passe à la frappe suivante. <span class="k">Espace</span> rejoue la frappe, <span class="k">P</span> joue le passage depuis la frappe choisie. Tes réponses restent dans ce navigateur ; <b>Exporter</b> à la fin.</p>
+<h1>Coups du soliste : basse, ton ou claque</h1>
+<details open><summary><b>Mode d'emploi</b> (à lire une fois)</summary>
+<p>Chaque trait vertical sur la forme d'onde est <b>une frappe du soliste</b>. Il faut dire pour chaque trait si c'est une basse, un ton ou une claque.</p>
+<h2>Méthode 1 : frappe par frappe (la plus sûre)</h2>
+<ol><li>Clique sur un trait (ou <span class="k">→</span> pour le suivant). La page joue <b>la frappe d'avant, celle-ci et celle d'après, au ralenti</b>, puis <b>celle-ci seule</b>. Le trait concerné est en orange, la barre rose montre ce qui joue.</li>
+<li>Clique sur <b>Basse</b>, <b>Ton</b> ou <b>Claque</b> (ou <span class="k">1</span> <span class="k">2</span> <span class="k">3</span>). Si tu hésites : <b>?</b> (<span class="k">0</span>). La page passe toute seule au trait suivant et le joue.</li>
+<li><span class="k">Espace</span> rejoue le contexte, <span class="k">A</span> rejoue la frappe seule.</li></ol>
+<h2>Méthode 2 : au fil de l'écoute (plus rapide)</h2>
+<ol><li>Clique sur <b>Mode au fil de l'écoute</b>, choisis la vitesse (0,5 conseillé), puis <b>▶ Lancer le passage</b> (ou <span class="k">P</span>).</li>
+<li>Pendant que le passage défile, tape <span class="k">1</span> <span class="k">2</span> <span class="k">3</span> à chaque coup que tu entends, comme si tu le jouais. Chaque appui est attribué à la frappe qui vient de passer sous la barre rose.</li>
+<li>Repasse ensuite en mode frappe par frappe (re-clique sur le bouton du mode) pour vérifier les traits douteux ou sans lettre.</li></ol>
+<p class="muted">Tes réponses restent dans ce navigateur, même si tu fermes la page. Pas besoin de tout faire : une centaine de frappes suffit. À la fin, clique sur <b>Exporter</b>.</p></details>
 <div class="row"><button id="prev">◀ Passage précédent</button><b id="title"></b><button id="next">Passage suivant ▶</button>
-<button id="playall">▶ Écouter le passage</button><select id="rate"><option value="1">vitesse 1</option><option value="0.75">0,75</option><option value="0.5">0,5</option></select>
-<button id="stop">■</button></div>
-<canvas id="cv" width="1900" height="380"></canvas>
-<div class="row leg"><span><i class="dot" style="background:var(--b)"></i>B basse</span><span><i class="dot" style="background:var(--t)"></i>T ton</span><span><i class="dot" style="background:var(--s)"></i>C claque</span><span>? je ne sais pas</span>
-<span id="count" class="muted"></span><button id="export">Exporter</button><button id="reset">Tout effacer</button></div>
+<button id="modebtn">Mode au fil de l'écoute</button><select id="rate"><option value="0.5">vitesse 0,5</option><option value="0.75" selected>vitesse 0,75</option><option value="1">vitesse 1</option></select>
+<button id="playall">▶ Lancer le passage</button><button id="stop">■ Stop</button></div>
+<canvas id="cv" width="1900" height="400"></canvas>
+<div class="row"><span id="status"></span></div>
+<div class="row"><button class="big" data-l="bass" style="border-color:var(--b)">Basse (1)</button><button class="big" data-l="tone" style="border-color:var(--t)">Ton (2)</button>
+<button class="big" data-l="slap" style="border-color:var(--s)">Claque (3)</button><button class="big" data-l="unsure">? (0)</button>
+<button id="ctxbtn">↻ Contexte</button><button id="alonebtn">Frappe seule</button><button id="back">◀ Frappe</button><button id="fwd">Frappe ▶</button></div>
+<div class="row"><span id="count" class="muted"></span><button id="export">Exporter</button><button id="reset">Tout effacer</button></div>
 <script>
-const P=__PASSAGES__, KEY="stroke-timeline-v1", LET={bass:"B",tone:"T",slap:"C",unsure:"?"};
+const P=__PASSAGES__, KEY="stroke-timeline-v2", LET={bass:"B",tone:"T",slap:"C",unsure:"?"};
 let labels={}; try{labels=JSON.parse(localStorage.getItem(KEY)||"{}")}catch(e){}
-let pi=0, si=0, ctx=null, buffers={}, src=null;
-const cv=document.getElementById("cv"), g=cv.getContext("2d");
-function css(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim()}
+let pi=0, si=0, ctx=null, buffers={}, src=null, tap=false, playing=null, timer=null;
+const cv=document.getElementById("cv"), g=cv.getContext("2d"), rateSel=document.getElementById("rate");
+const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const S=()=>P[pi].strokes;
 function save(){try{localStorage.setItem(KEY,JSON.stringify(labels))}catch(e){} count()}
 function count(){const n=P.reduce((a,p)=>a+p.strokes.length,0);document.getElementById("count").textContent=Object.keys(labels).length+" / "+n+" frappes étiquetées"}
-async function buf(i){ctx=ctx||new AudioContext();if(!buffers[i]){const b=Uint8Array.from(atob(P[i].audio),c=>c.charCodeAt(0)).buffer;buffers[i]=await ctx.decodeAudioData(b)}return buffers[i]}
-function stop(){if(src){try{src.stop()}catch(e){}src=null}}
-async function play(t0,dur,rate=1){stop();const b=await buf(pi);src=ctx.createBufferSource();src.buffer=b;src.playbackRate.value=rate;src.connect(ctx.destination);src.start(0,Math.max(0,t0),dur)}
-function strokeWin(i){const s=P[pi].strokes,t=s[i].t,nx=i+1<s.length?s[i+1].t:t+0.25;return [t-0.012,Math.min(nx-0.006,t+0.25)-(t-0.012)]}
-function playStroke(){const [a,b]=strokeWin(si);play(a,b);draw()}
+async function buf(i){ctx=ctx||new AudioContext();if(ctx.state==="suspended")await ctx.resume();
+ if(!buffers[i]){const b=Uint8Array.from(atob(P[i].audio),c=>c.charCodeAt(0)).buffer;buffers[i]=await ctx.decodeAudioData(b)}return buffers[i]}
+function stop(){clearTimeout(timer);if(src){src.onended=null;try{src.stop()}catch(e){}src=null}playing=null;draw()}
+async function seg(t0,t1,rate,then){stop();const b=await buf(pi);t0=Math.max(0,t0);t1=Math.min(t1,b.duration);
+ src=ctx.createBufferSource();src.buffer=b;src.playbackRate.value=rate;src.connect(ctx.destination);
+ playing={t0,t1,rate,start:ctx.currentTime};src.onended=()=>{playing=null;draw();if(then)timer=setTimeout(then,250)};
+ src.start(0,t0,t1-t0);requestAnimationFrame(tick)}
+function now(){return playing?playing.t0+(ctx.currentTime-playing.start)*playing.rate:null}
+function tick(){if(!playing)return;draw();requestAnimationFrame(tick)}
+function alone(){const s=S(),t=s[si].t,nx=si+1<s.length?s[si+1].t:t+0.25;seg(t-0.012,Math.min(nx-0.006,t+0.25),1)}
+function context(){const s=S(),a=si>0?s[si-1].t-0.02:s[si].t-0.15,b=si+2<s.length?s[si+2].t-0.006:s[si].t+0.35;
+ seg(a,b,+rateSel.value,alone)}
+function select(i){si=Math.max(0,Math.min(i,S().length-1));status();context()}
+function status(){const s=S(),l=labels[s[si].id];document.getElementById("status").textContent=tap?
+ "Mode au fil de l'écoute : lance le passage et tape 1 / 2 / 3 à chaque coup.":
+ "Frappe "+(si+1)+" / "+s.length+" du passage "+(pi+1)+(l?" : déjà notée "+LET[l]:" : pas encore notée")}
 function draw(){const p=P[pi],W=cv.width,H=cv.height,T=p.duration;g.clearRect(0,0,W,H);
- g.fillStyle=css("--wave");const n=p.env.length;for(let i=0;i<n;i++){const v=p.env[i]*H*0.42;g.fillRect(i/n*W,H*0.58-v,Math.max(1,W/n),2*v)}
- p.strokes.forEach((s,i)=>{const x=s.t/T*W,l=labels[s.id];g.strokeStyle=i===si?css("--sel"):"rgba(120,120,120,.55)";g.lineWidth=i===si?4:2;
-  g.beginPath();g.moveTo(x,28);g.lineTo(x,H);g.stroke();
-  if(l){g.fillStyle=l==="bass"?css("--b"):l==="tone"?css("--t"):l==="slap"?css("--s"):css("--muted");g.font="bold 26px system-ui";g.textAlign="center";g.fillText(LET[l],x,24)}});
+ g.fillStyle=css("--wave");const n=p.env.length;for(let i=0;i<n;i++){const v=p.env[i]*H*0.4;g.fillRect(i/n*W,H*0.6-v,Math.max(1,W/n),2*v)}
+ p.strokes.forEach((s,i)=>{const x=s.t/T*W,l=labels[s.id],cur=!tap&&i===si;g.strokeStyle=cur?css("--sel"):"rgba(120,120,120,.5)";g.lineWidth=cur?6:2;
+  g.beginPath();g.moveTo(x,40);g.lineTo(x,H);g.stroke();
+  if(l){g.fillStyle=l==="bass"?css("--b"):l==="tone"?css("--t"):l==="slap"?css("--s"):css("--muted");g.font="bold 30px system-ui";g.textAlign="center";g.fillText(LET[l],x,32)}});
+ const t=now();if(t!==null){g.strokeStyle=css("--ph");g.lineWidth=4;g.beginPath();g.moveTo(t/T*W,0);g.lineTo(t/T*W,H);g.stroke()}
  document.getElementById("title").textContent="Passage "+(pi+1)+" / "+P.length}
-function go(i){stop();pi=(i+P.length)%P.length;si=0;draw()}
-cv.onclick=e=>{const r=cv.getBoundingClientRect(),t=(e.clientX-r.left)/r.width*P[pi].duration;let best=0,bd=1e9;
- P[pi].strokes.forEach((s,i)=>{const dd=Math.abs(s.t-t);if(dd<bd){bd=dd;best=i}});si=best;playStroke()};
+function label(l){const s=S();
+ if(tap){const t=now();if(t===null)return;const target=t-0.18*playing.rate;let best=-1,bd=1e9;
+  s.forEach((x,i)=>{if(x.t<=t+0.02){const dd=Math.abs(x.t-target);if(dd<bd){bd=dd;best=i}}});
+  if(best>=0&&bd<0.3){labels[s[best].id]=l;save();draw()}return}
+ labels[s[si].id]=l;save();if(si<s.length-1)select(si+1);else{status();draw()}}
+function go(i){stop();pi=(i+P.length)%P.length;si=0;status();draw()}
+cv.onclick=e=>{if(tap)return;const r=cv.getBoundingClientRect(),t=(e.clientX-r.left)/r.width*P[pi].duration;let best=0,bd=1e9;
+ S().forEach((s,i)=>{const dd=Math.abs(s.t-t);if(dd<bd){bd=dd;best=i}});select(best)};
+document.querySelectorAll("[data-l]").forEach(b=>b.onclick=()=>label(b.dataset.l));
 document.getElementById("prev").onclick=()=>go(pi-1);document.getElementById("next").onclick=()=>go(pi+1);
-document.getElementById("playall").onclick=()=>play(0,P[pi].duration,+document.getElementById("rate").value);
-document.getElementById("stop").onclick=stop;
-document.addEventListener("keydown",e=>{const s=P[pi].strokes;
- if(e.key==="ArrowRight"){si=Math.min(si+1,s.length-1);playStroke()} else if(e.key==="ArrowLeft"){si=Math.max(si-1,0);playStroke()}
- else if(e.key===" "){e.preventDefault();playStroke()} else if(e.key==="p"||e.key==="P"){play(s[si].t-0.05,P[pi].duration,+document.getElementById("rate").value)}
- else{const m={"1":"bass","2":"tone","3":"slap","0":"unsure"}[e.key];if(m){labels[s[si].id]=m;save();if(si<s.length-1){si++;playStroke()}else draw()}}});
+document.getElementById("playall").onclick=()=>seg(0,P[pi].duration,+rateSel.value);
+document.getElementById("stop").onclick=stop;document.getElementById("ctxbtn").onclick=context;document.getElementById("alonebtn").onclick=alone;
+document.getElementById("back").onclick=()=>select(si-1);document.getElementById("fwd").onclick=()=>select(si+1);
+document.getElementById("modebtn").onclick=e=>{tap=!tap;stop();e.target.classList.toggle("on",tap);if(tap)rateSel.value="0.5";status();draw()};
+document.addEventListener("keydown",e=>{if(e.target.tagName==="SELECT")return;
+ if(e.key==="ArrowRight"&&!tap)select(si+1);else if(e.key==="ArrowLeft"&&!tap)select(si-1);
+ else if(e.key===" "){e.preventDefault();if(!tap)context()}else if(e.key==="a"||e.key==="A"){if(!tap)alone()}
+ else if(e.key==="p"||e.key==="P"){playing?stop():seg(0,P[pi].duration,+rateSel.value)}
+ else{const m={"1":"bass","2":"tone","3":"slap","0":"unsure"}[e.key];if(m)label(m)}});
 document.getElementById("export").onclick=()=>{const b=new Blob([JSON.stringify(labels,null,1)],{type:"application/json"});
  const a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="stroke_labels.json";a.click()};
 document.getElementById("reset").onclick=()=>{if(confirm("Effacer toutes les réponses ?")){labels={};save();draw()}};
-count();draw();
+count();status();draw();
 </script></body></html>
 """
 
