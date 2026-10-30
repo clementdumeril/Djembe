@@ -7,7 +7,9 @@ Writes, for one take, 24 cycles after the 3 real context cycles:
   (isolates what the cutting itself does to the sound);
 - ``GNN_solo`` and ``Markov_B2``: gated accompaniment + the generated line, stroke types
   drawn by ``djembe.stroke_types`` (fitted without this take), played from cut strokes;
-- ``compare``: the four of real, real_cut, GNN_solo, Markov_B2 in a row, 2 s apart.
+- ``compare``: the four of real, real_cut, GNN_solo, Markov_B2 in a row, 2 s apart;
+- ``alone_real`` and ``alone_GNN_solo``: the soloist without the accompaniment (real
+  microphone, and the generated line from cut strokes).
 
 The audio comes from the corpus: it stays in ``output/``.
 
@@ -61,7 +63,8 @@ def main() -> None:
     raw, _ = bk.backing(args.take, t0, t1, gated=False)
 
     rng = np.random.default_rng(args.seed)
-    outs = {"original": bk.mix(raw, solo_real), "real": bk.mix(back, solo_real)}
+    outs = {"original": bk.mix(raw, solo_real), "real": bk.mix(back, solo_real),
+            "alone_real": bk.mix(np.zeros_like(back), solo_real)}
     outs["real_cut"] = bk.mix(back, bk.soloist_track(real, labels[args.take], starts, bank, sr, lp_sd, t0, t1, start, rng))
     for name in ("GNN_solo", "Markov_B2"):
         z = np.load(Path(args.grids) / f"{args.take}_s{args.seed}_{name}.npz", allow_pickle=False)
@@ -69,7 +72,10 @@ def main() -> None:
                         in_signal=real.in_signal, present=z["present"], cycle_idx=real.cycle_idx,
                         delta_offset=real.delta_offset)
         types = model.sample(g, rng, start_cycle=start, given=labels[args.take])
-        outs[name] = bk.mix(back, bk.soloist_track(g, types, starts, bank, sr, lp_sd, t0, t1, start, rng))
+        solo_line = bk.soloist_track(g, types, starts, bank, sr, lp_sd, t0, t1, start, rng)
+        outs[name] = bk.mix(back, solo_line)
+        if name == "GNN_solo":
+            outs["alone_GNN_solo"] = bk.mix(np.zeros_like(back), solo_line)
     gap = np.zeros((2 * sr, 2), np.float32)
     outs["compare"] = np.concatenate([x for n in ("real", "real_cut", "GNN_solo", "Markov_B2") for x in (outs[n], gap)])
     for name, y in outs.items():
