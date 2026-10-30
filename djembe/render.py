@@ -6,10 +6,11 @@ with the take's real cycle durations; intensity (z-scored log peak) sets the gai
 Two voices:
 - ``"samples"`` (default when ``assets/samples`` is present): recorded CC0 one-shots,
   djembe strokes from one session (carlmartin, Freesound pack 9826) and Malian dunun
-  (JIMMYJAMES112, pack 10586), see ``assets/samples/CREDITS.md``. The model does not
-  predict the stroke type, so a jembe stroke is chosen by a fixed rule on its
-  intensity: slap above ``SLAP_Z``, bass below ``BASS_Z``, tone in between. Dundun 1
-  plays the dundunba sound, dundun 2 the sangban;
+  (JIMMYJAMES112, pack 10586), see ``assets/samples/CREDITS.md``. A jembe stroke plays
+  the sample of its type when ``strokes`` gives one (labels from the audio, or types
+  drawn by ``djembe.stroke_types``); otherwise a fixed rule on its intensity decides:
+  slap above ``SLAP_Z``, bass below ``BASS_Z``, tone in between. Dundun 1 plays the
+  dundunba sound, dundun 2 the sangban;
 - ``"synth"``: a pitched decaying sine with a noise attack, higher and shorter for the
   jembes, lower and longer for the dundun (no file needed).
 
@@ -78,17 +79,26 @@ def load_samples(directory: str = str(SAMPLES_DIR)) -> dict:
     return out
 
 
-def sample_name(inst: int, intensity: float) -> str:
+STROKE_TYPES = ("bass", "tone", "slap")       # index order of djembe.stroke_types.TYPES
+
+
+def sample_name(inst: int, intensity: float, stroke: int = -1) -> str:
     if inst == 2:
         return "dundunba"
     if inst == 3:
         return "sangban"
+    if stroke >= 0:
+        return STROKE_TYPES[stroke]
     return "slap" if intensity >= SLAP_Z else "bass" if intensity <= BASS_Z else "tone"
 
 
 def render(x: np.ndarray, log_T: np.ndarray, present, start_cycle: int = 0, n_cycles: int | None = None,
-           seed: int = 0, voice: str | None = None, solo_emphasis: float = 1.0) -> np.ndarray:
+           seed: int = 0, voice: str | None = None, solo_emphasis: float = 1.0,
+           strokes: dict | None = None) -> np.ndarray:
     """Stereo float array (samples, 2) for cycles [start_cycle, start_cycle + n_cycles).
+
+    ``strokes`` maps an instrument index to a ``(n_cycles, 12)`` array of stroke types
+    (index into ``STROKE_TYPES``, -1 = use the intensity rule), over the whole grid.
 
     ``solo_emphasis`` > 1 puts the soloist (jembe 1) forward: that much louder and centred.
     """
@@ -110,7 +120,8 @@ def render(x: np.ndarray, log_T: np.ndarray, present, start_cycle: int = 0, n_cy
                     continue
                 gain = float(np.exp(0.25 * np.clip(inten, -3, 3))) * 0.25 * (solo_emphasis if i == 0 else 1.0)
                 pan = 0.0 if (i == 0 and solo_emphasis > 1) else PAN[i]
-                s = gain * bank[sample_name(i, inten)] if bank else _synth_stroke(i, gain, rng)
+                typ = int(strokes[i][start_cycle + c, k]) if strokes and i in strokes else -1
+                s = gain * bank[sample_name(i, inten, typ)] if bank else _synth_stroke(i, gain, rng)
                 n0 = max(int((t0 + (k + delta) / 12 * dur) * SR), 0)
                 n1 = min(n0 + s.size, out.shape[0])
                 out[n0:n1, 0] += s[:n1 - n0] * (1 - pan) / 2
@@ -137,8 +148,9 @@ def main() -> None:
     args = ap.parse_args()
     z = np.load(args.src, allow_pickle=False)
     start = int(z["n_context"]) if "n_context" in z else 0
+    strokes = {i: z[f"strokes_{i}"] for i in range(4) if f"strokes_{i}" in z}
     write_wav(args.dst, render(z["x"], z["log_T"], z["present"], start_cycle=start, n_cycles=args.cycles,
-                               voice=args.voice, solo_emphasis=args.solo_emphasis))
+                               voice=args.voice, solo_emphasis=args.solo_emphasis, strokes=strokes or None))
     print("->", args.dst)
 
 

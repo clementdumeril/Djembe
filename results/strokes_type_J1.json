@@ -1,0 +1,505 @@
+{
+ "summary": {
+  "piece": {
+   "nll_type": 1.0219534394347414,
+   "acc_type": 0.4607978705199176
+  },
+  "piece_pulse": {
+   "nll_type": 1.0032984067930772,
+   "acc_type": 0.4618625657572404
+  },
+  "logistic_pulse_intensity": {
+   "nll_type": 0.6763546881652578,
+   "acc_type": 0.7122100563135321
+  },
+  "logistic_full": {
+   "nll_type": 0.656258096744595,
+   "acc_type": 0.7228848315794586
+  },
+  "full_beats_pulse_intensity": 14,
+  "n_takes": 15,
+  "uniform_nll": 1.0986122886681098
+ },
+ "rows": [
+  {
+   "take": "Manjanin_1",
+   "piece": "Manjanin",
+   "model": "piece",
+   "nll_type": 0.964747054289993,
+   "acc_type": 0.46091954022988507,
+   "n_type": 1740
+  },
+  {
+   "take": "Manjanin_1",
+   "piece": "Manjanin",
+   "model": "piece_pulse",
+   "nll_type": 0.932161787539186,
+   "acc_type": 0.4862068965517241,
+   "n_type": 1740
+  },
+  {
+   "take": "Manjanin_1",
+   "piece": "Manjanin",
+   "model": "logistic_pulse_intensity",
+   "nll_type": 0.6331798875475625,
+   "acc_type": 0.7126436781609196,
+   "n_type": 1740
+  },
+  {
+   "take": "Manjanin_1",
+   "piece": "Manjanin",
+   "model": "logistic_full",
+   "nll_type": 0.6195427217329802,
+   "acc_type": 0.7218390804597701,
+   "n_type": 1740
+  },
+  {
+   "take": "Manjanin_2",
+   "piece": "Manjanin",
+   "model": "piece",
+   "nll_type": 1.028577395795741,
+   "acc_type": 0.40391908975979773,
+   "n_type": 1582
+  },
+  {
+   "take": "Manjanin_2",
+   "piece": "Manjanin",
+   "model": "piece_pulse",
+   "nll_type": 0.9797432604149534,
+   "acc_type": 0.44943109987357777,
+   "n_type": 1582
+  },
+  {
+   "take": "Manjanin_2",
+   "piece": "Manjanin",
+   "model": "logistic_pulse_intensity",
+   "nll_type": 0.5828523004812834,
+   "acc_type": 0.7528445006321113,
+   "n_type": 1582
+  },
+  {
+   "take": "Manjanin_2",
+   "piece": "Manjanin",
+   "model": "logistic_full",
+   "nll_type": 0.5518180391471981,
+   "acc_type": 0.7534766118836915,
+   "n_type": 1582
+  },
+  {
+   "take": "Manjanin_3",
+   "piece": "Manjanin",
+   "model": "piece",
+   "nll_type": 0.9611835256346677,
+   "acc_type": 0.39019963702359345,
+   "n_type": 1102
+  },
+  {
+   "take": "Manjanin_3",
+   "piece": "Manjanin",
+   "model": "piece_pulse",
+   "nll_type": 0.9545743553196425,
+   "acc_type": 0.44646098003629764,
+   "n_type": 1102
+  },
+  {
+   "take": "Manjanin_3",
+   "piece": "Manjanin",
+   "model": "logistic_pulse_intensity",
+   "nll_type": 0.5397649596981702,
+   "acc_type": 0.7858439201451906,
+   "n_type": 1102
+  },
+  {
+   "take": "Manjanin_3",
+   "piece": "Manjanin",
+   "model": "logistic_full",
+   "nll_type": 0.5186569915059135,
+   "acc_type": 0.7958257713248639,
+   "n_type": 1102
+  },
+  {
+   "take": "Manjanin_4",
+   "piece": "Manjanin",
+   "model": "piece",
+   "nll_type": 0.9887114026845008,
+   "acc_type": 0.41874084919472915,
+   "n_type": 1366
+  },
+  {
+   "take": "Manjanin_4",
+   "piece": "Manjanin",
+   "model": "piece_pulse",
+   "nll_type": 1.0003428803819192,
+   "acc_type": 0.45314787701317716,
+   "n_type": 1366
+  },
+  {
+   "take": "Manjanin_4",
+   "piece": "Manjanin",
+   "model": "logistic_pulse_intensity",
+   "nll_type": 0.6289707143758367,
+   "acc_type": 0.7598828696925329,
+   "n_type": 1366
+  },
+  {
+   "take": "Manjanin_4",
+   "piece": "Manjanin",
+   "model": "logistic_full",
+   "nll_type": 0.5962399718079521,
+   "acc_type": 0.7781844802342606,
+   "n_type": 1366
+  },
+  {
+   "take": "Maraka_1",
+   "piece": "Maraka",
+   "model": "piece",
+   "nll_type": 1.0033738453045742,
+   "acc_type": 0.4880838894184938,
+   "n_type": 1049
+  },
+  {
+   "take": "Maraka_1",
+   "piece": "Maraka",
+   "model": "piece_pulse",
+   "nll_type": 0.9620066006141564,
+   "acc_type": 0.4833174451858913,
+   "n_type": 1049
+  },
+  {
+   "take": "Maraka_1",
+   "piece": "Maraka",
+   "model": "logistic_pulse_intensity",
+   "nll_type": 0.641995521296879,
+   "acc_type": 0.7311725452812202,
+   "n_type": 1049
+  },
+  {
+   "take": "Maraka_1",
+   "piece": "Maraka",
+   "model": "logistic_full",
+   "nll_type": 0.6471723553347062,
+   "acc_type": 0.7435653002859867,
+   "n_type": 1049
+  },
+  {
+   "take": "Maraka_2",
+   "piece": "Maraka",
+   "model": "piece",
+   "nll_type": 1.0024970720763622,
+   "acc_type": 0.47066326530612246,
+   "n_type": 784
+  },
+  {
+   "take": "Maraka_2",
+   "piece": "Maraka",
+   "model": "piece_pulse",
+   "nll_type": 0.9252744209106778,
+   "acc_type": 0.5420918367346939,
+   "n_type": 784
+  },
+  {
+   "take": "Maraka_2",
+   "piece": "Maraka",
+   "model": "logistic_pulse_intensity",
+   "nll_type": 0.5990634929267429,
+   "acc_type": 0.7665816326530612,
+   "n_type": 784
+  },
+  {
+   "take": "Maraka_2",
+   "piece": "Maraka",
+   "model": "logistic_full",
+   "nll_type": 0.5885197682693069,
+   "acc_type": 0.7818877551020408,
+   "n_type": 784
+  },
+  {
+   "take": "Maraka_3",
+   "piece": "Maraka",
+   "model": "piece",
+   "nll_type": 0.9761360437291826,
+   "acc_type": 0.498868778280543,
+   "n_type": 884
+  },
+  {
+   "take": "Maraka_3",
+   "piece": "Maraka",
+   "model": "piece_pulse",
+   "nll_type": 0.9210509915786674,
+   "acc_type": 0.5271493212669683,
+   "n_type": 884
+  },
+  {
+   "take": "Maraka_3",
+   "piece": "Maraka",
+   "model": "logistic_pulse_intensity",
+   "nll_type": 0.6029862183842948,
+   "acc_type": 0.7567873303167421,
+   "n_type": 884
+  },
+  {
+   "take": "Maraka_3",
+   "piece": "Maraka",
+   "model": "logistic_full",
+   "nll_type": 0.6023468724924809,
+   "acc_type": 0.753393665158371,
+   "n_type": 884
+  },
+  {
+   "take": "Maraka_4",
+   "piece": "Maraka",
+   "model": "piece",
+   "nll_type": 1.1032579959021154,
+   "acc_type": 0.49923664122137407,
+   "n_type": 655
+  },
+  {
+   "take": "Maraka_4",
+   "piece": "Maraka",
+   "model": "piece_pulse",
+   "nll_type": 1.1198176714180583,
+   "acc_type": 0.5221374045801527,
+   "n_type": 655
+  },
+  {
+   "take": "Maraka_4",
+   "piece": "Maraka",
+   "model": "logistic_pulse_intensity",
+   "nll_type": 0.8875507754619927,
+   "acc_type": 0.5984732824427481,
+   "n_type": 655
+  },
+  {
+   "take": "Maraka_4",
+   "piece": "Maraka",
+   "model": "logistic_full",
+   "nll_type": 0.8763675877093907,
+   "acc_type": 0.6122137404580152,
+   "n_type": 655
+  },
+  {
+   "take": "Maraka_5",
+   "piece": "Maraka",
+   "model": "piece",
+   "nll_type": 1.194932987762811,
+   "acc_type": 0.4309559939301973,
+   "n_type": 659
+  },
+  {
+   "take": "Maraka_5",
+   "piece": "Maraka",
+   "model": "piece_pulse",
+   "nll_type": 1.110021405902342,
+   "acc_type": 0.4764795144157815,
+   "n_type": 659
+  },
+  {
+   "take": "Maraka_5",
+   "piece": "Maraka",
+   "model": "logistic_pulse_intensity",
+   "nll_type": 0.8905825010115883,
+   "acc_type": 0.6145675265553869,
+   "n_type": 659
+  },
+  {
+   "take": "Maraka_5",
+   "piece": "Maraka",
+   "model": "logistic_full",
+   "nll_type": 0.8529243059730456,
+   "acc_type": 0.6024279210925645,
+   "n_type": 659
+  },
+  {
+   "take": "Maraka_6",
+   "piece": "Maraka",
+   "model": "piece",
+   "nll_type": 0.9858656531243573,
+   "acc_type": 0.49162995594713654,
+   "n_type": 1135
+  },
+  {
+   "take": "Maraka_6",
+   "piece": "Maraka",
+   "model": "piece_pulse",
+   "nll_type": 1.0486068112011127,
+   "acc_type": 0.41585903083700443,
+   "n_type": 1135
+  },
+  {
+   "take": "Maraka_6",
+   "piece": "Maraka",
+   "model": "logistic_pulse_intensity",
+   "nll_type": 0.7156031678247172,
+   "acc_type": 0.690748898678414,
+   "n_type": 1135
+  },
+  {
+   "take": "Maraka_6",
+   "piece": "Maraka",
+   "model": "logistic_full",
+   "nll_type": 0.6804800217408712,
+   "acc_type": 0.7092511013215859,
+   "n_type": 1135
+  },
+  {
+   "take": "Woloso_1",
+   "piece": "Woloso",
+   "model": "piece",
+   "nll_type": 0.9814305046800196,
+   "acc_type": 0.5157116451016636,
+   "n_type": 1082
+  },
+  {
+   "take": "Woloso_1",
+   "piece": "Woloso",
+   "model": "piece_pulse",
+   "nll_type": 0.9955559736197142,
+   "acc_type": 0.4177449168207024,
+   "n_type": 1082
+  },
+  {
+   "take": "Woloso_1",
+   "piece": "Woloso",
+   "model": "logistic_pulse_intensity",
+   "nll_type": 0.6044578346095393,
+   "acc_type": 0.743992606284658,
+   "n_type": 1082
+  },
+  {
+   "take": "Woloso_1",
+   "piece": "Woloso",
+   "model": "logistic_full",
+   "nll_type": 0.5909539913796704,
+   "acc_type": 0.7513863216266173,
+   "n_type": 1082
+  },
+  {
+   "take": "Woloso_2",
+   "piece": "Woloso",
+   "model": "piece",
+   "nll_type": 0.9779641514876277,
+   "acc_type": 0.4525691699604743,
+   "n_type": 1012
+  },
+  {
+   "take": "Woloso_2",
+   "piece": "Woloso",
+   "model": "piece_pulse",
+   "nll_type": 0.9538869156723869,
+   "acc_type": 0.4634387351778656,
+   "n_type": 1012
+  },
+  {
+   "take": "Woloso_2",
+   "piece": "Woloso",
+   "model": "logistic_pulse_intensity",
+   "nll_type": 0.584019141551538,
+   "acc_type": 0.7371541501976284,
+   "n_type": 1012
+  },
+  {
+   "take": "Woloso_2",
+   "piece": "Woloso",
+   "model": "logistic_full",
+   "nll_type": 0.5475435334323203,
+   "acc_type": 0.7628458498023716,
+   "n_type": 1012
+  },
+  {
+   "take": "Woloso_3",
+   "piece": "Woloso",
+   "model": "piece",
+   "nll_type": 1.0232016096226038,
+   "acc_type": 0.381201044386423,
+   "n_type": 1149
+  },
+  {
+   "take": "Woloso_3",
+   "piece": "Woloso",
+   "model": "piece_pulse",
+   "nll_type": 1.0154234815235421,
+   "acc_type": 0.3533507397737163,
+   "n_type": 1149
+  },
+  {
+   "take": "Woloso_3",
+   "piece": "Woloso",
+   "model": "logistic_pulse_intensity",
+   "nll_type": 0.591934094986893,
+   "acc_type": 0.7258485639686684,
+   "n_type": 1149
+  },
+  {
+   "take": "Woloso_3",
+   "piece": "Woloso",
+   "model": "logistic_full",
+   "nll_type": 0.5712421285754374,
+   "acc_type": 0.7536988685813751,
+   "n_type": 1149
+  },
+  {
+   "take": "Woloso_4",
+   "piece": "Woloso",
+   "model": "piece",
+   "nll_type": 0.9901754232805295,
+   "acc_type": 0.5119047619047619,
+   "n_type": 840
+  },
+  {
+   "take": "Woloso_4",
+   "piece": "Woloso",
+   "model": "piece_pulse",
+   "nll_type": 1.020421991460764,
+   "acc_type": 0.4869047619047619,
+   "n_type": 840
+  },
+  {
+   "take": "Woloso_4",
+   "piece": "Woloso",
+   "model": "logistic_pulse_intensity",
+   "nll_type": 0.6718642935582463,
+   "acc_type": 0.7178571428571429,
+   "n_type": 840
+  },
+  {
+   "take": "Woloso_4",
+   "piece": "Woloso",
+   "model": "logistic_full",
+   "nll_type": 0.6461036910707614,
+   "acc_type": 0.7345238095238096,
+   "n_type": 840
+  },
+  {
+   "take": "Woloso_5",
+   "piece": "Woloso",
+   "model": "piece",
+   "nll_type": 1.1472469261460356,
+   "acc_type": 0.4973637961335677,
+   "n_type": 569
+  },
+  {
+   "take": "Woloso_5",
+   "piece": "Woloso",
+   "model": "piece_pulse",
+   "nll_type": 1.110587554339034,
+   "acc_type": 0.40421792618629176,
+   "n_type": 569
+  },
+  {
+   "take": "Woloso_5",
+   "piece": "Woloso",
+   "model": "logistic_pulse_intensity",
+   "nll_type": 0.9704954187635834,
+   "acc_type": 0.5887521968365553,
+   "n_type": 569
+  },
+  {
+   "take": "Woloso_5",
+   "piece": "Woloso",
+   "model": "logistic_full",
+   "nll_type": 0.9539594709968889,
+   "acc_type": 0.5887521968365553,
+   "n_type": 569
+  }
+ ]
+}
