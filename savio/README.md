@@ -74,6 +74,17 @@ python experiments/generation/summarise_solo.py $HOME/djembe_runs/j5b/<JOBID>/pa
 python -m djembe.render $HOME/djembe_runs/j5b/<JOBID>/grids/Maraka_2_s0_GNN_solo.npz output/Maraka_2_solo.wav --solo-emphasis 1.8
 ```
 
+## Graph model against transformer, seen and unseen rhythms (J6)
+
+`savio/j6_array.sbatch` trains, per training set and seed, the stroke-by-stroke soloist graph model and two transformers (standard, and one with the graph model's parameter count), scores them with B1/B2 on the held-out soloist, then generates it with each. Three protocols, one array each: `take` (leave-one-take-out, piece given, 45 tasks), `take_nopiece` (same without the piece, 45) and `piece` (trained on two rhythms, tested on the third, 9 tasks). About 10 to 20 minutes per task.
+
+```bash
+git pull
+for P in take take_nopiece; do PROTOCOL=$P DJEMBE_VENV=$HOME/envs/djembe DJEMBE_OUT=$HOME/djembe_runs sbatch -A fc_YOURACCOUNT --array=0-44 savio/j6_array.sbatch; done
+PROTOCOL=piece DJEMBE_VENV=$HOME/envs/djembe DJEMBE_OUT=$HOME/djembe_runs sbatch -A fc_YOURACCOUNT --array=0-8 savio/j6_array.sbatch
+python experiments/j6/summarise.py $HOME/djembe_runs/j6_piece/<JOBID>/part_*.json --out results/j6_piece_savio.json --expect-seeds 3
+```
+
 ## GPUs, for later
 
 The current model does not need one. For pretraining on a large drum corpus, the A5000 nodes are the regular-priority option under a faculty allowance (at most 4 GPUs per user):

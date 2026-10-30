@@ -224,7 +224,8 @@ def compare(gen: TakeGrid, real: TakeGrid, train: list[TakeGrid], *, start_gen: 
             if len(a) >= min_strokes and len(b) >= min_strokes:
                 vals.append(wasserstein_distance(a, b))
         dist[name] = float(np.mean(vals)) if vals else float("nan")
-    bank = np.concatenate([t.x[:, :, SOLO, 0] for t in train if t.piece == gen.piece]) > 0
+    same = [t for t in train if t.piece == gen.piece] or train      # unseen piece: the whole library
+    bank = np.concatenate([t.x[:, :, SOLO, 0] for t in same]) > 0
     mine = pg > 0
     nn_dist = (mine[:, None, :] != bank[None, :, :]).mean(axis=2).min(axis=1)
     distinct = len({tuple(r) for r in mine.astype(int)}) / len(mine)
@@ -236,5 +237,21 @@ def compare(gen: TakeGrid, real: TakeGrid, train: list[TakeGrid], *, start_gen: 
         "novelty": float(nn_dist.mean()),
         "copy_rate": float((nn_dist == 0).mean()),
         "distinct_rate": float(distinct),
+        "timing_lag1": timing_lag1(gen, start_gen),
         "n_cycles": int(len(pg)),
     }
+
+
+def timing_lag1(g: TakeGrid, start: int = 0) -> float:
+    """Correlation between the timing residuals of successive soloist strokes on adjacent pulses.
+
+    Residual = offset minus the line's median offset at that pulse. Real soloists: 0.35
+    (Woloso) to 0.76 (Manjanin); independent draws give about 0."""
+    x = g.x[start:, :, SOLO]
+    hit = x[..., 0] > 0
+    d = np.where(hit & (np.abs(x[..., 2]) <= DELTA_CLIP), x[..., 2], np.nan)
+    med = np.nanmedian(np.where(hit.any(0), d, 0.0), axis=0) if np.isfinite(d).any() else np.zeros(12)
+    r = (d - med[None]).reshape(-1)
+    a, b = r[:-1], r[1:]
+    ok = np.isfinite(a) & np.isfinite(b)
+    return float(np.corrcoef(a[ok], b[ok])[0, 1]) if ok.sum() > 10 else float("nan")
