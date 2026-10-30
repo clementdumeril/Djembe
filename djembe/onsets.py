@@ -64,7 +64,7 @@ def detect(y: np.ndarray, sr: int, *, k: float = 3.0, rise_db: float = 3.0, min_
 
 
 def soloist_strokes(take: str, *, corpus="corpus", k: float = 3.0, rise_db: float = 4.0,
-                    min_level: float = 0.25, tol: float = 0.015) -> dict:
+                    min_level: float = 0.25, floor: float = 0.05, tol: float = 0.015) -> dict:
     """Every jembe-1 stroke of a take, with the other microphones used to reject bleed.
 
     Rule 5 (bleed): each drum has its own microphone. A candidate that falls within
@@ -72,6 +72,11 @@ def soloist_strokes(take: str, *, corpus="corpus", k: float = 3.0, rise_db: floa
     its envelope peak is at least ``min_level`` times the soloist's typical stroke level
     (the median peak at the corpus' own jembe-1 onsets). A drum captured by the wrong
     microphone arrives much weaker there than the soloist's own strokes.
+
+    Rule 6 (floor): any candidate below ``floor`` times the typical level is dropped, bleed
+    or not. With the adaptive threshold alone, quiet stretches where the soloist rests
+    let room noise and faint bleed through (levels of 0-5 % of a normal stroke, while
+    95 % of the corpus' own strokes are above 22 %).
 
     Returns times [s] and, per stroke, whether the corpus already had it (raw onset
     within ``tol``) and its relative level.
@@ -97,8 +102,9 @@ def soloist_strokes(take: str, *, corpus="corpus", k: float = 3.0, rise_db: floa
     near = lambda a, b: np.abs(a[:, None] - b[None, :]).min(1) <= tol if len(b) else np.zeros(len(a), bool)
     in_corpus = near(cand, raw)
     bleed = near(cand, other_t) & ~in_corpus & (level < min_level)
-    keep = ~bleed
-    return {"times": cand[keep], "in_corpus": in_corpus[keep], "level": level[keep], "n_bleed_rejected": int(bleed.sum()),
+    quiet = ~in_corpus & ~bleed & (level < floor)
+    keep = ~bleed & ~quiet
+    return {"times": cand[keep], "in_corpus": in_corpus[keep], "level": level[keep], "n_bleed_rejected": int(bleed.sum()), "n_quiet_rejected": int(quiet.sum()),
             "raw": raw}
 
 
