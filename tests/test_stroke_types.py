@@ -51,3 +51,14 @@ def test_render_plays_the_given_stroke_type():
     strokes = {0: np.full((2, 12), stt.TYPES.index("tone"))}
     y = render.render(g.x, g.log_T, g.present, voice="synth", strokes=strokes)
     assert y.ndim == 2 and np.isfinite(y).all()
+
+
+def test_gate_opens_on_own_strokes_only():
+    from djembe import backing
+
+    sr = 1000
+    g = backing.gate(3000, sr, np.array([0.5, 0.6, 2.0]), hold=0.3)
+    floor = 10 ** (backing.FLOOR_DB / 20)
+    assert g[500:600].min() == 1.0 and g[600:900].min() == 1.0         # open to the next stroke, then held
+    assert np.isclose(g[1000:1990], floor).all()                       # closed between strokes
+    assert g[2000:2300].min() == 1.0 and np.isclose(g[2400:], floor).all()
