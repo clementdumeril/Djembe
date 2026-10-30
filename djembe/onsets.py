@@ -63,6 +63,45 @@ def detect(y: np.ndarray, sr: int, *, k: float = 3.0, rise_db: float = 3.0, min_
     return np.array(times)
 
 
+def soloist_strokes(take: str, *, corpus="corpus", k: float = 3.0, rise_db: float = 4.0,
+                    min_level: float = 0.25, tol: float = 0.015) -> dict:
+    """Every jembe-1 stroke of a take, with the other microphones used to reject bleed.
+
+    Rule 5 (bleed): each drum has its own microphone. A candidate that falls within
+    ``tol`` of another drum's onset is kept only if it is loud on the soloist's track:
+    its envelope peak is at least ``min_level`` times the soloist's typical stroke level
+    (the median peak at the corpus' own jembe-1 onsets). A drum captured by the wrong
+    microphone arrives much weaker there than the soloist's own strokes.
+
+    Returns times [s] and, per stroke, whether the corpus already had it (raw onset
+    within ``tol``) and its relative level.
+    """
+    import glob
+    from pathlib import Path
+
+    import pandas as pd
+    import soundfile as sf
+
+    piece = take.split("_")[0]
+    base = Path(corpus) / f"MJ_{piece}"
+    y, sr = sf.read(base / f"MJ_{take}_J1.wav", dtype="float32", always_2d=True)
+    y = y.mean(axis=1)
+    raw = pd.read_csv(base / "annotations" / f"MJ_{take}_Onsets_Raw_Jembe1.csv")["Time"].to_numpy()
+    others = sorted(glob.glob(str(base / "annotations" / f"MJ_{take}_Onsets_Raw_*.csv")))
+    other_t = np.sort(np.concatenate([pd.read_csv(f)["Time"].to_numpy() for f in others if "Jembe1" not in f]))
+    env = envelope(y, sr)
+    peak_at = lambda t: env[int(t * sr):int(t * sr) + int(0.015 * sr)].max() if int(t * sr) < len(env) else 0.0
+    typical = np.median([peak_at(t) for t in raw])
+    cand = detect(y, sr, k=k, rise_db=rise_db)
+    level = np.array([peak_at(t) / typical for t in cand])
+    near = lambda a, b: np.abs(a[:, None] - b[None, :]).min(1) <= tol if len(b) else np.zeros(len(a), bool)
+    in_corpus = near(cand, raw)
+    bleed = near(cand, other_t) & ~in_corpus & (level < min_level)
+    keep = ~bleed
+    return {"times": cand[keep], "in_corpus": in_corpus[keep], "level": level[keep], "n_bleed_rejected": int(bleed.sum()),
+            "raw": raw}
+
+
 def compare_with(found: np.ndarray, reference: np.ndarray, tol: float = 0.015) -> dict:
     """Precision / recall of detected onsets against reference onsets (one-to-one within ``tol``)."""
     ref = np.sort(reference)
