@@ -4,7 +4,7 @@ I model how Malian jembe ensembles play: which strokes, exactly when, how hard, 
 
 The question: with this little data, does building the symmetries of the 12-pulse cycle into a graph neural network work better than pretraining on a large drum corpus?
 
-Status (October 2026): the dataset and recognition results are done; the generative model is in progress. On its first task, predicting how late or early each stroke falls, the graph model beats the best reference model on 13 of 15 held-out takes, and all three seeds agree on those 13 ([details below](#three-fixes-then-three-seeds-on-savio)). Building the rotation symmetry of the cycle into the network never helps: with 2 training takes it ties, from 4 takes on it loses ([data-efficiency curve](#does-symmetry-help-with-less-data)). Generating the soloist over the real ensemble, the network phrases more like a real soloist than a Markov chain does: it returns to its own figures more often and keeps their variety closer to a real soloist's ([details](#generating-the-soloist)). The earlier analysis stage (notebooks, listening demo) is at tag [`v0.2-analysis`](https://github.com/clementdumeril/Djembe/tree/v0.2-analysis).
+Status (October 2026): the dataset and recognition results are done; the generative model is in progress. On its first task, predicting how late or early each stroke falls, the graph model beats the best reference model on 13 of 15 held-out takes, and all three seeds agree on those 13 ([details below](#three-fixes-then-three-seeds-on-savio)). Building the rotation symmetry of the cycle into the network never helps: with 2 training takes it ties, from 4 takes on it loses ([data-efficiency curve](#does-symmetry-help-with-less-data)). Generating the soloist over the real ensemble, the network phrases more like a real soloist than a Markov chain does: it returns to its own figures more often and keeps their variety closer to a real soloist's ([details](#generating-the-soloist)). Against a Music-Transformer-style model given the same information, the graph model predicts the soloist better, and on a rhythm left out of training entirely it still beats every reference on all 15 takes while the transformers fall below a per-position average on timing ([details](#graph-model-or-transformer-and-a-rhythm-never-heard)). The earlier analysis stage (notebooks, listening demo) is at tag [`v0.2-analysis`](https://github.com/clementdumeril/Djembe/tree/v0.2-analysis).
 
 ![Dundun 1 pattern and micro-timing in Manjanin, Maraka and Woloso](docs/figures/hero_d1_pattern_timing.png)
 
@@ -93,11 +93,47 @@ The network's variety of figures is closer to the real soloist than Markov's on 
 
 Does it copy? Not phrases: runs of 4 or more cycles identical to another take are one figure repeated 89 % of the time (95 % for the real soloists), and the figures it reuses come from all four soloists of the corpus, less concentrated on the most present one than the real soloists themselves (35 % against 47 %). 42 % of its cycles are figures known from other takes (68 % for real soloists, who share a vocabulary), 37 % are one pulse away from one, and 21 % are two or more pulses away, twice the real rate. My reading: it recombines and varies the corpus' vocabulary and returns to its own figures, a statistical form of stylistic variation. It says nothing about intention, and the network is somewhat more inventive than the real soloists. A blind listening test is the next check.
 
+## Graph model or transformer, and a rhythm never heard
+
+Playing the jembe here means soloing over a base rhythm, including one the model has never heard. Two changes to the soloist model, then a comparison:
+
+- Stroke by stroke, timing included: in the version above the offsets of a whole cycle were drawn at once, independently. Real soloists' deviations hang together (two successive strokes late together); the generated ones barely did, and by ear the Woloso solos lost their micro-timing. Now each pulse is drawn in order: whether it strikes, then its offset and intensity, given everything before it.
+- A transformer given exactly the same information and factorisation: an encoder over the accompaniment, a causal decoder over the soloist line, a pulse embedding and a learned relative-position bias per head (the relative attention of the Music Transformer, Huang et al. 2018, in the additive form of Raffel et al. 2020; my own implementation). Two sizes: the graph model's (60 k parameters against 56 k) and a standard small one (181 k).
+- Three protocols: leave-one-take-out with the piece given; the same without it; and leave-one-piece-out, without the piece: trained on two rhythms, tested on every take of the third.
+
+| Soloist prediction (nats, lower is better) | Strikes | Offsets | Intensities |
+|---|---|---|---|
+| **Rhythm seen in training** | | | |
+| Graph model | **0.407** | **−0.945** | **1.220** |
+| Transformer, same size | 0.423 | −0.844 | 1.243 |
+| Transformer, 181 k | 0.436 | −0.704 | 1.355 |
+| Markov (B2) | 0.537 | −0.749 | 1.393 |
+| **Rhythm never heard** | | | |
+| Graph model | **0.436** | **−0.565** | **1.233** |
+| Transformer, same size | 0.548 | 0.411 | 1.340 |
+| Transformer, 181 k | 0.590 | 1.055 | 1.538 |
+| Markov (B2), pieces pooled | 0.631 | 0.045 | 1.429 |
+| Per position (B1), pieces pooled | 0.645 | −0.281 | 1.432 |
+
+![Soloist prediction on seen and unseen rhythms: graph model, two transformers, Markov and per-position references](docs/figures/j6_gnn_transformer.png)
+
+On seen rhythms the graph model beats the same-size transformer on 12 of 15 takes for strikes (p = 0.015) and 14 of 15 for offsets (p = 0.0003); intensities are a tie (10 of 15, p = 0.15). The larger transformer does worse than the smaller one: with 15 takes it overfits. Removing the piece label costs the graph model nothing (0.407, −0.954, 1.215): it identifies the rhythm from the accompaniment.
+
+On a rhythm never heard, the graph model loses little on strikes (0.436 against 0.407) and beats both transformers and both references on all 15 takes, for all three quantities. The transformers no longer place the strokes: their offset scores fall below the per-position average of the two other rhythms. My reading: the graph gives the network the structure of the ensemble (who plays with whom, which pulse follows which), which it can carry to a new rhythm; the transformer has to learn that structure from 15 takes. Maraka is the hardest rhythm to guess (offsets −0.29 unseen against −0.93 seen): its pattern of early and late subdivisions differs from Manjanin's and Woloso's, which resemble each other, so its feel cannot be inferred from them.
+
+In generation (temperature 1 for every model, no tuning), successive timing deviations now hang together: correlation 0.44 for the graph model, 0.56 for the transformers, 0.54 for Markov, 0.56 for the real soloists (Woloso: 0.26 seen, 0.41 unseen, real 0.40; it was 0.07 before). The transformers come closer on this measure, though not significantly (graph model closer on 5 of 15 takes, p = 0.17). On the unseen rhythm the graph model's solos are closer to the real ones than the 181 k transformer's in strike profile (12 of 15, p = 0.0009), timing distribution (12 of 15, p = 0.048) and intensities (13 of 15). Without temperature tuning the solos vary more than before (69 % distinct figures against 51 % at temperature 0.8, real soloists 36 %).
+
+### Stroke types
+
+The corpus gives when each drum strikes, not how. Each jembe has its own microphone, so the stroke type of the soloist (bass, tone, slap) is read from a short window of its track: band energies, spectral centroid and flatness, decay, then a 3-component mixture ([`djembe/strokes.py`](djembe/strokes.py)). Checked by ear by a jembe player on 105 strokes in 3 passages, the automatic labels agree at 75 % (bass 14/19, slap 27/35, tone 38/51); on the accompanying jembe they recover its fixed pattern (stroke type per pulse at 0.47 nats, uniform 1.10). A logistic model then predicts the soloist's stroke from the grid at 72 % leave-one-take-out (uniform 33 %; pulse alone 46 %, pulse and intensity 71 %): loud strokes are slaps, while the choice between bass and tone is much less tied to the pulse than for the accompanist ([`djembe/stroke_types.py`](djembe/stroke_types.py)). The renderer plays the drawn type.
+
 ## Limitations
 
 - 15 takes, 3 pieces, one dundun player, same sessions. Results hold within this corpus only.
 - The curve has 3 repetitions per size, and subsets of 2 or 4 takes give some pieces one take or none, so its left end is noisier than its right end.
-- Audio renders use recorded CC0 samples ([credits](assets/samples/CREDITS.md)), but the stroke type (bass, tone, slap) is a fixed rule on intensity, not a prediction. Generated audio is not published.
+- Leave-one-piece-out has only 3 pieces, so 3 training configurations; neither the graph model nor the transformers had a hyperparameter search.
+- Stroke-type labels come from the audio and agree with a player's ear at 75 % on 105 strokes; fast ornaments (strokes closer than one pulse) are not in the grid.
+- Audio renders use recorded CC0 samples ([credits](assets/samples/CREDITS.md)). Generated audio is not published, nor are renders over the corpus' own microphones (local listening only).
 - Runs are not bit-exact: seed 0 on Savio and on the laptop differ by 0.02 per take on average (up to 0.12), and rerunning J3 on Colab gave V0 −0.736 instead of −0.709. Three seeds are enough to see that the V5 lead is larger than this noise, not to measure it precisely.
 
 Corpus erratum: one published OSF file holds the wrong take; I use the correct ones ([details](docs/CORPUS_ERRATUM.md)).

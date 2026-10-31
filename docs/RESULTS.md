@@ -152,6 +152,26 @@ GNN against Markov, per take, "closer to the real soloist": distinct-figure rate
 
 Sources: [`j5b_solo_savio.json`](../results/j5b_solo_savio.json), [`j5b_solo_creativity.json`](../results/j5b_solo_creativity.json) ([`solo_creativity.py`](../experiments/generation/solo_creativity.py)).
 
+## Graph model against transformer, seen and unseen rhythms (J6)
+
+Soloist stroke by stroke (strike, then offset and intensity given it strikes), 15 takes x 3 seeds, mean of seed means. Protocols: `take` (leave-one-take-out, piece given), `take_nopiece` (same, no piece), `piece` (leave-one-piece-out, no piece). Files: `results/j6_{take,take_nopiece,piece}_savio.json`.
+
+| Prediction (nats) | take: hit / offset / intensity | take_nopiece | piece |
+|---|---|---|---|
+| GNN_seq (56 k) | 0.407 / −0.945 / 1.220 | 0.407 / −0.954 / 1.215 | 0.436 / −0.565 / 1.233 |
+| Transformer_matched (60 k) | 0.423 / −0.844 / 1.243 | 0.427 / −0.833 / 1.245 | 0.548 / 0.411 / 1.340 |
+| Transformer (181 k) | 0.436 / −0.704 / 1.355 | 0.446 / −0.702 / 1.357 | 0.590 / 1.055 / 1.538 |
+| B2 Markov (stroke memory) | 0.537 / −0.749 / 1.393 | same | 0.631 / 0.045 / 1.429 |
+| B1 per position | 0.597 / −0.573 / 1.396 | same | 0.645 / −0.281 / 1.432 |
+
+GNN_seq better than Transformer_matched (takes of 15, Wilcoxon p): take 12 (0.015) / 14 (0.0003) / 10 (0.15); piece 15 / 15 / 15 (0.0001 each).
+
+| Generation (take protocol) | GNN_seq | Transformer_matched | Transformer | Markov | real |
+|---|---|---|---|---|---|
+| timing_lag1 | 0.44 | 0.56 | 0.59 | 0.54 | 0.56 |
+| distinct figures | 0.69 | 0.69 | 0.63 | 0.77 | 0.36 |
+| timing W1 (ms) | 7.9 | 7.4 | 7.7 | 6.3 | |
+
 ## Commands
 
 ```bash
@@ -182,4 +202,9 @@ DJEMBE_VENV=$HOME/envs/djembe DJEMBE_OUT=$HOME/djembe_runs sbatch -A <account> -
 python experiments/generation/solo_eval.py --takes Woloso_5 --seeds 0 --epochs 2   # quick local check
 python experiments/generation/summarise_solo.py <run dir>/part_*.json --out results/j5b_solo_savio.json --expect-takes 15 --expect-seeds 3
 python experiments/generation/solo_creativity.py <run dir>/grids --out results/j5b_solo_creativity.json --figure docs/figures/j5b_solo.png
+PROTOCOL=piece DJEMBE_VENV=$HOME/envs/djembe DJEMBE_OUT=$HOME/djembe_runs sbatch -A <account> --array=0-8 savio/j6_array.sbatch   # J6 (take and take_nopiece: --array=0-44)
+python experiments/j6/run.py --protocol take --index 0 --epochs 2   # quick local check
+python experiments/j6/summarise.py <run dir>/part_*.json --out results/j6_piece_savio.json --expect-seeds 3
+python experiments/j6/plot.py --out docs/figures/j6_gnn_transformer.png
+python -m djembe.strokes --instrument J1 && python experiments/strokes/type_eval.py   # stroke types (needs the corpus audio)
 ```
