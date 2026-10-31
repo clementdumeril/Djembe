@@ -7,9 +7,9 @@ Writes, for one take, 24 cycles after the 3 real context cycles:
   (isolates what the cutting itself does to the sound);
 - ``GNN_solo`` and ``Markov_B2``: gated accompaniment + the generated line, stroke types
   drawn by ``djembe.stroke_types`` (fitted without this take), played from cut strokes;
-- ``compare``: the four of real, real_cut, GNN_solo, Markov_B2 in a row, 2 s apart;
-- ``alone_real`` and ``alone_GNN_solo``: the soloist without the accompaniment (real
-  microphone, and the generated line from cut strokes).
+- ``compare``: real, real_cut and each generated model in a row, 2 s apart;
+- ``alone_real`` and ``alone_<model>``: the soloist without the accompaniment (real
+  microphone, and each generated line from cut strokes).
 
 The audio comes from the corpus: it stays in ``output/``.
 
@@ -39,6 +39,9 @@ def main() -> None:
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--cycles", type=int, default=24)
     ap.add_argument("--grids", default=str(ROOT / "output" / "j5b_grids"))
+    ap.add_argument("--prefix", default="", help="grid file prefix, e.g. piece_ for the J6 unseen-rhythm run")
+    ap.add_argument("--models", nargs="+", default=["GNN_solo", "Markov_B2"])
+    ap.add_argument("--tag", default="", help="inserted in the output names")
     args = ap.parse_args()
     events = d.load_events()
     grids = {t: gr.take_grid(events, t) for t in d.TAKES}
@@ -66,20 +69,19 @@ def main() -> None:
     outs = {"original": bk.mix(raw, solo_real), "real": bk.mix(back, solo_real),
             "alone_real": bk.mix(np.zeros_like(back), solo_real)}
     outs["real_cut"] = bk.mix(back, bk.soloist_track(real, labels[args.take], starts, bank, sr, lp_sd, t0, t1, start, rng))
-    for name in ("GNN_solo", "Markov_B2"):
-        z = np.load(Path(args.grids) / f"{args.take}_s{args.seed}_{name}.npz", allow_pickle=False)
+    for name in args.models:
+        z = np.load(Path(args.grids) / f"{args.prefix}{args.take}_s{args.seed}_{name}.npz", allow_pickle=False)
         g = gr.TakeGrid(take_id=real.take_id, piece=real.piece, x=z["x"], log_T=z["log_T"], section=real.section,
                         in_signal=real.in_signal, present=z["present"], cycle_idx=real.cycle_idx,
                         delta_offset=real.delta_offset)
         types = model.sample(g, rng, start_cycle=start, given=labels[args.take])
         solo_line = bk.soloist_track(g, types, starts, bank, sr, lp_sd, t0, t1, start, rng)
         outs[name] = bk.mix(back, solo_line)
-        if name == "GNN_solo":
-            outs["alone_GNN_solo"] = bk.mix(np.zeros_like(back), solo_line)
+        outs[f"alone_{name}"] = bk.mix(np.zeros_like(back), solo_line)
     gap = np.zeros((2 * sr, 2), np.float32)
-    outs["compare"] = np.concatenate([x for n in ("real", "real_cut", "GNN_solo", "Markov_B2") for x in (outs[n], gap)])
+    outs["compare"] = np.concatenate([x for n in ("real", "real_cut", *args.models) for x in (outs[n], gap)])
     for name, y in outs.items():
-        dst = ROOT / "output" / f"{args.take}_backing_{name}.wav"
+        dst = ROOT / "output" / f"{args.take}_backing{args.tag}_{name}.wav"
         sf.write(dst, y, sr, subtype="PCM_16")
         print("->", dst)
 
