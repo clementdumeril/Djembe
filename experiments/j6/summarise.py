@@ -22,7 +22,8 @@ from scipy.stats import wilcoxon
 NETS = ("GNN_seq", "Transformer", "Transformer_matched")
 PRED = ("nll_hit", "nll_delta", "nll_intensity")
 GEN_DIST = ("profile_l1", "timing_w1_ms", "intensity_w1")
-GEN_TO_REAL = ("timing_lag1", "distinct_rate", "density_ratio")
+GEN_TO_REAL = ("timing_lag1", "distinct_rate", "density_ratio", "timing_lag12", "timing_drift", "profile_stability",
+               "accent_stability", "self_return")
 
 
 def _test(d: pd.Series) -> dict:
@@ -44,7 +45,8 @@ def summarise(rows: list[dict], nets=NETS) -> dict:
             continue
         out["prediction_pairs"][f"{a} vs {b}"] = {m: _test(pred.xs(a, level=1)[m] - pred.xs(b, level=1)[m])
                                                   for m in PRED}
-    gen = df[df["kind"] == "generation"].groupby(["take", "model"])[list(GEN_DIST + GEN_TO_REAL)].mean()
+    measures = [m for m in GEN_DIST + GEN_TO_REAL if m in df.columns]
+    gen = df[df["kind"] == "generation"].groupby(["take", "model"])[measures].mean()
     out["generation_mean"] = gen.groupby("model").mean().round(4).to_dict(orient="index")
     real = gen.xs("real_heldout", level=1)
     dist = {}
@@ -52,14 +54,15 @@ def summarise(rows: list[dict], nets=NETS) -> dict:
         if m == "real_heldout":
             continue
         g = gen.xs(m, level=1)
-        dist[m] = pd.concat([g[list(GEN_DIST)], (g[list(GEN_TO_REAL)] - real[list(GEN_TO_REAL)]).abs()], axis=1)
+        to_real = [m2 for m2 in GEN_TO_REAL if m2 in measures]
+        dist[m] = pd.concat([g[list(GEN_DIST)], (g[to_real] - real[to_real]).abs()], axis=1)
     out["generation_pairs"] = {}
     for a in nets:
         for b in [*nets, "Markov_B2"]:
             if a < b or b == "Markov_B2":
                 if a in dist and b in dist and a != b:
                     out["generation_pairs"][f"{a} vs {b}"] = {m: _test(dist[a][m] - dist[b][m])
-                                                              for m in GEN_DIST + GEN_TO_REAL}
+                                                              for m in dist[a].columns}
     return out
 
 

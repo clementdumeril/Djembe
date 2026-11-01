@@ -238,6 +238,7 @@ def compare(gen: TakeGrid, real: TakeGrid, train: list[TakeGrid], *, start_gen: 
         "copy_rate": float((nn_dist == 0).mean()),
         "distinct_rate": float(distinct),
         "timing_lag1": timing_lag1(gen, start_gen),
+        **groove_measures(gen, start_gen),
         "n_cycles": int(len(pg)),
     }
 
@@ -255,3 +256,45 @@ def timing_lag1(g: TakeGrid, start: int = 0) -> float:
     a, b = r[:-1], r[1:]
     ok = np.isfinite(a) & np.isfinite(b)
     return float(np.corrcoef(a[ok], b[ok])[0, 1]) if ok.sum() > 10 else float("nan")
+
+
+def groove_measures(g: TakeGrid, start: int = 0) -> dict:
+    """Coherence of the soloist line beyond the next stroke.
+
+    - ``timing_lag12``: correlation of timing residuals at the same pulse of successive cycles;
+    - ``timing_drift``: correlation of successive cycles' mean residual (pushing or holding back
+      over several cycles);
+    - ``profile_stability``: correlation over the 12 pulses between the median offsets of the
+      first and second half of the line;
+    - ``accent_stability``: the same for mean intensities;
+    - ``self_return``: share of cycles whose figure (strike pattern) was already played earlier
+      in the line (real soloists 0.64, J6 graph model 0.32).
+    """
+    x = g.x[start:, :, SOLO]
+    h = x[..., 0] > 0
+    off = np.where(h & (np.abs(x[..., 2]) <= DELTA_CLIP), x[..., 2], np.nan)
+    inten = np.where(h, x[..., 1], np.nan)
+
+    def corr(a, b):
+        ok = np.isfinite(a) & np.isfinite(b)
+        return float(np.corrcoef(a[ok], b[ok])[0, 1]) if ok.sum() > 10 else float("nan")
+
+    with np.errstate(all="ignore"):
+        import warnings
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", RuntimeWarning)
+            r = off - np.nanmedian(off, axis=0)
+            flat = r.reshape(-1)
+            cyc = np.nanmean(r, axis=1)
+            n = len(x) // 2
+            prof = corr(np.nanmedian(off[:n], 0), np.nanmedian(off[n:], 0)) if n >= 2 else float("nan")
+            acc = corr(np.nanmean(inten[:n], 0), np.nanmean(inten[n:], 0)) if n >= 2 else float("nan")
+    seen, back = set(), 0
+    for row in h.astype(int):
+        key = tuple(row)
+        back += key in seen
+        seen.add(key)
+    return {"timing_lag12": corr(flat[:-12], flat[12:]), "timing_drift": corr(cyc[:-1], cyc[1:]),
+            "profile_stability": prof, "accent_stability": acc,
+            "self_return": float(back / max(len(h) - 1, 1))}
