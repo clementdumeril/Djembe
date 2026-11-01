@@ -1,0 +1,793 @@
+{
+ "summary": {
+  "floor": {
+   "median_abs_ms": 10.076074950878589,
+   "p90_abs_ms": 24.586945921619296,
+   "lost_share": 0.0006887052341597796,
+   "off_beat_share": 0.0006887052341597796
+  },
+  "feel": {
+   "player": {
+    "median_abs_ms": 7.988972025943397,
+    "p90_abs_ms": 20.473656837040732,
+    "lost_share": 0.0,
+    "off_beat_share": 0.0,
+    "mean_lost_share": 0.15770173419121603,
+    "takes_tracked": 9
+   },
+   "metre": {
+    "median_abs_ms": 11.466671322644117,
+    "p90_abs_ms": 29.89828366444982,
+    "lost_share": 0.00543859649122807,
+    "off_beat_share": 0.00543859649122807,
+    "mean_lost_share": 0.16807031872887182,
+    "takes_tracked": 8
+   }
+  },
+  "isochronous": {
+   "player": {
+    "median_abs_ms": 18.18059899800062,
+    "p90_abs_ms": 33.22593299660355,
+    "lost_share": 0.0,
+    "off_beat_share": 0.0,
+    "mean_lost_share": 0.20187700148678112,
+    "takes_tracked": 9
+   },
+   "metre": {
+    "median_abs_ms": 23.01533754539875,
+    "p90_abs_ms": 43.44978615523161,
+    "lost_share": 0.011944755505785741,
+    "off_beat_share": 0.011944755505785741,
+    "mean_lost_share": 0.2147131625954146,
+    "takes_tracked": 8
+   }
+  },
+  "frozen": {
+   "player": {
+    "median_abs_ms": 13974.10748272699,
+    "p90_abs_ms": 32141.473792015502,
+    "lost_share": 0.9879856355622227,
+    "off_beat_share": 0.6617973655160979,
+    "mean_lost_share": 0.9860136446022709,
+    "takes_tracked": 0
+   },
+   "metre": {
+    "median_abs_ms": 13999.255932431603,
+    "p90_abs_ms": 32213.43038148006,
+    "lost_share": 0.9839204203223536,
+    "off_beat_share": 0.6617601547388782,
+    "mean_lost_share": 0.9847187530553683,
+    "takes_tracked": 0
+   }
+  },
+  "recall": 0.8723976998550981,
+  "precision": 0.7535436046417509,
+  "bias_ms": -4.012624999998919,
+  "confirm_latency_ms": 22.916666666667584
+ },
+ "rows": [
+  {
+   "take": "Manjanin_1",
+   "piece": "Manjanin",
+   "recall": 0.8297872340425532,
+   "precision": 0.7462235649546828,
+   "bias_ms": -3.2421666666628823,
+   "confirm_latency_ms": 22.833333333352357,
+   "cycles": 215,
+   "floor": {
+    "median_abs_ms": 31.981602183940083,
+    "p90_abs_ms": 59.74730776374032,
+    "lost_share": 0.1157649796393252,
+    "off_beat_share": 0.1157649796393252
+   },
+   "feel": {
+    "metre": {
+     "median_abs_ms": 2810.427329678589,
+     "p90_abs_ms": 2976.0215783815056,
+     "lost_share": 0.9525845316750875,
+     "off_beat_share": 0.69529731830548
+    },
+    "player": {
+     "median_abs_ms": 2848.495867348163,
+     "p90_abs_ms": 3006.7012290831967,
+     "lost_share": 0.9498249708284714,
+     "off_beat_share": 0.7199533255542591
+    },
+    "reacquired": 2
+   },
+   "isochronous": {
+    "metre": {
+     "median_abs_ms": 452.7536236545018,
+     "p90_abs_ms": 581.9510289346226,
+     "lost_share": 0.948309366498251,
+     "off_beat_share": 0.7621453556160125
+    },
+    "player": {
+     "median_abs_ms": 444.9141478002616,
+     "p90_abs_ms": 560.6974107407524,
+     "lost_share": 0.9509918319719953,
+     "off_beat_share": 0.7450408401400234
+    },
+    "reacquired": 2
+   },
+   "frozen": {
+    "metre": {
+     "median_abs_ms": 29494.32895571036,
+     "p90_abs_ms": 67712.33873824005,
+     "lost_share": 0.9887291099883404,
+     "off_beat_share": 0.6575981344733773
+    },
+    "player": {
+     "median_abs_ms": 29524.81998440916,
+     "p90_abs_ms": 67696.45878439637,
+     "lost_share": 0.9935822637106184,
+     "off_beat_share": 0.6715285880980163
+    },
+    "reacquired": 0
+   }
+  },
+  {
+   "take": "Manjanin_3",
+   "piece": "Manjanin",
+   "recall": 0.8510121457489879,
+   "precision": 0.8153607447633825,
+   "bias_ms": -4.874666666665917,
+   "confirm_latency_ms": 22.833333333334593,
+   "cycles": 138,
+   "floor": {
+    "median_abs_ms": 16.620436851226827,
+    "p90_abs_ms": 42.52531771490453,
+    "lost_share": 0.020966271649954422,
+    "off_beat_share": 0.020966271649954422
+   },
+   "feel": {
+    "metre": {
+     "median_abs_ms": 276.07347156776996,
+     "p90_abs_ms": 336.92116782407885,
+     "lost_share": 0.8160291438979964,
+     "off_beat_share": 0.33697632058287796
+    },
+    "player": {
+     "median_abs_ms": 302.4011677213423,
+     "p90_abs_ms": 342.94853258646185,
+     "lost_share": 0.8084326306141155,
+     "off_beat_share": 0.3015582034830431
+    },
+    "reacquired": 1
+   },
+   "isochronous": {
+    "metre": {
+     "median_abs_ms": 1605.0123487698045,
+     "p90_abs_ms": 1753.8089029197863,
+     "lost_share": 0.6326654523375835,
+     "off_beat_share": 0.28901032179720704
+    },
+    "player": {
+     "median_abs_ms": 1590.5238995120214,
+     "p90_abs_ms": 1726.365007697254,
+     "lost_share": 0.6232813932172319,
+     "off_beat_share": 0.3226397800183318
+    },
+    "reacquired": 0
+   },
+   "frozen": {
+    "metre": {
+     "median_abs_ms": 12239.028495262204,
+     "p90_abs_ms": 27236.872028908354,
+     "lost_share": 0.9817850637522769,
+     "off_beat_share": 0.6557377049180327
+    },
+    "player": {
+     "median_abs_ms": 12237.011635117142,
+     "p90_abs_ms": 27192.33740418173,
+     "lost_share": 0.9880843263061412,
+     "off_beat_share": 0.6599450045829515
+    },
+    "reacquired": 0
+   }
+  },
+  {
+   "take": "Manjanin_4",
+   "piece": "Manjanin",
+   "recall": 0.856071964017991,
+   "precision": 0.7890373099953938,
+   "bias_ms": -3.9026666666757137,
+   "confirm_latency_ms": 22.833333333338146,
+   "cycles": 238,
+   "floor": {
+    "median_abs_ms": 25.0750265870181,
+    "p90_abs_ms": 46.77102260198466,
+    "lost_share": 0.02897787144362487,
+    "off_beat_share": 0.02897787144362487
+   },
+   "feel": {
+    "metre": {
+     "median_abs_ms": 19.334528744661128,
+     "p90_abs_ms": 40.709011687260954,
+     "lost_share": 0.01087719298245614,
+     "off_beat_share": 0.01087719298245614
+    },
+    "player": {
+     "median_abs_ms": 7.625175293554776,
+     "p90_abs_ms": 19.0661007088508,
+     "lost_share": 0.0,
+     "off_beat_share": 0.0
+    },
+    "reacquired": 0
+   },
+   "isochronous": {
+    "metre": {
+     "median_abs_ms": 21.042053681298967,
+     "p90_abs_ms": 43.54853000708942,
+     "lost_share": 0.021052631578947368,
+     "off_beat_share": 0.021052631578947368
+    },
+    "player": {
+     "median_abs_ms": 12.202132830864798,
+     "p90_abs_ms": 25.405157224159325,
+     "lost_share": 0.0,
+     "off_beat_share": 0.0
+    },
+    "reacquired": 0
+   },
+   "frozen": {
+    "metre": {
+     "median_abs_ms": 45731.450448099524,
+     "p90_abs_ms": 95285.18356011092,
+     "lost_share": 0.9929824561403509,
+     "off_beat_share": 0.6635087719298246
+    },
+    "player": {
+     "median_abs_ms": 45842.75057419255,
+     "p90_abs_ms": 95240.27292282619,
+     "lost_share": 0.9931362196409715,
+     "off_beat_share": 0.6642027455121436
+    },
+    "reacquired": 0
+   }
+  },
+  {
+   "take": "Maraka_1",
+   "piece": "Maraka",
+   "recall": 0.9171322160148976,
+   "precision": 0.7886309047237791,
+   "bias_ms": -3.413666666659765,
+   "confirm_latency_ms": 22.999999999996135,
+   "cycles": 120,
+   "floor": {
+    "median_abs_ms": 17.550669439700073,
+    "p90_abs_ms": 53.54783900986197,
+    "lost_share": 0.054279749478079335,
+    "off_beat_share": 0.054279749478079335
+   },
+   "feel": {
+    "metre": {
+     "median_abs_ms": 20.63881361300446,
+     "p90_abs_ms": 57.16806817358702,
+     "lost_share": 0.07048150732728542,
+     "off_beat_share": 0.07048150732728542
+    },
+    "player": {
+     "median_abs_ms": 7.8990911530958385,
+     "p90_abs_ms": 18.243150888056903,
+     "lost_share": 0.0,
+     "off_beat_share": 0.0
+    },
+    "reacquired": 0
+   },
+   "isochronous": {
+    "metre": {
+     "median_abs_ms": 24.491880219756013,
+     "p90_abs_ms": 61.66701632863294,
+     "lost_share": 0.09560362875087229,
+     "off_beat_share": 0.09560362875087229
+    },
+    "player": {
+     "median_abs_ms": 10.985541598216741,
+     "p90_abs_ms": 21.527914706535967,
+     "lost_share": 0.0,
+     "off_beat_share": 0.0
+    },
+    "reacquired": 0
+   },
+   "frozen": {
+    "metre": {
+     "median_abs_ms": 13055.255476233044,
+     "p90_abs_ms": 29068.63957647142,
+     "lost_share": 0.9797627355198884,
+     "off_beat_share": 0.6601535240753663
+    },
+    "player": {
+     "median_abs_ms": 13040.311270369202,
+     "p90_abs_ms": 28957.755984194308,
+     "lost_share": 0.9800629590766002,
+     "off_beat_share": 0.6600209863588667
+    },
+    "reacquired": 0
+   }
+  },
+  {
+   "take": "Maraka_2",
+   "piece": "Maraka",
+   "recall": 0.9203655352480418,
+   "precision": 0.7679738562091504,
+   "bias_ms": -3.502666666662435,
+   "confirm_latency_ms": 22.833333333332817,
+   "cycles": 82,
+   "floor": {
+    "median_abs_ms": 7.3762841068969465,
+    "p90_abs_ms": 18.52820902556687,
+    "lost_share": 0.0,
+    "off_beat_share": 0.0
+   },
+   "feel": {
+    "metre": {
+     "median_abs_ms": 9.016647505475817,
+     "p90_abs_ms": 19.927050616301763,
+     "lost_share": 0.0,
+     "off_beat_share": 0.0
+    },
+    "player": {
+     "median_abs_ms": 7.7842842231490295,
+     "p90_abs_ms": 18.31397731756113,
+     "lost_share": 0.0,
+     "off_beat_share": 0.0
+    },
+    "reacquired": 0
+   },
+   "isochronous": {
+    "metre": {
+     "median_abs_ms": 13.5915337799144,
+     "p90_abs_ms": 25.80956059529953,
+     "lost_share": 0.0,
+     "off_beat_share": 0.0
+    },
+    "player": {
+     "median_abs_ms": 10.64859570924881,
+     "p90_abs_ms": 21.14862274339658,
+     "lost_share": 0.0,
+     "off_beat_share": 0.0
+    },
+    "reacquired": 0
+   },
+   "frozen": {
+    "metre": {
+     "median_abs_ms": 10269.724659126687,
+     "p90_abs_ms": 23488.830279065507,
+     "lost_share": 0.9795501022494888,
+     "off_beat_share": 0.6533742331288344
+    },
+    "player": {
+     "median_abs_ms": 8865.75164105301,
+     "p90_abs_ms": 20124.245136308502,
+     "lost_share": 0.9811965811965812,
+     "off_beat_share": 0.6512820512820513
+    },
+    "reacquired": 0
+   }
+  },
+  {
+   "take": "Maraka_3",
+   "piece": "Maraka",
+   "recall": 0.8817852834740652,
+   "precision": 0.721618953603159,
+   "bias_ms": -4.3766666666726906,
+   "confirm_latency_ms": 22.833333333338146,
+   "cycles": 94,
+   "floor": {
+    "median_abs_ms": 7.6131309198324,
+    "p90_abs_ms": 20.084662388230257,
+    "lost_share": 0.0,
+    "off_beat_share": 0.0
+   },
+   "feel": {
+    "metre": {
+     "median_abs_ms": 8.621687637200282,
+     "p90_abs_ms": 22.746415432826698,
+     "lost_share": 0.0,
+     "off_beat_share": 0.0
+    },
+    "player": {
+     "median_abs_ms": 8.324776251924959,
+     "p90_abs_ms": 20.03151658176423,
+     "lost_share": 0.0,
+     "off_beat_share": 0.0
+    },
+    "reacquired": 0
+   },
+   "isochronous": {
+    "metre": {
+     "median_abs_ms": 11.85075332809049,
+     "p90_abs_ms": 26.821717523142045,
+     "lost_share": 0.0,
+     "off_beat_share": 0.0
+    },
+    "player": {
+     "median_abs_ms": 9.466574144724405,
+     "p90_abs_ms": 22.04383962632903,
+     "lost_share": 0.0,
+     "off_beat_share": 0.0
+    },
+    "reacquired": 0
+   },
+   "frozen": {
+    "metre": {
+     "median_abs_ms": 21455.884157902943,
+     "p90_abs_ms": 47476.43712198416,
+     "lost_share": 0.9884341637010676,
+     "off_beat_share": 0.6601423487544484
+    },
+    "player": {
+     "median_abs_ms": 21524.302627765792,
+     "p90_abs_ms": 47415.46325112265,
+     "lost_share": 0.9878869448183042,
+     "off_beat_share": 0.6541049798115747
+    },
+    "reacquired": 0
+   }
+  },
+  {
+   "take": "Maraka_4",
+   "piece": "Maraka",
+   "recall": 0.8829931972789116,
+   "precision": 0.7800480769230769,
+   "bias_ms": -4.501666666655524,
+   "confirm_latency_ms": 22.999999999996135,
+   "cycles": 84,
+   "floor": {
+    "median_abs_ms": 8.804753884267491,
+    "p90_abs_ms": 22.880504911606536,
+    "lost_share": 0.0,
+    "off_beat_share": 0.0
+   },
+   "feel": {
+    "metre": {
+     "median_abs_ms": 6.9266076485945405,
+     "p90_abs_ms": 22.993748790111475,
+     "lost_share": 0.0,
+     "off_beat_share": 0.0
+    },
+    "player": {
+     "median_abs_ms": 8.078852898790956,
+     "p90_abs_ms": 21.362056842535537,
+     "lost_share": 0.0,
+     "off_beat_share": 0.0
+    },
+    "reacquired": 0
+   },
+   "isochronous": {
+    "metre": {
+     "median_abs_ms": 8.497370507175361,
+     "p90_abs_ms": 25.485230362792784,
+     "lost_share": 0.00099601593625498,
+     "off_beat_share": 0.00099601593625498
+    },
+    "player": {
+     "median_abs_ms": 7.577936773959237,
+     "p90_abs_ms": 20.55864806172992,
+     "lost_share": 0.0,
+     "off_beat_share": 0.0
+    },
+    "reacquired": 0
+   },
+   "frozen": {
+    "metre": {
+     "median_abs_ms": 14943.256388630161,
+     "p90_abs_ms": 35358.22118648869,
+     "lost_share": 0.9860557768924303,
+     "off_beat_share": 0.6633466135458167
+    },
+    "player": {
+     "median_abs_ms": 14907.903695084777,
+     "p90_abs_ms": 35325.1915998367,
+     "lost_share": 0.9895209580838323,
+     "off_beat_share": 0.6781437125748503
+    },
+    "reacquired": 0
+   }
+  },
+  {
+   "take": "Maraka_6",
+   "piece": "Maraka",
+   "recall": 0.8934782608695652,
+   "precision": 0.7615812229771464,
+   "bias_ms": -4.157666666657178,
+   "confirm_latency_ms": 22.999999999996135,
+   "cycles": 171,
+   "floor": {
+    "median_abs_ms": 10.944229715195597,
+    "p90_abs_ms": 31.4600706791083,
+    "lost_share": 0.017937219730941704,
+    "off_beat_share": 0.017937219730941704
+   },
+   "feel": {
+    "metre": {
+     "median_abs_ms": 9.431413416038481,
+     "p90_abs_ms": 33.498682431005015,
+     "lost_share": 0.0205078125,
+     "off_beat_share": 0.0205078125
+    },
+    "player": {
+     "median_abs_ms": 9.804664498005877,
+     "p90_abs_ms": 22.25084419173413,
+     "lost_share": 0.0,
+     "off_beat_share": 0.0
+    },
+    "reacquired": 0
+   },
+   "isochronous": {
+    "metre": {
+     "median_abs_ms": 11.439248804940405,
+     "p90_abs_ms": 39.62389715258077,
+     "lost_share": 0.03076171875,
+     "off_beat_share": 0.03076171875
+    },
+    "player": {
+     "median_abs_ms": 7.9679805285763905,
+     "p90_abs_ms": 18.94736985714759,
+     "lost_share": 0.0,
+     "off_beat_share": 0.0
+    },
+    "reacquired": 0
+   },
+   "frozen": {
+    "metre": {
+     "median_abs_ms": 30600.565779034197,
+     "p90_abs_ms": 77132.67722979763,
+     "lost_share": 0.99462890625,
+     "off_beat_share": 0.6640625
+    },
+    "player": {
+     "median_abs_ms": 30035.574501543124,
+     "p90_abs_ms": 76204.24712556017,
+     "lost_share": 0.9947565543071161,
+     "off_beat_share": 0.6651685393258427
+    },
+    "reacquired": 0
+   }
+  },
+  {
+   "take": "Woloso_1",
+   "piece": "Woloso",
+   "recall": 0.8796380090497737,
+   "precision": 0.7611589663273297,
+   "bias_ms": -3.842166666661484,
+   "confirm_latency_ms": 22.833333333338146,
+   "cycles": 120,
+   "floor": {
+    "median_abs_ms": 8.85531655941918,
+    "p90_abs_ms": 21.374374634530113,
+    "lost_share": 0.0,
+    "off_beat_share": 0.0
+   },
+   "feel": {
+    "metre": {
+     "median_abs_ms": 11.372895655085813,
+     "p90_abs_ms": 24.75300163213206,
+     "lost_share": 0.0,
+     "off_beat_share": 0.0
+    },
+    "player": {
+     "median_abs_ms": 7.3897324269296405,
+     "p90_abs_ms": 17.8923340081667,
+     "lost_share": 0.0,
+     "off_beat_share": 0.0
+    },
+    "reacquired": 0
+   },
+   "isochronous": {
+    "metre": {
+     "median_abs_ms": 23.915575241630904,
+     "p90_abs_ms": 43.35104230337379,
+     "lost_share": 0.0006958942240779402,
+     "off_beat_share": 0.0006958942240779402
+    },
+    "player": {
+     "median_abs_ms": 28.75746764084397,
+     "p90_abs_ms": 46.3291135851307,
+     "lost_share": 0.002103049421661409,
+     "off_beat_share": 0.002103049421661409
+    },
+    "reacquired": 0
+   },
+   "frozen": {
+    "metre": {
+     "median_abs_ms": 21284.379323208967,
+     "p90_abs_ms": 50976.63223383355,
+     "lost_share": 0.9791231732776617,
+     "off_beat_share": 0.6631871955462769
+    },
+    "player": {
+     "median_abs_ms": 21053.368275753273,
+     "p90_abs_ms": 50460.68235537453,
+     "lost_share": 0.9800210304942166,
+     "off_beat_share": 0.6624605678233438
+    },
+    "reacquired": 0
+   }
+  },
+  {
+   "take": "Woloso_2",
+   "piece": "Woloso",
+   "recall": 0.8666026871401151,
+   "precision": 0.7537562604340567,
+   "bias_ms": -3.62766666667369,
+   "confirm_latency_ms": 22.999999999996135,
+   "cycles": 118,
+   "floor": {
+    "median_abs_ms": 9.20792018656158,
+    "p90_abs_ms": 23.315646979285987,
+    "lost_share": 0.0,
+    "off_beat_share": 0.0
+   },
+   "feel": {
+    "metre": {
+     "median_abs_ms": 11.783202020964723,
+     "p90_abs_ms": 26.29788489789463,
+     "lost_share": 0.0,
+     "off_beat_share": 0.0
+    },
+    "player": {
+     "median_abs_ms": 7.518143617971873,
+     "p90_abs_ms": 20.915797092317234,
+     "lost_share": 0.0,
+     "off_beat_share": 0.0
+    },
+    "reacquired": 0
+   },
+   "isochronous": {
+    "metre": {
+     "median_abs_ms": 23.876725343860983,
+     "p90_abs_ms": 43.76602178628844,
+     "lost_share": 0.0028368794326241137,
+     "off_beat_share": 0.0028368794326241137
+    },
+    "player": {
+     "median_abs_ms": 24.15906516513644,
+     "p90_abs_ms": 41.04670876904777,
+     "lost_share": 0.0,
+     "off_beat_share": 0.0
+    },
+    "reacquired": 0
+   },
+   "frozen": {
+    "metre": {
+     "median_abs_ms": 10006.99270906263,
+     "p90_abs_ms": 27844.894054624634,
+     "lost_share": 0.9744680851063829,
+     "off_beat_share": 0.6617021276595745
+    },
+    "player": {
+     "median_abs_ms": 9995.70377120932,
+     "p90_abs_ms": 27789.431271798276,
+     "lost_share": 0.972310969116081,
+     "off_beat_share": 0.650692225772098
+    },
+    "reacquired": 0
+   }
+  },
+  {
+   "take": "Woloso_4",
+   "piece": "Woloso",
+   "recall": 0.8180677540777918,
+   "precision": 0.6687179487179488,
+   "bias_ms": -4.6801666666720365,
+   "confirm_latency_ms": 22.999999999996135,
+   "cycles": 92,
+   "floor": {
+    "median_abs_ms": 13.167401515971733,
+    "p90_abs_ms": 25.858244863952606,
+    "lost_share": 0.0013774104683195593,
+    "off_beat_share": 0.0013774104683195593
+   },
+   "feel": {
+    "metre": {
+     "median_abs_ms": 11.560446990202422,
+     "p90_abs_ms": 726.7865871912562,
+     "lost_share": 0.14636363636363636,
+     "off_beat_share": 0.08636363636363636
+    },
+    "player": {
+     "median_abs_ms": 10.727359334538278,
+     "p90_abs_ms": 711.6981124056737,
+     "lost_share": 0.13416320885200553,
+     "off_beat_share": 0.09820193637621023
+    },
+    "reacquired": 1
+   },
+   "isochronous": {
+    "metre": {
+     "median_abs_ms": 443.1567916757473,
+     "p90_abs_ms": 958.2120898600309,
+     "lost_share": 0.8436363636363636,
+     "off_beat_share": 0.26545454545454544
+    },
+    "player": {
+     "median_abs_ms": 441.77435826892975,
+     "p90_abs_ms": 959.9894828247018,
+     "lost_share": 0.8423236514522822,
+     "off_beat_share": 0.2863070539419087
+    },
+    "reacquired": 1
+   },
+   "frozen": {
+    "metre": {
+     "median_abs_ms": 12602.520289859434,
+     "p90_abs_ms": 28802.059696019096,
+     "lost_share": 0.98,
+     "off_beat_share": 0.6618181818181819
+    },
+    "player": {
+     "median_abs_ms": 12392.472592568112,
+     "p90_abs_ms": 28358.81650877619,
+     "lost_share": 0.979253112033195,
+     "off_beat_share": 0.661134163208852
+    },
+    "reacquired": 0
+   }
+  },
+  {
+   "take": "Woloso_5",
+   "piece": "Woloso",
+   "recall": 0.8718381112984823,
+   "precision": 0.6884154460719041,
+   "bias_ms": -4.029666666667708,
+   "confirm_latency_ms": 22.999999999996135,
+   "cycles": 66,
+   "floor": {
+    "median_abs_ms": 7.912985237481962,
+    "p90_abs_ms": 19.45033672205909,
+    "lost_share": 0.0,
+    "off_beat_share": 0.0
+   },
+   "feel": {
+    "player": {
+     "median_abs_ms": 6.969027471498634,
+     "p90_abs_ms": 17.4435078033099,
+     "lost_share": 0.0,
+     "off_beat_share": 0.0
+    },
+    "metre": {
+     "median_abs_ms": 8.64723836339465,
+     "p90_abs_ms": 21.73849151802329,
+     "lost_share": 0.0,
+     "off_beat_share": 0.0
+    },
+    "reacquired": 0
+   },
+   "isochronous": {
+    "player": {
+     "median_abs_ms": 25.86092255688399,
+     "p90_abs_ms": 43.70070492978187,
+     "lost_share": 0.0038240917782026767,
+     "off_beat_share": 0.0038240917782026767
+    },
+    "metre": {
+     "median_abs_ms": 22.15394974693652,
+     "p90_abs_ms": 40.34389731312444,
+     "lost_share": 0.0,
+     "off_beat_share": 0.0
+    },
+    "reacquired": 0
+   },
+   "frozen": {
+    "player": {
+     "median_abs_ms": 9582.017603864899,
+     "p90_abs_ms": 22567.45879557607,
+     "lost_share": 0.9923518164435946,
+     "off_beat_share": 0.6692160611854685
+    },
+    "metre": {
+     "median_abs_ms": 9597.71552082158,
+     "p90_abs_ms": 22674.042390442602,
+     "lost_share": 0.9911054637865311,
+     "off_beat_share": 0.662007623888183
+    },
+    "reacquired": 0
+   }
+  }
+ ],
+ "lead_s": 0.1,
+ "tempo_drift": 0.04,
+ "obs_sd": 0.06
+}
