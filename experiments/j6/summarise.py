@@ -31,13 +31,13 @@ def _test(d: pd.Series) -> dict:
             "wilcoxon_p": float(wilcoxon(d).pvalue) if (d != 0).any() and d.size > 1 else 1.0}
 
 
-def summarise(rows: list[dict]) -> dict:
+def summarise(rows: list[dict], nets=NETS) -> dict:
     df = pd.DataFrame(rows)
     out = {"protocol": sorted(df["protocol"].unique()), "n_takes": int(df["take"].nunique()),
            "seeds": sorted(int(s) for s in df["seed"].unique())}
     pred = df[df["kind"] == "prediction"].groupby(["take", "model"])[list(PRED)].mean()
     out["prediction_mean"] = pred.groupby("model").mean().round(4).to_dict(orient="index")
-    pairs = [(a, b) for a in NETS for b in NETS if a < b] + [(a, "B2_markov") for a in NETS]
+    pairs = [(a, b) for a in nets for b in nets if a < b] + [(a, "B2_markov") for a in nets]
     out["prediction_pairs"] = {}
     for a, b in pairs:
         if a not in pred.index.get_level_values(1) or b not in pred.index.get_level_values(1):
@@ -54,8 +54,8 @@ def summarise(rows: list[dict]) -> dict:
         g = gen.xs(m, level=1)
         dist[m] = pd.concat([g[list(GEN_DIST)], (g[list(GEN_TO_REAL)] - real[list(GEN_TO_REAL)]).abs()], axis=1)
     out["generation_pairs"] = {}
-    for a in NETS:
-        for b in [*NETS, "Markov_B2"]:
+    for a in nets:
+        for b in [*nets, "Markov_B2"]:
             if a < b or b == "Markov_B2":
                 if a in dist and b in dist and a != b:
                     out["generation_pairs"][f"{a} vs {b}"] = {m: _test(dist[a][m] - dist[b][m])
@@ -68,6 +68,7 @@ def main() -> None:
     ap.add_argument("parts", nargs="+")
     ap.add_argument("--out", required=True)
     ap.add_argument("--expect-seeds", type=int, default=None)
+    ap.add_argument("--nets", nargs="+", default=list(NETS), help="network rows to compare (live run: GNN_offline GNN_live_alldrums GNN_live)")
     args = ap.parse_args()
     rows = [r for p in args.parts for r in json.loads(Path(p).read_text())["rows"]]
     seen = {(r["take"], r["model"], r["seed"], r["kind"]) for r in rows}
@@ -79,7 +80,7 @@ def main() -> None:
             n = len({r["seed"] for r in rows if r["take"] == t})
             if n != args.expect_seeds:
                 raise SystemExit(f"{t}: {n} seeds, expected {args.expect_seeds}")
-    summary = summarise(rows)
+    summary = summarise(rows, args.nets)
     Path(args.out).write_text(json.dumps({"summary": summary, "rows": rows}, indent=1))
     print(json.dumps({k: summary[k] for k in ("n_takes", "seeds", "prediction_mean", "generation_mean")}, indent=1))
     print("->", args.out)

@@ -92,3 +92,22 @@ def test_task_lists():
 
     assert len(run.tasks("take", [0, 1, 2])) == 45 and len(run.tasks("piece", [0, 1, 2])) == 9
     assert len(set(run.tasks("take_nopiece", [0, 1, 2]))) == 45
+
+
+def test_causal_window_hears_the_accompaniment_only_up_to_now():
+    g = synthetic_grid()
+    w = solo_seq.seq_window(g, 5, 4, causal=True)
+    x = w.reveal(5).reshape(4, 12, 4, -1)
+    assert np.allclose(x[-1, :5, 1:3, 0], g.x[5, :5, 1:3, 0]) and (x[-1, :5, 1:3, 3] == 1).all()
+    assert not x[-1, 5:, 1:, :3].any() and (x[-1, 5:, 1:, 3] == solo.HIDDEN).all()
+    assert np.allclose(x[-1, :, :, solo_seq.LOG_T_COL], x[-2, -1, 0, solo_seq.LOG_T_COL])     # previous cycle's T
+    assert not x[..., solo_seq.SECTION_COLS].any()
+    full = solo_seq.seq_window(g, 5, 4).reveal(5).reshape(4, 12, 4, -1)
+    assert np.allclose(full[-1, 5:, 1:3, 0], g.x[5, 5:, 1:3, 0])                                # offline: all known
+
+
+def test_only_drums_silences_and_marks_absent():
+    g = synthetic_grid(present=(True, True, True, True))
+    h = solo_seq.only_drums(g)
+    assert list(h.present) == [True, True, False, False] and not h.x[:, :, 2:].any()
+    assert np.array_equal(h.x[:, :, :2], g.x[:, :, :2])

@@ -25,6 +25,13 @@ Scoring: pulse k from the state with exactly pulses 0..k-1 revealed.
 ``piece_input=False`` zeroes the piece columns of the node features: the network then
 cannot tell which rhythm it plays except by listening to it (the leave-one-piece-out
 test).
+
+``causal=True`` is the live setting (roadmap step L2): when the soloist decides pulse k,
+the accompaniment of the target cycle is known only up to pulse k-1 (a musician hears
+what was just played, not what is about to be), the target cycle's duration is not
+known yet (the previous cycle's is given instead), and the form labels (theme, heating
+up...) are not given. ``only_drums`` removes drums from a grid, e.g. to keep the soloist
+and jembe 2, the part a single player accompanies with live.
 """
 from __future__ import annotations
 
@@ -39,7 +46,19 @@ from djembe import gnn, solo
 from djembe.grid import TakeGrid, position_features
 
 PIECE_COLS = slice(9, 12)                 # piece one-hot in gnn.make_windows' node features
+SECTION_COLS = slice(12, 16)
+LOG_T_COL = 16
 DELTA_CLIP = 0.5
+
+
+def only_drums(grid: TakeGrid, keep=(0, 1)) -> TakeGrid:
+    """The grid with every other drum silent and marked absent."""
+    x = grid.x.copy()
+    drop = [i for i in range(4) if i not in keep]
+    x[:, :, drop] = 0.0
+    present = grid.present.copy()
+    present[drop] = False
+    return replace(grid, x=x, present=present)
 
 
 @dataclass
@@ -50,9 +69,11 @@ class SeqWindow:
     inten: np.ndarray
     present: tuple
     piece: str
+    ens: np.ndarray | None = None     # causal: (48, 3) target-cycle accompaniment features, revealed pulse by pulse
 
     def reveal(self, k: int, hit=None, delta=None, inten=None) -> np.ndarray:
-        """Features with the soloist's pulses 0..k-1 of the target cycle fully known."""
+        """Features with the soloist's pulses 0..k-1 of the target cycle fully known (and, if causal,
+        the accompaniment's pulses 0..k-1)."""
         hit = self.hit if hit is None else hit
         delta = self.delta if delta is None else delta
         inten = self.inten if inten is None else inten
@@ -62,17 +83,33 @@ class SeqWindow:
         x[nodes, 1] = hit[:k] * inten[:k]
         x[nodes, 2] = hit[:k] * np.clip(delta[:k], -1, 1)
         x[nodes, 3] = 1.0
+        if self.ens is not None:
+            n0 = x.shape[0] - solo.N_NODES_CYCLE
+            acc = n0 + np.flatnonzero((np.arange(solo.N_NODES_CYCLE) % 4 != solo.SOLO)
+                                      & (np.arange(solo.N_NODES_CYCLE) // 4 < k))
+            x[acc, :3] = self.ens[acc - n0]
+            x[acc, 3] = 1.0
         return x
 
 
-def seq_window(grid: TakeGrid, t: int, K: int, piece_input: bool = True) -> SeqWindow:
+def seq_window(grid: TakeGrid, t: int, K: int, piece_input: bool = True, causal: bool = False) -> SeqWindow:
     sw = solo.strike_window(grid, t, K)              # ensemble known, soloist target hidden (known = -1)
     x = sw.x.copy()
     if not piece_input:
         x[:, PIECE_COLS] = 0.0
+    ens = None
+    if causal:
+        n0 = x.shape[0] - solo.N_NODES_CYCLE
+        acc = n0 + np.flatnonzero(np.arange(solo.N_NODES_CYCLE) % 4 != solo.SOLO)
+        ens = np.zeros((solo.N_NODES_CYCLE, 3), np.float32)
+        ens[acc - n0] = x[acc, :3]
+        x[acc, :3] = 0.0
+        x[acc, 3] = solo.HIDDEN
+        x[:, SECTION_COLS] = 0.0
+        x[n0:, LOG_T_COL] = x[n0 - 1, LOG_T_COL]      # the previous cycle's duration
     tgt = grid.x[t, :, solo.SOLO]
     return SeqWindow(x, tgt[:, 0].astype(np.float32), tgt[:, 2].astype(np.float32), tgt[:, 1].astype(np.float32),
-                     sw.present, sw.piece)
+                     sw.present, sw.piece, ens)
 
 
 class SoloGNN(gnn.CycleGNN):
@@ -157,7 +194,7 @@ def score(model, windows: list[SeqWindow], *, K=4, position="full", helix=True, 
 
 
 @torch.no_grad()
-def generate(grid: TakeGrid, model, *, K=4, position="full", helix=True, piece_input=True, rng=None,
+def generate(grid: TakeGrid, model, *, K=4, position="full", helix=True, piece_input=True, causal=False, rng=None,
              temperature: float = 1.0, device="cpu", n_context: int | None = None) -> TakeGrid:
     """Soloist drawn stroke by stroke after ``n_context`` real cycles; the ensemble is the real one."""
     rng = rng or np.random.default_rng(0)
@@ -165,7 +202,7 @@ def generate(grid: TakeGrid, model, *, K=4, position="full", helix=True, piece_i
     g = replace(grid, x=grid.x.copy())
     g.x[n_context:, :, solo.SOLO] = 0.0
     for t in range(n_context, g.x.shape[0]):
-        w = seq_window(g, t, K, piece_input)
+        w = seq_window(g, t, K, piece_input, causal)
         node = solo._solo_nodes(w.x.shape[0])
         hit, delta, inten = (np.zeros(12, np.float32) for _ in range(3))
         for k in range(12):
