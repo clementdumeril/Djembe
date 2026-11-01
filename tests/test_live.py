@@ -72,3 +72,34 @@ def test_tracker_ignores_faint_bleed_between_strokes():
     for s in strokes[len(heard):]:
         tr.observe(*s)
     assert abs(tr.x[1] - 1.5) < 0.01 and tr.cycle == 11
+
+
+def test_live_session_plays_on_the_tracked_grid():
+    import pytest
+
+    torch = pytest.importorskip("torch")
+    from djembe import gnn
+    from djembe.grid import position_features
+    from djembe.live import LiveSession
+    from djembe.solo_seq import SoloGNN
+
+    torch.manual_seed(0)
+    model = SoloGNN(gnn.n_base_features() + position_features("full", 1).shape[1], dim=16, layers=1).eval()
+    truth = j2_times(8)
+    tr = GridTracker(FEEL)
+    seed_rows = np.zeros((3, 12, 4, 3), np.float32)
+    seed_rows[:, list(J2_PULSES), 1, 0] = 1.0
+    s = LiveSession(model, tr, "Maraka", seed_rows, rng=np.random.default_rng(0))
+    heard = [(t, 1.0) for t in truth if t <= truth[0] + tr.listen]
+    s.start(heard)
+    assert s.x[3, list(J2_PULSES), 1, 0].all()                          # the listened cycle is written as jembe 2
+    plays = []
+    for i in range(len(heard), len(truth)):
+        c, k = divmod(i, 8)
+        out = s.decide(c, J2_PULSES[k])
+        if out is not None:
+            plays.append((out[0], c, J2_PULSES[k]))
+        s.hear(truth[i], 1.0)
+    assert plays
+    for t, c, k in plays:
+        assert abs(t - (0.3 + c * 1.5 + k / 12 * 1.5)) <= 0.5 / 12 * 1.5 + 0.005   # half a pulse at most, plus tracking error

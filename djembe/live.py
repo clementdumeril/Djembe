@@ -263,3 +263,96 @@ def j2_offsets(events, takes, piece: str) -> dict:
     ev = ev[ev["dev_sd"].abs() <= 0.5]
     med = ev.groupby("sd")["dev_sd"].median()
     return {k: float(med.get(k + 1, 0.0)) for k in J2_PULSES}
+
+
+class LiveSession:
+    """The soloist playing along: tracker, a growing cycle grid, and the causal soloist model.
+
+    Cycle c of the tracker is row c + n_seed of the grid; the first ``n_seed`` rows hold
+    a few cycles of a real performance of the piece (soloist and jembe 2), so that the
+    model has the context it was trained with before the live soloist has played. Each
+    stroke the tracker accepts is written as a jembe-2 cell (offset measured against the
+    tracker's grid, intensity = z-scored log level); ``decide`` draws the soloist's pulse
+    k of cycle c, causally (``djembe.solo_seq``), and returns when to play it.
+
+    ``grid_offset`` (fraction of a pulse): the model's offsets are measured from a grid
+    shifted by each take's median offset (``djembe.grid``, ``align=True``), the tracker's
+    from the grid the player's strokes imply. The piece's typical shift (about -0.17
+    pulse for Woloso, -0.03 for Maraka) is removed from the player's offsets before the
+    model sees them and added back to the soloist's before it plays.
+    """
+
+    def __init__(self, model, tracker: GridTracker, piece: str, seed_rows: np.ndarray, *, K: int = 4,
+                 temperature: float = 1.0, piece_input: bool = True, max_cycles: int = 2000, rng=None,
+                 grid_offset: float = 0.0):
+        from djembe.grid import SECTIONS  # noqa: F401  (grid layout shared with djembe.grid)
+
+        self.model, self.tracker, self.piece, self.K = model, tracker, piece, K
+        self.temperature, self.piece_input, self.grid_offset = temperature, piece_input, grid_offset
+        self.rng = rng or np.random.default_rng(0)
+        self.n_seed = len(seed_rows)
+        self.x = np.zeros((self.n_seed + max_cycles, 12, 4, 3), np.float32)
+        self.x[:self.n_seed, :, :2] = seed_rows[:, :, :2]
+        self.log_T = np.full(len(self.x), np.log(1.5), np.float32)
+        self.level_log: list[float] = []
+        self.seen = 0
+
+    def _z(self, level: float) -> float:
+        v = np.log(max(level, 1e-6))
+        self.level_log.append(v)
+        a = np.array(self.level_log[-200:])
+        return float((v - a.mean()) / (a.std() + 1e-6)) if len(a) > 3 else 0.0
+
+    def _write_new(self, levels: dict) -> None:
+        tr = self.tracker
+        for t, c, k, _ in tr.log[self.seen:]:
+            T = tr.x[1]
+            row = self.n_seed + c
+            self.x[row, k, 1] = (1.0, self._z(levels.get(t, 1.0)),
+                                 (t - tr.pulse_time(k, c)) / (T / 12) - self.grid_offset)
+            self.log_T[row] = np.log(T)
+        self.seen = len(tr.log)
+
+    def start(self, heard: list[tuple[float, float]]) -> None:
+        self.tracker.start_from(heard)
+        t0, l0 = heard[0]
+        T = self.tracker.x[1]
+        self.x[self.n_seed, 0, 1] = (1.0, self._z(l0),
+                                     (t0 - self.tracker.pulse_time(0, 0)) / (T / 12) - self.grid_offset)
+        self.log_T[:self.n_seed + 1] = np.log(T)
+        self._write_new(dict(heard))
+
+    def hear(self, t: float, level: float) -> None:
+        self.tracker.observe(t, level)
+        self._write_new({t: level})
+
+    def grid(self, upto_cycle: int):
+        from djembe.grid import TakeGrid
+
+        n = self.n_seed + upto_cycle + 1
+        return TakeGrid(take_id="live", piece=self.piece, x=self.x[:n], log_T=self.log_T[:n],
+                        section=np.zeros(n, int), in_signal=np.zeros(n, bool),
+                        present=np.array([True, True, False, False]), cycle_idx=np.arange(n))
+
+    def decide(self, c: int, k: int):
+        """Soloist pulse k of tracker cycle c: (time to play [s], intensity z) or None."""
+        from djembe import solo, solo_seq
+
+        row = self.n_seed + c
+        self.log_T[row] = np.log(self.tracker.x[1])
+        w = solo_seq.seq_window(self.grid(c), row, self.K, self.piece_input, causal=True)
+        s = self.x[row, :, 0]
+        xk = w.reveal(k, s[:, 0], s[:, 2], s[:, 1])
+        b = solo._collate([xk], [w.present], self.K, "full", True, "cpu")
+        import torch
+
+        with torch.no_grad():
+            out = self.model(b["x"], b["edges"])
+        node = solo._solo_nodes(xk.shape[0])[k]
+        logit, dm, dls, im, ils = (float(o[node]) for o in out)
+        if self.rng.random() >= 1.0 / (1.0 + np.exp(-logit / self.temperature)):
+            return None
+        delta = float(np.clip(self.rng.normal(dm, np.exp(dls)), -0.5, 0.5))
+        z = float(self.rng.normal(im, np.exp(ils)))
+        self.x[row, k, 0] = (1.0, z, delta)
+        return self.tracker.pulse_time(k + delta + self.grid_offset, c), z

@@ -1,0 +1,27 @@
+{
+ "take": "Woloso_2",
+ "cycles": 30,
+ "strokes": 223,
+ "asynchrony_ms": {
+  "generated_median": -6.0855670757113955,
+  "generated_iqr": 17.29637103002979,
+  "real_median": -5.601500000004478,
+  "real_iqr": 18.468999999994296,
+  "n_generated": 130
+ },
+ "strokes_per_cycle": {
+  "generated": 7.433333396911621,
+  "real": 8.433333396911621
+ },
+ "timing_lag1": {
+  "generated": 0.07352507391204306,
+  "real": 0.33268456383893846
+ },
+ "distinct_rate": {
+  "generated": 0.7333333333333333,
+  "real": 0.3504273504273504
+ },
+ "tracker_reacquired": 0,
+ "temperature": 0.8,
+ "grid_offset": -0.18155714477629642
+}

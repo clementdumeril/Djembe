@@ -123,22 +123,27 @@ def backing(take: str, t0: float, t1: float, corpus=d.DEFAULT_CORPUS, gated: boo
 def soloist_track(grid: TakeGrid, types: np.ndarray, starts: np.ndarray, bank, sr: int, logpeak_sd: float,
                   t0: float, t1: float, start_cycle: int, rng=None, n_near: int = 6) -> np.ndarray:
     """Mono soloist over [t0, t1] s from the cut strokes, following the grid's soloist line."""
+    from djembe.stroke_types import TYPES
+
+    T = np.exp(grid.log_T)
+    strokes = [(starts[c] + (k + grid.x[c, k, 0, 2] + grid.delta_offset) / 12 * T[c],
+                TYPES[types[c, k]] if types[c, k] >= 0 else "tone", float(grid.x[c, k, 0, 1]))
+               for c in range(start_cycle, grid.x.shape[0]) for k in range(12) if grid.x[c, k, 0, 0] > 0]
+    return strokes_track(strokes, bank, sr, logpeak_sd, t0, t1, rng, n_near)
+
+
+def strokes_track(strokes, bank, sr: int, logpeak_sd: float, t0: float, t1: float, rng=None,
+                  n_near: int = 6) -> np.ndarray:
+    """Mono track over [t0, t1] s playing (time [s], stroke type, intensity z) with the cut strokes."""
     rng = rng or np.random.default_rng(0)
     out = np.zeros(int((t1 - t0) * sr), np.float32)
-    T = np.exp(grid.log_T)
     by_type = {}
     for s in ("bass", "tone", "slap"):
         clean = [(z, w) for s2, z, w, ok in bank if s2 == s and ok]
         by_type[s] = clean if len(clean) >= 2 * n_near else [(z, w) for s2, z, w, _ in bank if s2 == s]
-    from djembe.stroke_types import TYPES
-
-    cells = [(starts[c] + (k + grid.x[c, k, 0, 2] + grid.delta_offset) / 12 * T[c], c, k)
-             for c in range(start_cycle, grid.x.shape[0]) for k in range(12) if grid.x[c, k, 0, 0] > 0]
-    cells = sorted(x for x in cells if t0 <= x[0] < t1)
+    cells = sorted(x for x in strokes if t0 <= x[0] < t1)
     last = None
-    for j, (t, c, k) in enumerate(cells):
-        z = float(grid.x[c, k, 0, 1])
-        name = TYPES[types[c, k]] if types[c, k] >= 0 else "tone"
+    for j, (t, name, z) in enumerate(cells):
         pool = by_type[name] or [(zz, w) for _, zz, w, _ in bank]
         near = np.argsort([abs(zz - z) for zz, _ in pool])[:n_near]
         choice = [i for i in near if i != last] or list(near)

@@ -1,0 +1,27 @@
+{
+ "take": "Maraka_2",
+ "cycles": 30,
+ "strokes": 154,
+ "asynchrony_ms": {
+  "generated_median": -2.8103921806170717,
+  "generated_iqr": 27.30945761124337,
+  "real_median": -3.7110000000026844,
+  "real_iqr": 18.04100000000375,
+  "n_generated": 100
+ },
+ "strokes_per_cycle": {
+  "generated": 5.133333206176758,
+  "real": 9.333333015441895
+ },
+ "timing_lag1": {
+  "generated": 0.07782404748349456,
+  "real": 0.39570909236725105
+ },
+ "distinct_rate": {
+  "generated": 0.9,
+  "real": 0.3950617283950617
+ },
+ "tracker_reacquired": 0,
+ "temperature": 0.8,
+ "grid_offset": -0.0316096579476794
+}
