@@ -148,9 +148,12 @@ def nll_terms(out, nodes, hit, delta, inten):
 
 def train(windows: list[SeqWindow], *, K=4, position="full", helix=True, dim=64, layers=3, dropout=0.1, lr=2e-3,
           weight_decay=1e-4, epochs=40, batch_size=32, seed=0, device="cpu") -> SoloGNN:
+    """Windows whose node features have extra columns (e.g. ``djembe.planner``'s base figure) get a wider input."""
     torch.manual_seed(seed)
     rng = np.random.default_rng(seed)
-    model = SoloGNN(gnn.n_base_features() + position_features(position, 1).shape[1], dim, layers, dropout).to(device)
+    n_extra = windows[0].x.shape[1] - gnn.n_base_features()
+    model = SoloGNN(n_extra + gnn.n_base_features() + position_features(position, 1).shape[1], dim, layers,
+                    dropout).to(device)
     opt = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=weight_decay)
     sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=epochs)
     for _ in range(epochs):
