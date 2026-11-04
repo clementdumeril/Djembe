@@ -1,0 +1,23 @@
+cff-version: 1.2.0
+message: "If you use this code, please cite it as below, and cite the IEMP Malian Jembe corpus (Polak, Tarsitani & Clayton, 2018)."
+title: "Djembe: a generative model of Malian jembe micro-timing"
+authors:
+  - family-names: "Dumeril"
+    given-names: "Clément"
+    affiliation: "University of California, Berkeley"
+version: "0.3.0.dev0"
+license: MIT
+repository-code: "https://github.com/clementdumeril/Djembe"
+type: software
+references:
+  - type: data
+    title: "IEMP Malian Jembe"
+    authors:
+      - family-names: "Polak"
+        given-names: "Rainer"
+      - family-names: "Tarsitani"
+        given-names: "Simone"
+      - family-names: "Clayton"
+        given-names: "Martin"
+    year: 2018
+    doi: "10.17605/OSF.IO/M652X"

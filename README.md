@@ -1,164 +1,140 @@
 # Djembe: a generative model of Malian jembe micro-timing
 
-I model how Malian jembe ensembles play: which strokes, exactly when, how hard, and in response to the other drummers. The data is the IEMP Malian Jembe corpus (Polak, Tarsitani & Clayton, 2018): 15 multitrack takes of three pieces (Manjanin, Maraka, Woloso), about 51 minutes and 41,072 annotated strokes.
+A relational graph network over the 12-pulse cycle predicts and generates the soloist of Malian jembe ensembles stroke by stroke (strike, timing, intensity) on the IEMP corpus, and on a rhythm left out of training it beats a same-size Music-Transformer-style model and two statistical references on all 15 held-out takes.
 
-The question: with this little data, does building the symmetries of the 12-pulse cycle into a graph neural network work better than pretraining on a large drum corpus?
+[Results and commands](docs/RESULTS.md) · [Findings in detail](docs/FINDINGS.md) · [Corpus (OSF)](https://doi.org/10.17605/OSF.IO/M652X) · [Corpus erratum](docs/CORPUS_ERRATUM.md)
 
-Status (October 2026): the dataset and recognition results are done; the generative model is in progress. On its first task, predicting how late or early each stroke falls, the graph model beats the best reference model on 13 of 15 held-out takes, and all three seeds agree on those 13 ([details below](#three-fixes-then-three-seeds-on-savio)). Building the rotation symmetry of the cycle into the network never helps: with 2 training takes it ties, from 4 takes on it loses ([data-efficiency curve](#does-symmetry-help-with-less-data)). Generating the soloist over the real ensemble, the network phrases more like a real soloist than a Markov chain does: it returns to its own figures more often and keeps their variety closer to a real soloist's ([details](#generating-the-soloist)). Against a Music-Transformer-style model given the same information, the graph model predicts the soloist better, and on a rhythm left out of training entirely it still beats every reference on all 15 takes while the transformers fall below a per-position average on timing ([details](#graph-model-or-transformer-and-a-rhythm-never-heard)). The earlier analysis stage (notebooks, listening demo) is at tag [`v0.2-analysis`](https://github.com/clementdumeril/Djembe/tree/v0.2-analysis).
-
-![Dundun 1 pattern and micro-timing in Manjanin, Maraka and Woloso](docs/figures/hero_d1_pattern_timing.png)
-
-## Recognition
-
-| Task (leave-one-take-out) | Balanced accuracy |
-|---|---|
-| Piece from the whole-take dundun pattern | 15/15 takes |
-| Piece from jembe timing only, pattern masked, 4 cycles | 0.86 (95 % CI 0.74 to 0.95) |
-| Same, tempo regressed out of every feature | 0.78 (95 % CI 0.64 to 0.90) |
-
-The dundun result is a ceiling: a nearest-centroid rule already separates the three patterns. The intervals rest on 4 to 6 takes per piece, so they are probably too narrow.
-
-## Humanizing a cycle
-
-The graph model sees 4 cycles: 3 fully known, and a last one where it only knows which drums strike where. It predicts each stroke's offset and intensity as Gaussians, scored by negative log-likelihood on held-out takes (nats, lower is better). References: B1, a Gaussian per piece, drum and pulse; B2, which adds Markov memory of earlier cycles.
-
-![The V5 graph laid out by networkx: four stacked rings of 12 pulses, joined by the helix edge](docs/figures/gnn_graph_nx.png)
-
-*192 nodes (4 cycles × 12 pulses × 4 drums), with next pulse, same pulse, previous cycle and helix edges; networkx computes the positions (3D spring layout), none are placed by hand ([script](experiments/gnn/plot_gnn_graph_nx.py), [schematic](docs/figures/gnn_graph.png)). I trained it with no symmetry (V0), beat symmetry C4 (V1) and full C12 equivariance (V3, no pulse index); the symmetric versions never won, at any data size ([curve below](#does-symmetry-help-with-less-data)).*
-
-Over three seeds on Colab, the first network only ties B2 (−0.709 both, better on 8 of 15 takes, p = 0.60). So my one-seed claim that it beat B2 on 12 of 15 takes does not hold. Symmetry did not help at this data size, even though the jembe feel is close to beat-symmetric in the data (the four beats differ by 1 to 2 ms, against a feel of 3 to 20 ms).
-
-### Three fixes, then three seeds on Savio
-
-1. Keep the last epoch instead of the best epoch on one validation take, which caused most of the seed spread (`--select last`).
-2. Helix edge (V5): pulse 12 now feeds pulse 1 of the next cycle, not of the same cycle.
-3. Correction to B1 (V4 = V5 + this): the network predicts a correction to B1's Gaussian.
-
-On seed 0 the correction to B1 hurt (V4, −0.652, worse than V5 on 14 of 15 takes), so I dropped it and ran V0 and V5 with three seeds each on UC Berkeley's Savio cluster (45 jobs, about 5 minutes each).
-
-| Offsets | 3 seeds, Savio | Seed 0, laptop | vs B2, per take (3 seeds) |
-|---|---|---|---|
-| B1 position | −0.579 | −0.579 | |
-| B2 Markov, earlier cycles | −0.709 | −0.709 | |
-| GNN V0, last epoch | −0.780 | −0.784 | better on 13 of 15 |
-| GNN V5, last epoch + helix | **−0.796** | −0.801 | better on 13 of 15 (Wilcoxon p = 0.005, sign test p = 0.007) |
-
-![Negative log-likelihood per held-out take over three seeds: V5 below B2 on 13 takes, above it on Manjanin_4](docs/figures/j3b_humanize_3seeds_savio.png)
-
-V5 beats B2 by 0.087 nats per stroke (0.10 averaged over takes), so it gives the real offsets about 9 % more probability. The lead does not depend on the seed this time: each seed alone beats B2 on 13 or 14 takes, and V5's overall score moves by 0.013 between seeds. The helix helps a little but steadily: V5 beats V0 on 14 of 15 takes (−0.020, p = 0.007).
-
-The two exceptions: Woloso_1 is a tie (−1.085 against −1.086), and on Manjanin_4 the network loses on all three seeds (−0.42 against −0.59). It is the only Manjanin take whose jembe 1 player plays no other Manjanin take, so the network may have learned the regular players rather than the piece; I have not tested that yet, the scores are not split by drum. On intensity V5 wins on all 15 takes (0.88 against 1.29), but a gap that size may be microphone bleed. Next: the bleed control and per-drum scores.
-
-### Does symmetry help with less data?
-
-Symmetry shares one rule across the beats (V1) or across all 12 pulses (V3), so each rule sees 4 or 12 times more examples. If that pays off anywhere, it should be when data is scarce. So I trained every variant on 2, 4, 8 and 13 takes, with B1 and B2 fitted on the same takes: 180 Savio jobs, nested subsets that always include a take of the test piece, 3 repetitions (subset and seed).
-
-| Training takes | B2 | V0, no symmetry | V1, beat symmetry | V3, pulse rotation | V5, helix |
-|---|---|---|---|---|---|
-| 2 | −0.310 | −0.558 | −0.547 | −0.560 | −0.558 |
-| 4 | −0.631 | **−0.652** | −0.632 | −0.627 | −0.633 |
-| 8 | −0.676 | **−0.733** | −0.628 | −0.685 | −0.729 |
-| 13 | −0.691 | −0.780 | −0.739 | −0.748 | **−0.795** |
-
-![Offset NLL against the number of training takes, and difference to B2](docs/figures/j4_curve.png)
-
-With 2 takes the four networks tie (V1 and V3 against V0: p = 0.89 per take). From 4 takes on, both symmetric versions lose to V0, more clearly as data grows: V1 beats V0 on 4, 1 and 1 of 15 takes at 4, 8 and 13 takes, V3 on 3, 0 and 3 (p from 0.035 down to below 0.001). So the symmetry never pays off here. It costs nothing when data is scarce and costs more as data grows. My reading, not tested: the feel itself is nearly beat-symmetric, but the absolute pulse also tells the network where it is in the dundun figure and the cycle, and that information is worth more than the shared statistics.
-
-The network beats B2 at every size (11, 12, 14 and 14 of 15 takes). Part of its large lead with 2 takes comes from pooling across pieces: B2 is fitted piece by piece, so it learns each piece from one take, while the network uses both. The bump of V1 at 8 takes is one diverged run (Manjanin_4, repetition 2, +1.25); without repetition 2 of that take (dropped for both models) V1 still loses on 14 of 15 takes. The helix (V5) ties V0 up to 8 takes and helps at 13 (12 of 15, p = 0.012). At 13 takes B1 and B2 are fitted on the network's 13 takes rather than 14, hence B2 at −0.691 here against −0.709 above.
-
-## Generating the soloist
-
-Prediction scores say whether a model knows what comes next; generation asks it to play. I first generated the whole ensemble cycle by cycle, drawing the 48 strikes of each cycle independently from the network's probabilities. The network predicted next-cycle strikes better than B2 on all 15 takes (0.196 against 0.256 nats per pulse), yet its free-running takes were less faithful than the Markov chain's (strike profile further from the real take on 14 of 15). Drawn independently, the strikes of one cycle mix several figures.
-
-So I changed two things. Only the soloist is generated: jembe 1 is the corpus' soloist (its most frequent cycle covers 17 % of its cycles, against 95 % for jembe 2), and the accompaniment stays real everywhere, including in the cycle being played. And its strikes are drawn one pulse after the other, by a strike model trained on random prefixes of the cycle. The sampling temperature is chosen on the validation take (0.8 in 44 of 45 runs).
-
-| Soloist, held-out takes | GNN | Markov (B2) | GNN better on |
-|---|---|---|---|
-| Strike prediction, nats per pulse | **0.424** | 0.538 | 15 of 15 takes |
-| Offset prediction, nats | **−0.783** | −0.659 | 12 of 15 |
-| Intensity prediction, nats | **1.240** | 1.398 | 15 of 15 |
-
-In free generation, over the real ensemble of each held-out take:
-
-| Generated soloist | Real soloist | GNN | Markov |
-|---|---|---|---|
-| Distinct figures per cycle | 36 % | **51 %** | 77 % |
-| Cycles returning to a figure played earlier in the take | 64 % | **49 %** | 23 % |
-| Timing distance to the real soloist (another real take: 7.9 ms) | | 7.3 ms | 6.2 ms |
-| Strike-profile distance (another real take: 0.118) | | 0.150 | 0.127 |
-
-![Copying, varying, inventing: generated and real soloists against the other takes](docs/figures/j5b_solo.png)
-
-The network's variety of figures is closer to the real soloist than Markov's on 14 of 15 takes (p = 0.0001). Markov matches the per-pulse averages slightly better, which is what it is built from, but changes figure almost every cycle. On timing both stay within the gap between two real takes of the same piece.
-
-Does it copy? Not phrases: runs of 4 or more cycles identical to another take are one figure repeated 89 % of the time (95 % for the real soloists), and the figures it reuses come from all four soloists of the corpus, less concentrated on the most present one than the real soloists themselves (35 % against 47 %). 42 % of its cycles are figures known from other takes (68 % for real soloists, who share a vocabulary), 37 % are one pulse away from one, and 21 % are two or more pulses away, twice the real rate. My reading: it recombines and varies the corpus' vocabulary and returns to its own figures, a statistical form of stylistic variation. It says nothing about intention, and the network is somewhat more inventive than the real soloists. A blind listening test is the next check.
-
-## Graph model or transformer, and a rhythm never heard
-
-Playing the jembe here means soloing over a base rhythm, including one the model has never heard. Two changes to the soloist model, then a comparison:
-
-- Stroke by stroke, timing included: in the version above the offsets of a whole cycle were drawn at once, independently. Real soloists' deviations hang together (two successive strokes late together); the generated ones barely did, and by ear the Woloso solos lost their micro-timing. Now each pulse is drawn in order: whether it strikes, then its offset and intensity, given everything before it.
-- A transformer given exactly the same information and factorisation: an encoder over the accompaniment, a causal decoder over the soloist line, a pulse embedding and a learned relative-position bias per head (the relative attention of the Music Transformer, Huang et al. 2018, in the additive form of Raffel et al. 2020; my own implementation). Two sizes: the graph model's (60 k parameters against 56 k) and a standard small one (181 k).
-- Three protocols: leave-one-take-out with the piece given; the same without it; and leave-one-piece-out, without the piece: trained on two rhythms, tested on every take of the third.
-
-| Soloist prediction (nats, lower is better) | Strikes | Offsets | Intensities |
-|---|---|---|---|
-| **Rhythm seen in training** | | | |
-| Graph model | **0.407** | **−0.945** | **1.220** |
-| Transformer, same size | 0.423 | −0.844 | 1.243 |
-| Transformer, 181 k | 0.436 | −0.704 | 1.355 |
-| Markov (B2) | 0.537 | −0.749 | 1.393 |
-| **Rhythm never heard** | | | |
-| Graph model | **0.436** | **−0.565** | **1.233** |
-| Transformer, same size | 0.548 | 0.411 | 1.340 |
-| Transformer, 181 k | 0.590 | 1.055 | 1.538 |
-| Markov (B2), pieces pooled | 0.631 | 0.045 | 1.429 |
-| Per position (B1), pieces pooled | 0.645 | −0.281 | 1.432 |
+[![tests](https://github.com/clementdumeril/Djembe/actions/workflows/tests.yml/badge.svg)](https://github.com/clementdumeril/Djembe/actions/workflows/tests.yml)
 
 ![Soloist prediction on seen and unseen rhythms: graph model, two transformers, Markov and per-position references](docs/figures/j6_gnn_transformer.png)
 
-On seen rhythms the graph model beats the same-size transformer on 12 of 15 takes for strikes (p = 0.015) and 14 of 15 for offsets (p = 0.0003); intensities are a tie (10 of 15, p = 0.15). The larger transformer does worse than the smaller one: with 15 takes it overfits. Removing the piece label costs the graph model nothing (0.407, −0.954, 1.215): it identifies the rhythm from the accompaniment.
+*Negative log-likelihood of the held-out soloist (lower is better), one dot per take, 15 takes x 3 seeds. Left group of each panel: rhythm seen in training; right group: rhythm never heard.*
 
-On a rhythm never heard, the graph model loses little on strikes (0.436 against 0.407) and beats both transformers and both references on all 15 takes, for all three quantities. The transformers no longer place the strokes: their offset scores fall below the per-position average of the two other rhythms. My reading: the graph gives the network the structure of the ensemble (who plays with whom, which pulse follows which), which it can carry to a new rhythm; the transformer has to learn that structure from 15 takes. Maraka is the hardest rhythm to guess (offsets −0.29 unseen against −0.93 seen): its pattern of early and late subdivisions differs from Manjanin's and Woloso's, which resemble each other, so its feel cannot be inferred from them.
+## Overview
 
-In generation (temperature 1 for every model, no tuning), successive timing deviations now hang together: correlation 0.44 for the graph model, 0.56 for the transformers, 0.54 for Markov, 0.56 for the real soloists (Woloso: 0.26 seen, 0.41 unseen, real 0.40; it was 0.07 before). The transformers come closer on this measure, though not significantly (graph model closer on 5 of 15 takes, p = 0.17). On the unseen rhythm the graph model's solos are closer to the real ones than the 181 k transformer's in strike profile (12 of 15, p = 0.0009), timing distribution (12 of 15, p = 0.048) and intensities (13 of 15). Without temperature tuning the solos vary more than before (69 % distinct figures against 51 % at temperature 0.8, real soloists 36 %).
+The data is the IEMP Malian Jembe corpus (Polak, Tarsitani & Clayton, 2018): 15 multitrack takes of three pieces (Manjanin, Maraka, Woloso), about 51 minutes and 41,072 annotated strokes, one dundun player throughout. The question is whether, with this little data, building the structure of the cycle into a small graph network works, and which symmetries help. Models are always tested on whole takes they never saw (or on a whole piece); the take-level folds are frozen in [`splits.json`](splits.json) and the tests fail if a take is on both sides.
 
-### Stroke types
+What is mine: the event table and splits, the reference models, the graph network and its variants, the Music-Transformer-style comparison model (my own implementation of relative attention), the stroke-type labelling, the generation and evaluation code, and the live-play prototype. Reused: the corpus, its onsets and metre annotations (Polak, Tarsitani & Clayton), the musicological results on non-isochronous subdivision that the analysis replicates (Polak 2010; Polak & London 2014; Polak, London & Jacoby 2016), and CC0 drum samples for rendering.
 
-The corpus gives when each drum strikes, not how. Each jembe has its own microphone, so the stroke type of the soloist (bass, tone, slap) is read from a short window of its track: band energies, spectral centroid and flatness, decay, then a 3-component mixture ([`djembe/strokes.py`](djembe/strokes.py)). Checked by ear by a jembe player on 105 strokes in 3 passages, the automatic labels agree at 75 % (bass 14/19, slap 27/35, tone 38/51); on the accompanying jembe they recover its fixed pattern (stroke type per pulse at 0.47 nats, uniform 1.10). A logistic model then predicts the soloist's stroke from the grid at 72 % leave-one-take-out (uniform 33 %; pulse alone 46 %, pulse and intensity 71 %): loud strokes are slaps, while the choice between bass and tone is much less tied to the pulse than for the accompanist ([`djembe/stroke_types.py`](djembe/stroke_types.py)). The renderer plays the drawn type.
+```mermaid
+flowchart LR
+    corpus[("IEMP corpus<br/>15 takes, 41,072 strokes")] -->|"onsets, metre"| grid["Cycle grid<br/>12 pulses x 4 drums"]
+    grid -->|"window of K = 4 cycles"| win["Graph, 192 nodes<br/>next pulse (helix), same pulse, previous cycle"]
+    win -->|"node features: strike, offset, intensity, drum, piece, tempo"| gnn["Relational GNN<br/>3 layers, width 64, 56k params"]
+    gnn -->|"pulse k: p(strike), Gaussian offset and intensity"| solo["Soloist, pulse by pulse<br/>k = 0..11"]
+    solo -.->|"pulse k revealed"| win
+    solo -->|"NLL (nats) per held-out take"| eval["Leave-one-take-out and<br/>leave-one-piece-out vs B1, B2, transformers"]
+```
+
+*Soloist model ([`solo_seq.py`](djembe/solo_seq.py), network in [`gnn.py`](djembe/gnn.py)): the accompaniment of the target cycle is known, the soloist's pulses are predicted in order. References ([`baselines.py`](djembe/baselines.py)): B1, a Gaussian per piece, drum and pulse; B2, which adds Markov memory of earlier cycles.*
+
+## Results
+
+All scores are negative log-likelihoods on held-out takes (nats per stroke or per pulse, lower is better), mean of 3 seeds, compared take by take with a two-sided Wilcoxon test.
+
+Soloist, stroke by stroke ([`j6_take_savio.json`](results/j6_take_savio.json), [`j6_piece_savio.json`](results/j6_piece_savio.json)):
+
+| Model (parameters) | Seen rhythm: strikes / offsets / intensities | Unseen rhythm: strikes / offsets / intensities |
+| :-- | --: | --: |
+| Graph network (56k) | 0.407 / -0.945 / 1.220 | 0.436 / -0.565 / 1.233 |
+| Transformer, same size (60k) | 0.423 / -0.844 / 1.243 | 0.548 / 0.411 / 1.340 |
+| Transformer (181k) | 0.436 / -0.704 / 1.355 | 0.590 / 1.055 / 1.538 |
+| B2, Markov | 0.537 / -0.749 / 1.393 | 0.631 / 0.045 / 1.429 |
+| B1, per position | 0.597 / -0.573 / 1.396 | 0.645 / -0.281 / 1.432 |
+
+Seen rhythm (leave-one-take-out, piece given): the graph network beats the same-size transformer on 12 of 15 takes for strikes (p = 0.015) and 14 of 15 for offsets (p = 0.0003); intensities tie (10 of 15, p = 0.15). Removing the piece label costs it nothing (0.407 / -0.954 / 1.215, [`j6_take_nopiece_savio.json`](results/j6_take_nopiece_savio.json)). Unseen rhythm (trained on two pieces, tested on every take of the third): it beats every other model on all 15 takes for all three quantities (p = 0.0001), while the transformers fall below the per-position average on offsets. The 181k transformer overfits the 15 takes.
+
+Humanizing a cycle, the first task: offsets of every stroke in the last of 4 cycles, strikes known ([`j3b_humanize_3seeds_savio.json`](results/j3b_humanize_3seeds_savio.json)):
+
+| Model | Offsets (nats) | Better than B2 on |
+| :-- | --: | --: |
+| B1, per position | -0.579 | |
+| B2, Markov over earlier cycles | -0.709 | |
+| Graph network, no symmetry (V0) | -0.780 | 13 of 15 takes |
+| Graph network, helix edge (V5) | -0.796 | 13 of 15 takes (p = 0.005) |
+
+![Negative log-likelihood per held-out take over three seeds](docs/figures/j3b_humanize_3seeds_savio.png)
+
+Building symmetry into the network did not help at any data size ([`j4_curve_savio.json`](results/j4_curve_savio.json), [figure](docs/figures/j4_curve.png)). Trained on 2, 4, 8 and 13 takes (3 repetitions each), beat symmetry (C4) and rotation of the whole cycle (C12) tie the unconstrained network with 2 takes and lose from 4 takes on: C4 beats it on 4, 1 and 1 of 15 takes at 4, 8 and 13 training takes. The network beats B2 at every size.
+
+In free generation (temperature 1), successive timing deviations correlate at 0.44 (real soloists 0.56, Markov 0.54), and the solos vary more than real ones (69 % distinct figures per cycle, real 36 %).
+
+Recognising the piece is trivial from the dundun pattern (15/15 takes) and still works from jembe timing alone, pattern masked (balanced accuracy 0.86 over 4 cycles, 95 % CI 0.74 to 0.95, [`a2_recognition.json`](results/a2_recognition.json)).
+
+## Status
+
+- [x] Event table, frozen take-level splits, recognition baselines, reference models
+- [x] Graph network for timing (J3b), symmetry study (J4), soloist generation (J5b), graph network against transformer (J6)
+- [x] Live step L1: a Kalman grid tracker on a streamed jembe-2 track predicts the next stroke 100 ms ahead within 8.0 ms median on the 9 of 12 takes it tracks, against 18.2 ms for an isochronous grid ([`live_tracking.json`](results/live_tracking.json))
+- [x] Live step L2: a causal soloist that hears only jembe 2, up to the previous pulse, beats B2 on 12 of 12 takes and stays close to the offline model (0.435 / -0.955 / 1.238 against 0.429 / -0.969 / 1.223, [`live_take_savio.json`](results/live_take_savio.json))
+- [x] J7: a memory of the soloist's own figures does not improve prediction (the base model is better on 12 of 15 takes for strikes and offsets, [`j7_savio.json`](results/j7_savio.json))
+- [ ] J8: two-stage soloist (figure planner, then the graph network), job written, no results yet
+- [ ] Real-time engine, calibration on a live player, blind listening test
+
+## Installation
+
+Tested with Python 3.11 (CI on Ubuntu); training ran on a laptop CPU, on Colab and on UC Berkeley's Savio cluster.
+
+```bash
+git clone https://github.com/clementdumeril/Djembe.git && cd Djembe
+pip install -e ".[dev,train,audio]"    # train: torch, torch-geometric, wandb; audio: soundfile
+pip install -r requirements-train.txt  # optional: the pinned versions used locally
+```
+
+## Usage
+
+```bash
+python -m pytest -q                    # without the corpus: 109 passed, 4 skipped, under a minute
+python -m djembe.dataset download      # annotations only, about 10 MB from OSF
+python -m djembe.dataset build         # output/events.csv, about 7 s
+python experiments/j6/run.py --protocol take --index 0 --epochs 2   # quick check of the J6 pipeline on one take
+python experiments/gnn/train_humanize.py --variants V0 V4 V5 --seeds 0 --select last --out results/j3b_humanize_seed0_cpu.json   # about 2 h on a laptop CPU
+```
+
+The full runs are SLURM job arrays, one task per take and seed ([`savio/README.md`](savio/README.md)); every command and output file is listed in [`docs/RESULTS.md`](docs/RESULTS.md#commands). [`colab/j3_humanize.ipynb`](colab/j3_humanize.ipynb) runs the three-seed timing study.
+
+## Reproducing figures
+
+```bash
+python experiments/j6/plot.py --out docs/figures/j6_gnn_transformer.png
+python experiments/gnn/plot_humanize.py results/j3b_humanize_3seeds_savio.json docs/figures/j3b_humanize_3seeds_savio.png
+python experiments/gnn/plot_curve.py results/j4_curve_savio.json docs/figures/j4_curve.png
+python experiments/recognition/make_figures.py   # hero and step-0 figures (needs the corpus)
+```
+
+## Code structure
+
+| Component | File | Role |
+| :-- | :-- | :-- |
+| Data | [`djembe/dataset.py`](djembe/dataset.py), [`grid.py`](djembe/grid.py) | OSF download, event table, cycle grid and graph edges |
+| References | [`djembe/baselines.py`](djembe/baselines.py) | B1 per position, B2 Markov |
+| Graph network | [`djembe/gnn.py`](djembe/gnn.py), [`solo.py`](djembe/solo.py), [`solo_seq.py`](djembe/solo_seq.py) | Relational message passing; soloist strike and stroke-by-stroke models |
+| Transformer | [`djembe/transformer.py`](djembe/transformer.py) | Encoder over the accompaniment, causal decoder with relative-position bias |
+| Strokes | [`djembe/strokes.py`](djembe/strokes.py), [`stroke_types.py`](djembe/stroke_types.py) | Bass / tone / slap from the audio and from the grid |
+| Generation and live | [`djembe/generate.py`](djembe/generate.py), [`live.py`](djembe/live.py), [`render.py`](djembe/render.py) | Sampling, grid tracker, audio rendering with CC0 samples |
+| Experiments | [`experiments/`](experiments/) | One folder per study (recognition, gnn, generation, j6, j7, live, strokes) |
+| Results | [`results/`](results/) | One JSON per run or merged campaign |
+| Tests | [`tests/`](tests/) | Splits without leakage, model symmetries, no corpus-derived file committed |
 
 ## Limitations
 
-- 15 takes, 3 pieces, one dundun player, same sessions. Results hold within this corpus only.
-- The curve has 3 repetitions per size, and subsets of 2 or 4 takes give some pieces one take or none, so its left end is noisier than its right end.
-- Leave-one-piece-out has only 3 pieces, so 3 training configurations; neither the graph model nor the transformers had a hyperparameter search.
-- Stroke-type labels come from the audio and agree with a player's ear at 75 % on 105 strokes; fast ornaments (strokes closer than one pulse) are not in the grid.
-- Audio renders use recorded CC0 samples ([credits](assets/samples/CREDITS.md)). Generated audio is not published, nor are renders over the corpus' own microphones (local listening only).
-- Runs are not bit-exact: seed 0 on Savio and on the laptop differ by 0.02 per take on average (up to 0.12), and rerunning J3 on Colab gave V0 −0.736 instead of −0.709. Three seeds are enough to see that the V5 lead is larger than this noise, not to measure it precisely.
+- 15 takes, 3 pieces, one dundun player, same sessions: results hold within this corpus only.
+- Leave-one-piece-out has 3 training configurations; no model had a hyperparameter search.
+- On Manjanin_4 the timing network loses to B2 on all three seeds; it is the only Manjanin take whose soloist plays no other Manjanin take. Not tested further.
+- Stroke types (bass, tone, slap) are read from the audio; they agree with a player's ear at 75 % on 105 strokes.
+- Runs are not bit-exact: seed 0 on Savio and on a laptop differ by 0.02 nats per take on average (up to 0.12).
+- Generated audio and renders over the corpus' microphones are not published (corpus licence).
 
-Corpus erratum: one published OSF file holds the wrong take; I use the correct ones ([details](docs/CORPUS_ERRATUM.md)).
+## Citation, license and credits
 
-## Install and run
+Code: MIT, see [`LICENSE`](LICENSE) and [`CITATION.cff`](CITATION.cff). The corpus is CC BY-NC-ND 4.0 by its authors and is not redistributed; `djembe/dataset.py` downloads it from OSF. The event table, audio and trained weights stay out of the repository. Drum samples: CC0, see [`assets/samples/CREDITS.md`](assets/samples/CREDITS.md).
 
-```bash
-pip install -e ".[dev,train,audio]"   # train: torch, torch-geometric, wandb; audio: soundfile, for rendering with the samples
-python -m djembe.dataset download     # annotations only, about 10 MB from OSF
-python -m djembe.dataset build        # output/events.csv, about 7 s
-python -m pytest -q                   # a few seconds
-python experiments/gnn/train_humanize.py --variants V0 V4 V5 --seeds 0 --select last --out results/j3b_humanize_seed0_cpu.json   # about 2 h in 4 parallel parts (--takes)
-```
-
-Folds are frozen by take in [`splits.json`](splits.json); the tests fail if a take is on both sides. Full tables and commands: [`docs/RESULTS.md`](docs/RESULTS.md).
-
-[`colab/j3_humanize.ipynb`](colab/j3_humanize.ipynb) runs the three-seed version. On UC Berkeley's Savio cluster, [`savio/`](savio/README.md) runs every take and seed as one SLURM job array and merges the parts. If OSF refuses the download (403), run `python -m djembe.dataset pack` and put `output/djembe_corpus.zip` at the root of your Google Drive; the notebook then skips OSF. Keep that file private.
-
-## License and credits
-
-Code: [MIT License](LICENSE). The IEMP Malian Jembe corpus is licensed CC BY-NC-ND 4.0 by its authors and is not redistributed here; `djembe/dataset.py` downloads it from OSF (https://osf.io/m652x/). The event table, audio and trained weights stay out of the repository.
-
-- Corpus: Polak, R., Tarsitani, S., & Clayton, M. (2018). *IEMP Malian Jembe* [Data set]. OSF. https://doi.org/10.17605/OSF.IO/M652X. The recordings and annotations are theirs.
+- Polak, R., Tarsitani, S., & Clayton, M. (2018). *IEMP Malian Jembe* [Data set]. OSF. https://doi.org/10.17605/OSF.IO/M652X
+- Clayton, M., et al. (2021). The Interpersonal Entrainment in Music Performance Data Collection. *Empirical Musicology Review, 16*(1), 65-84. https://doi.org/10.18061/emr.v16i1.7555
 - Polak, R. (2004). *Festmusik als Arbeit, Trommeln als Beruf*. Dietrich Reimer. https://d-nb.info/971098840
-- Clayton, M., et al. (2021). The Interpersonal Entrainment in Music Performance Data Collection. *Empirical Musicology Review, 16*(1), 65–84. https://doi.org/10.18061/emr.v16i1.7555
 - Polak, R. (2010). Rhythmic feel as meter. *Music Theory Online, 16*(4). https://doi.org/10.30535/mto.16.4.4
 - Polak, R., & London, J. (2014). Timing and meter in Mande drumming from Mali. *Music Theory Online, 20*(1). https://doi.org/10.30535/mto.20.1.1
-- Polak, R., London, J., & Jacoby, N. (2016). Both isochronous and non-isochronous metrical subdivision afford precise and stable ensemble entrainment: A corpus study of Malian jembe drumming. *Frontiers in Neuroscience, 10*, 285. https://doi.org/10.3389/fnins.2016.00285
+- Polak, R., London, J., & Jacoby, N. (2016). Both isochronous and non-isochronous metrical subdivision afford precise and stable ensemble entrainment. *Frontiers in Neuroscience, 10*, 285. https://doi.org/10.3389/fnins.2016.00285
+- Huang, C.-Z. A., et al. (2018). Music Transformer. [arXiv:1809.04281](https://arxiv.org/abs/1809.04281). Relative attention, reimplemented here in the additive form of Raffel et al. (2020), [arXiv:1910.10683](https://arxiv.org/abs/1910.10683).
+
+The earlier analysis stage (notebooks, listening demo) is at tag [`v0.2-analysis`](https://github.com/clementdumeril/Djembe/tree/v0.2-analysis). Clément Dumeril · [clement.dumeril.net](https://clement.dumeril.net)
