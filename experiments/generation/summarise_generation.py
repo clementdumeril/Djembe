@@ -5,7 +5,7 @@ generator is compared with the Markov one take by take (two-sided Wilcoxon on th
 means); for the distances "better" means closer to the real take. Strike prediction:
 GNN strike model against B2, same test.
 
-    python experiments/generation/summarise_generation.py <run dir>/part_*.json --out results/j5_generation_savio.json --expect-takes 15 --expect-seeds 3
+    python experiments/generation/summarise_generation.py <run dir>/part_*.json --out results/j5_generation.json --expect-takes 15 --expect-seeds 3
 """
 from __future__ import annotations
 

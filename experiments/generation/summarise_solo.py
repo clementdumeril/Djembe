@@ -6,7 +6,7 @@ Generation: the network's soloist against the Markov one, "closer" meaning close
 real soloist (for the distinct-pattern and copy rates, closer to the real take's own
 rate). Two-sided Wilcoxon on the per-take seed means.
 
-    python experiments/generation/summarise_solo.py <run dir>/part_*.json --out results/j5b_solo_savio.json --expect-takes 15 --expect-seeds 3
+    python experiments/generation/summarise_solo.py <run dir>/part_*.json --out results/j5b_solo.json --expect-takes 15 --expect-seeds 3
 """
 from __future__ import annotations
 

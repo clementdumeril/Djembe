@@ -64,9 +64,9 @@ Sources: [`j3_humanize_3seeds_colab.json`](../results/j3_humanize_3seeds_colab.j
 
 ## Humanizing a cycle, three fixes and three seeds (J3b)
 
-Fixes: keep the last epoch (`--select last`), helix edge (V5), correction to B1 (V4, dropped after seed 0). V0 and V5 then ran with three seeds on Savio, one SLURM task per (take, seed).
+Fixes: keep the last epoch (`--select last`), helix edge (V5), correction to B1 (V4, dropped after seed 0). V0 and V5 then ran with three seeds on a Slurm cluster, one task per (take, seed).
 
-| Model | Offsets, 3 seeds (Savio) | Offsets, seed 0 (laptop) | Intensity, 3 seeds | Offsets vs B2, per take |
+| Model | Offsets, 3 seeds (cluster) | Offsets, seed 0 (laptop) | Intensity, 3 seeds | Offsets vs B2, per take |
 |---|---|---|---|---|
 | B1 position | −0.579 | −0.579 | 1.294 | |
 | B2 Markov, earlier cycles | −0.709 | −0.709 | 1.286 | |
@@ -77,15 +77,15 @@ Fixes: keep the last epoch (`--select last`), helix edge (V5), correction to B1 
 - Per-take tests on the seed mean of each take, two-sided. V5 against V0: better on 14 of 15, −0.020 (Wilcoxon p = 0.007).
 - Seeds: V5 overall −0.791 / −0.805 / −0.793; each seed beats B2 on 13, 13 and 14 takes; the per-take standard deviation across seeds has a median of 0.013 nats (max 0.046).
 - Exceptions: Woloso_1 ties B2 (−1.085 against −1.086); Manjanin_4 loses on all three seeds (V5 −0.421, V0 −0.494, B2 −0.590).
-- Reproducibility: B1 and B2 are identical on Savio and on the laptop; seed 0 of the network differs by 0.016 (V0) and 0.019 (V5) per take on average, 0.12 at most.
+- Reproducibility: B1 and B2 are identical on the cluster and on the laptop; seed 0 of the network differs by 0.016 (V0) and 0.019 (V5) per take on average, 0.12 at most.
 
-![Negative log-likelihood per held-out take over three seeds](figures/j3b_humanize_3seeds_savio.png)
+![Negative log-likelihood per held-out take over three seeds](figures/j3b_humanize_3seeds.png)
 
-Sources: [`j3b_humanize_3seeds_savio.json`](../results/j3b_humanize_3seeds_savio.json) (45 parts merged with [`merge_results.py`](../experiments/gnn/merge_results.py)), [`j3b_humanize_seed0_cpu.json`](../results/j3b_humanize_seed0_cpu.json).
+Sources: [`j3b_humanize_3seeds.json`](../results/j3b_humanize_3seeds.json) (45 parts merged with [`merge_results.py`](../experiments/gnn/merge_results.py)), [`j3b_humanize_seed0_cpu.json`](../results/j3b_humanize_seed0_cpu.json).
 
 ## Data-efficiency curve (J4)
 
-Every variant trained on 2, 4, 8 and 13 takes, B1 and B2 fitted on the same takes; nested subsets (round robin across pieces, the test piece first), 3 repetitions varying subset and seed, `--select last`. 180 Savio tasks ([`train_curve.py`](../experiments/gnn/train_curve.py)).
+Every variant trained on 2, 4, 8 and 13 takes, B1 and B2 fitted on the same takes; nested subsets (round robin across pieces, the test piece first), 3 repetitions varying subset and seed, `--select last`. 180 cluster tasks ([`train_curve.py`](../experiments/gnn/train_curve.py)).
 
 | Training takes | B1 | B2 | V0 | V1 (C4) | V3 (C12) | V5 (helix) |
 |---|---|---|---|---|---|---|
@@ -108,11 +108,11 @@ Per-take tests on the mean of the 3 repetitions, two-sided Wilcoxon; "wins" = ta
 
 ![Data-efficiency curve](figures/j4_curve.png)
 
-Source: [`j4_curve_savio.json`](../results/j4_curve_savio.json) (180 parts merged with [`merge_results.py`](../experiments/gnn/merge_results.py)).
+Source: [`j4_curve.json`](../results/j4_curve.json) (180 parts merged with [`merge_results.py`](../experiments/gnn/merge_results.py)).
 
 ## Generation of the whole ensemble (J5)
 
-Strike model (V5 graph, target strikes hidden) plus the timing model; every held-out take generated from 3 real cycles, all 48 strikes of a cycle drawn independently; Markov (B2) generator as reference. 15 takes x 3 seeds on Savio.
+Strike model (V5 graph, target strikes hidden) plus the timing model; every held-out take generated from 3 real cycles, all 48 strikes of a cycle drawn independently; Markov (B2) generator as reference. 15 takes x 3 seeds on the cluster.
 
 | | GNN | Markov (B2) | Another real take |
 |---|---|---|---|
@@ -122,11 +122,11 @@ Strike model (V5 graph, target strikes hidden) plus the timing model; every held
 | Cycles identical to a training cycle (real takes: 56 %) | 10 % | 24 % | 53 % |
 | Windows recognised as the right piece | 96 % | 99 % | 100 % |
 
-Per take: strike prediction better on 15/15 (Wilcoxon p < 0.001); in generation the strike profile is closer for Markov on 14/15 (p < 0.001), timing ties (6/15, p = 0.64). Source: [`j5_generation_savio.json`](../results/j5_generation_savio.json).
+Per take: strike prediction better on 15/15 (Wilcoxon p < 0.001); in generation the strike profile is closer for Markov on 14/15 (p < 0.001), timing ties (6/15, p = 0.64). Source: [`j5_generation.json`](../results/j5_generation.json).
 
 ## Generation of the soloist (J5b)
 
-Jembe 1 only, over the real ensemble (accompaniment known in the target cycle too); strikes drawn pulse by pulse by a strike model trained on random prefixes; temperature chosen on the validation take (0.8 in 44 of 45 runs). 15 takes x 3 seeds on Savio.
+Jembe 1 only, over the real ensemble (accompaniment known in the target cycle too); strikes drawn pulse by pulse by a strike model trained on random prefixes; temperature chosen on the validation take (0.8 in 44 of 45 runs). 15 takes x 3 seeds on the cluster.
 
 | Prediction on the held-out soloist | GNN | B2 | GNN better on (Wilcoxon p) |
 |---|---|---|---|
@@ -150,11 +150,11 @@ GNN against Markov, per take, "closer to the real soloist": distinct-figure rate
 
 ![Generated and real soloists](figures/j5b_solo.png)
 
-Sources: [`j5b_solo_savio.json`](../results/j5b_solo_savio.json), [`j5b_solo_creativity.json`](../results/j5b_solo_creativity.json) ([`solo_creativity.py`](../experiments/generation/solo_creativity.py)).
+Sources: [`j5b_solo.json`](../results/j5b_solo.json), [`j5b_solo_creativity.json`](../results/j5b_solo_creativity.json) ([`solo_creativity.py`](../experiments/generation/solo_creativity.py)).
 
 ## Graph model against transformer, seen and unseen rhythms (J6)
 
-Soloist stroke by stroke (strike, then offset and intensity given it strikes), 15 takes x 3 seeds, mean of seed means. Protocols: `take` (leave-one-take-out, piece given), `take_nopiece` (same, no piece), `piece` (leave-one-piece-out, no piece). Files: `results/j6_{take,take_nopiece,piece}_savio.json`.
+Soloist stroke by stroke (strike, then offset and intensity given it strikes), 15 takes x 3 seeds, mean of seed means. Protocols: `take` (leave-one-take-out, piece given), `take_nopiece` (same, no piece), `piece` (leave-one-piece-out, no piece). Files: `results/j6_{take,take_nopiece,piece}.json`.
 
 | Prediction (nats) | take: hit / offset / intensity | take_nopiece | piece |
 |---|---|---|---|
@@ -171,6 +171,25 @@ GNN_seq better than Transformer_matched (takes of 15, Wilcoxon p): take 12 (0.01
 | timing_lag1 | 0.44 | 0.56 | 0.59 | 0.54 | 0.56 |
 | distinct figures | 0.69 | 0.69 | 0.63 | 0.77 | 0.36 |
 | timing W1 (ms) | 7.9 | 7.4 | 7.7 | 6.3 | |
+
+## Live steps and figure memory (L1, L2, J7, J8)
+
+- L1, grid tracking: a Kalman grid tracker on a streamed jembe-2 track predicts the next stroke 100 ms ahead within 8.0 ms median on the 9 of 12 takes it tracks, against 18.2 ms for an isochronous grid ([`live_tracking.json`](../results/live_tracking.json)).
+- L2, causal soloist: hearing only jembe 2, up to the previous pulse, it beats B2 on 12 of 12 takes and stays close to the offline model (0.435 / -0.955 / 1.238 against 0.429 / -0.969 / 1.223, [`live_take.json`](../results/live_take.json), leave-one-piece-out in [`live_piece.json`](../results/live_piece.json)).
+- J7, figure memory and groove encoder: a memory of the soloist's own figures does not improve prediction; the base model is better on 12 of 15 takes for strikes and offsets ([`j7.json`](../results/j7.json)).
+- J8, two-stage soloist (a figure planner picks each cycle's base among the figures already played, then the graph network plays the cycle): job written ([`slurm/j8_array.sbatch`](../slurm/j8_array.sbatch)), no results yet.
+- Not done: real-time engine, calibration on a live player, blind listening test.
+
+## Reproducing the README figures
+
+```bash
+python experiments/j6/plot.py --out docs/figures/j6_gnn_transformer.png
+python experiments/gnn/plot_humanize.py results/j3b_humanize_3seeds.json docs/figures/j3b_humanize_3seeds.png
+python experiments/gnn/plot_curve.py results/j4_curve.json docs/figures/j4_curve.png
+python experiments/recognition/make_figures.py   # hero and step-0 figures (needs the corpus)
+```
+
+The overview figure is hand-written SVG ([`figures/overview.svg`](figures/overview.svg)) with crops of these figures (`figures/ov_*.png`).
 
 ## Commands
 
@@ -190,21 +209,21 @@ python experiments/symmetry/beat_symmetry.py             # results/j1_beat_symme
 python experiments/baselines/run_baselines.py            # results/j2_baselines.json and figure, a few minutes
 python experiments/gnn/train_humanize.py --variants V0 V1 V3 --seeds 0 --out results/j3_humanize_seed0_cpu.json   # about 1.5 h on a laptop CPU
 python experiments/gnn/train_humanize.py --variants V0 V4 V5 --seeds 0 --select last --out results/j3b_humanize_seed0_cpu.json   # about 2 h in 4 parallel parts (--takes)
-sbatch -A <account> --array=0-44 --time=00:30:00 savio/j3b_array.sbatch   # on Savio: V0 and V5, 15 takes x 3 seeds, about 5 min per task (savio/README.md)
-python experiments/gnn/merge_results.py <run dir>/part_*.json --out results/j3b_humanize_3seeds_savio.json --expect-takes 15 --expect-seeds 3
-python experiments/gnn/plot_humanize.py results/j3b_humanize_3seeds_savio.json docs/figures/j3b_humanize_3seeds_savio.png
-sbatch -A <account> --array=0-179 savio/curve_array.sbatch   # on Savio: data-efficiency curve, V0 V1 V3 V5 on 2, 4, 8, 13 takes x 3 repetitions
-python experiments/gnn/merge_results.py <run dir>/part_*.json --out results/j4_curve_savio.json --expect-takes 15 --expect-seeds 3
-python experiments/gnn/plot_curve.py results/j4_curve_savio.json docs/figures/j4_curve.png
-DJEMBE_VENV=$HOME/envs/djembe DJEMBE_OUT=$HOME/djembe_runs sbatch -A <account> --array=0-44 savio/gen_array.sbatch   # J5 generation, see savio/README.md
+sbatch -A <account> --array=0-44 --time=00:30:00 slurm/j3b_array.sbatch   # on the cluster: V0 and V5, 15 takes x 3 seeds, about 5 min per task (slurm/README.md)
+python experiments/gnn/merge_results.py <run dir>/part_*.json --out results/j3b_humanize_3seeds.json --expect-takes 15 --expect-seeds 3
+python experiments/gnn/plot_humanize.py results/j3b_humanize_3seeds.json docs/figures/j3b_humanize_3seeds.png
+sbatch -A <account> --array=0-179 slurm/curve_array.sbatch   # on the cluster: data-efficiency curve, V0 V1 V3 V5 on 2, 4, 8, 13 takes x 3 repetitions
+python experiments/gnn/merge_results.py <run dir>/part_*.json --out results/j4_curve.json --expect-takes 15 --expect-seeds 3
+python experiments/gnn/plot_curve.py results/j4_curve.json docs/figures/j4_curve.png
+DJEMBE_VENV=$HOME/envs/djembe DJEMBE_OUT=$HOME/djembe_runs sbatch -A <account> --array=0-44 slurm/gen_array.sbatch   # J5 generation, see slurm/README.md
 python experiments/generation/generate_eval.py --takes Woloso_5 --seeds 0 --epochs 2   # quick local check, about a minute
-DJEMBE_VENV=$HOME/envs/djembe DJEMBE_OUT=$HOME/djembe_runs sbatch -A <account> --array=0-44 savio/solo_array.sbatch   # J5b soloist over the real ensemble
+DJEMBE_VENV=$HOME/envs/djembe DJEMBE_OUT=$HOME/djembe_runs sbatch -A <account> --array=0-44 slurm/solo_array.sbatch   # J5b soloist over the real ensemble
 python experiments/generation/solo_eval.py --takes Woloso_5 --seeds 0 --epochs 2   # quick local check
-python experiments/generation/summarise_solo.py <run dir>/part_*.json --out results/j5b_solo_savio.json --expect-takes 15 --expect-seeds 3
+python experiments/generation/summarise_solo.py <run dir>/part_*.json --out results/j5b_solo.json --expect-takes 15 --expect-seeds 3
 python experiments/generation/solo_creativity.py <run dir>/grids --out results/j5b_solo_creativity.json --figure docs/figures/j5b_solo.png
-PROTOCOL=piece DJEMBE_VENV=$HOME/envs/djembe DJEMBE_OUT=$HOME/djembe_runs sbatch -A <account> --array=0-8 savio/j6_array.sbatch   # J6 (take and take_nopiece: --array=0-44)
+PROTOCOL=piece DJEMBE_VENV=$HOME/envs/djembe DJEMBE_OUT=$HOME/djembe_runs sbatch -A <account> --array=0-8 slurm/j6_array.sbatch   # J6 (take and take_nopiece: --array=0-44)
 python experiments/j6/run.py --protocol take --index 0 --epochs 2   # quick local check
-python experiments/j6/summarise.py <run dir>/part_*.json --out results/j6_piece_savio.json --expect-seeds 3
+python experiments/j6/summarise.py <run dir>/part_*.json --out results/j6_piece.json --expect-seeds 3
 python experiments/j6/plot.py --out docs/figures/j6_gnn_transformer.png
 python -m djembe.strokes --instrument J1 && python experiments/strokes/type_eval.py   # stroke types (needs the corpus audio)
 ```

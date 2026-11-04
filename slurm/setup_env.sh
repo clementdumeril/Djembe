@@ -1,6 +1,6 @@
 #!/bin/bash
-# One-time setup on a Savio login node: code and Python environment in scratch.
-#   bash savio/setup_env.sh
+# One-time setup on the cluster login node: code and Python environment in scratch.
+#   bash slurm/setup_env.sh
 # The graph model needs only PyTorch (no PyTorch Geometric), which the ml/pytorch
 # module provides; the venv adds the project and its light dependencies on top.
 # No -u: the ml/pytorch module's activation script reads unset variables.

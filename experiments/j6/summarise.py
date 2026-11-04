@@ -8,7 +8,7 @@ real soloist's own value (``timing_lag1``, ``distinct_rate``) or the distance it
 (``profile_l1``, ``timing_w1_ms``, ``intensity_w1``). Two-sided Wilcoxon on the per-take
 seed means.
 
-    python experiments/j6/summarise.py <run dir>/part_*.json --out results/j6_piece_savio.json --expect-seeds 3
+    python experiments/j6/summarise.py <run dir>/part_*.json --out results/j6_piece.json --expect-seeds 3
 """
 from __future__ import annotations
 

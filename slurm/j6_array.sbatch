@@ -1,15 +1,15 @@
 #!/bin/bash
 # Roadmap J6: graph model vs transformer, soloist stroke by stroke, seen and unseen rhythms.
-# PROTOCOL = take (45 tasks), take_nopiece (45) or piece (9). Submit from the repository root on Savio:
+# PROTOCOL = take (45 tasks), take_nopiece (45) or piece (9). Submit from the repository root on the cluster:
 #
-#   PROTOCOL=take  DJEMBE_VENV=$HOME/envs/djembe DJEMBE_OUT=$HOME/djembe_runs sbatch -A fc_YOURACCOUNT --array=0-44 savio/j6_array.sbatch
-#   PROTOCOL=piece DJEMBE_VENV=$HOME/envs/djembe DJEMBE_OUT=$HOME/djembe_runs sbatch -A fc_YOURACCOUNT --array=0-8  savio/j6_array.sbatch
+#   PROTOCOL=take  DJEMBE_VENV=$HOME/envs/djembe DJEMBE_OUT=$HOME/djembe_runs sbatch -A fc_YOURACCOUNT --array=0-44 slurm/j6_array.sbatch
+#   PROTOCOL=piece DJEMBE_VENV=$HOME/envs/djembe DJEMBE_OUT=$HOME/djembe_runs sbatch -A fc_YOURACCOUNT --array=0-8  slurm/j6_array.sbatch
 #
 #SBATCH --job-name=djembe-j6
 #SBATCH --partition=savio2_htc
 #SBATCH --cpus-per-task=2
 #SBATCH --time=01:30:00
-#SBATCH --output=slurm/%x_%A_%a.out
+#SBATCH --output=slurm/logs/%x_%A_%a.out
 
 # No -u: the ml/pytorch module's activation script reads unset variables.
 set -eo pipefail
