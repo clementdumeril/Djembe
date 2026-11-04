@@ -1,15 +1,15 @@
 #!/bin/bash
 # Roadmap L2: the soloist model in live conditions (causal, jembe 2 alone) against the offline one.
-# PROTOCOL = take (36 tasks, the takes with a jembe 2) or piece (9). Submit from the repository root on Savio:
+# PROTOCOL = take (36 tasks, the takes with a jembe 2) or piece (9). Submit from the repository root on the cluster:
 #
-#   PROTOCOL=take  DJEMBE_VENV=$HOME/envs/djembe DJEMBE_OUT=$HOME/djembe_runs sbatch -A fc_YOURACCOUNT --array=0-35 savio/live_array.sbatch
-#   PROTOCOL=piece DJEMBE_VENV=$HOME/envs/djembe DJEMBE_OUT=$HOME/djembe_runs sbatch -A fc_YOURACCOUNT --array=0-8  savio/live_array.sbatch
+#   PROTOCOL=take  DJEMBE_VENV=$HOME/envs/djembe DJEMBE_OUT=$HOME/djembe_runs sbatch -A fc_YOURACCOUNT --array=0-35 slurm/live_array.sbatch
+#   PROTOCOL=piece DJEMBE_VENV=$HOME/envs/djembe DJEMBE_OUT=$HOME/djembe_runs sbatch -A fc_YOURACCOUNT --array=0-8  slurm/live_array.sbatch
 #
 #SBATCH --job-name=djembe-live
 #SBATCH --partition=savio2_htc
 #SBATCH --cpus-per-task=2
 #SBATCH --time=01:30:00
-#SBATCH --output=slurm/%x_%A_%a.out
+#SBATCH --output=slurm/logs/%x_%A_%a.out
 
 # No -u: the ml/pytorch module's activation script reads unset variables.
 set -eo pipefail

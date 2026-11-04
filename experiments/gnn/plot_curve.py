@@ -5,7 +5,7 @@ repetitions with the min-max range as a band. Right: the same minus B2 fitted on
 takes, so a symmetry that pays off with little data shows up as a line that dips below 0
 on the left of the plot.
 
-    python experiments/gnn/plot_curve.py results/j4_curve_savio.json docs/figures/j4_curve.png
+    python experiments/gnn/plot_curve.py results/j4_curve.json docs/figures/j4_curve.png
 """
 import json
 import sys

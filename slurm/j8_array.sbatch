@@ -1,14 +1,14 @@
 #!/bin/bash
 # Roadmap J8: two-stage soloist (figure planner + graph model) against the graph model alone, leave-one-take-out.
-# 15 takes x 3 seeds = 45 tasks. Submit from the repository root on Savio:
+# 15 takes x 3 seeds = 45 tasks. Submit from the repository root on the cluster:
 #
-#   DJEMBE_VENV=$HOME/envs/djembe DJEMBE_OUT=$HOME/djembe_runs sbatch -A fc_YOURACCOUNT --array=0-44 savio/j8_array.sbatch
+#   DJEMBE_VENV=$HOME/envs/djembe DJEMBE_OUT=$HOME/djembe_runs sbatch -A fc_YOURACCOUNT --array=0-44 slurm/j8_array.sbatch
 #
 #SBATCH --job-name=djembe-j8
 #SBATCH --partition=savio2_htc
 #SBATCH --cpus-per-task=2
 #SBATCH --time=02:00:00
-#SBATCH --output=slurm/%x_%A_%a.out
+#SBATCH --output=slurm/logs/%x_%A_%a.out
 
 # No -u: the ml/pytorch module's activation script reads unset variables.
 set -eo pipefail

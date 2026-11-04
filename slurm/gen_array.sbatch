@@ -1,14 +1,14 @@
 #!/bin/bash
 # Generation (roadmap J5): train the strike and timing models, generate the held-out take, judge it.
-# One task per (test take, seed). Submit from the repository root on Savio (see savio/README.md):
+# One task per (test take, seed). Submit from the repository root on the cluster (see slurm/README.md):
 #
-#   DJEMBE_VENV=$HOME/envs/djembe DJEMBE_OUT=$HOME/djembe_runs sbatch -A fc_YOURACCOUNT --array=0-44 savio/gen_array.sbatch
+#   DJEMBE_VENV=$HOME/envs/djembe DJEMBE_OUT=$HOME/djembe_runs sbatch -A fc_YOURACCOUNT --array=0-44 slurm/gen_array.sbatch
 #
 #SBATCH --job-name=djembe-j5
 #SBATCH --partition=savio2_htc
 #SBATCH --cpus-per-task=2
 #SBATCH --time=00:30:00
-#SBATCH --output=slurm/%x_%A_%a.out
+#SBATCH --output=slurm/logs/%x_%A_%a.out
 
 # No -u: the ml/pytorch module's activation script reads unset variables.
 set -eo pipefail

@@ -32,7 +32,7 @@ def main() -> None:
     args = ap.parse_args()
     data = {}
     for p, _ in PROTOCOLS:
-        rows = pd.DataFrame(json.loads((ROOT / "results" / f"j6_{p}_savio.json").read_text())["rows"])
+        rows = pd.DataFrame(json.loads((ROOT / "results" / f"j6_{p}.json").read_text())["rows"])
         pred = rows[rows["kind"] == "prediction"]
         data[p] = pred.groupby(["take", "model"])[[m for m, _ in PANELS]].mean()
     fig, axes = plt.subplots(1, 3, figsize=(12, 4.2))

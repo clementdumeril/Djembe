@@ -4,7 +4,7 @@ Each part is a train_humanize.py output. Network rows are unique per (take, mode
 reference rows (B1, B2) are recomputed by every part that touches a take, so identical
 copies are kept once. Two parts disagreeing on the same row is an error, not a silent pick.
 
-    python experiments/gnn/merge_results.py parts/*.json --out results/j3b_humanize_3seeds_savio.json
+    python experiments/gnn/merge_results.py parts/*.json --out results/j3b_humanize_3seeds.json
     python experiments/gnn/merge_results.py parts/*.json --out merged.json --expect-takes 15 --expect-seeds 3
 """
 from __future__ import annotations

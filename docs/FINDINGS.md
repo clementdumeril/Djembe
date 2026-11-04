@@ -24,22 +24,22 @@ The graph model sees 4 cycles: 3 fully known, and a last one where it only knows
 
 Over three seeds on Colab, the first network only ties B2 (−0.709 both, better on 8 of 15 takes, p = 0.60). So my one-seed claim that it beat B2 on 12 of 15 takes does not hold. Symmetry did not help at this data size, even though the jembe feel is close to beat-symmetric in the data (the four beats differ by 1 to 2 ms, against a feel of 3 to 20 ms).
 
-### Three fixes, then three seeds on Savio
+### Three fixes, then three seeds on a Slurm cluster
 
 1. Keep the last epoch instead of the best epoch on one validation take, which caused most of the seed spread (`--select last`).
 2. Helix edge (V5): pulse 12 now feeds pulse 1 of the next cycle, not of the same cycle.
 3. Correction to B1 (V4 = V5 + this): the network predicts a correction to B1's Gaussian.
 
-On seed 0 the correction to B1 hurt (V4, −0.652, worse than V5 on 14 of 15 takes), so I dropped it and ran V0 and V5 with three seeds each on UC Berkeley's Savio cluster (45 jobs, about 5 minutes each).
+On seed 0 the correction to B1 hurt (V4, −0.652, worse than V5 on 14 of 15 takes), so I dropped it and ran V0 and V5 with three seeds each on a Slurm cluster (45 jobs, about 5 minutes each).
 
-| Offsets | 3 seeds, Savio | Seed 0, laptop | vs B2, per take (3 seeds) |
+| Offsets | 3 seeds, cluster | Seed 0, laptop | vs B2, per take (3 seeds) |
 |---|---|---|---|
 | B1 position | −0.579 | −0.579 | |
 | B2 Markov, earlier cycles | −0.709 | −0.709 | |
 | GNN V0, last epoch | −0.780 | −0.784 | better on 13 of 15 |
 | GNN V5, last epoch + helix | **−0.796** | −0.801 | better on 13 of 15 (Wilcoxon p = 0.005, sign test p = 0.007) |
 
-![Negative log-likelihood per held-out take over three seeds: V5 below B2 on 13 takes, above it on Manjanin_4](figures/j3b_humanize_3seeds_savio.png)
+![Negative log-likelihood per held-out take over three seeds: V5 below B2 on 13 takes, above it on Manjanin_4](figures/j3b_humanize_3seeds.png)
 
 V5 beats B2 by 0.087 nats per stroke (0.10 averaged over takes), so it gives the real offsets about 9 % more probability. The lead does not depend on the seed this time: each seed alone beats B2 on 13 or 14 takes, and V5's overall score moves by 0.013 between seeds. The helix helps a little but steadily: V5 beats V0 on 14 of 15 takes (−0.020, p = 0.007).
 
@@ -47,7 +47,7 @@ The two exceptions: Woloso_1 is a tie (−1.085 against −1.086), and on Manjan
 
 ### Does symmetry help with less data?
 
-Symmetry shares one rule across the beats (V1) or across all 12 pulses (V3), so each rule sees 4 or 12 times more examples. If that pays off anywhere, it should be when data is scarce. So I trained every variant on 2, 4, 8 and 13 takes, with B1 and B2 fitted on the same takes: 180 Savio jobs, nested subsets that always include a take of the test piece, 3 repetitions (subset and seed).
+Symmetry shares one rule across the beats (V1) or across all 12 pulses (V3), so each rule sees 4 or 12 times more examples. If that pays off anywhere, it should be when data is scarce. So I trained every variant on 2, 4, 8 and 13 takes, with B1 and B2 fitted on the same takes: 180 cluster jobs, nested subsets that always include a take of the test piece, 3 repetitions (subset and seed).
 
 | Training takes | B2 | V0, no symmetry | V1, beat symmetry | V3, pulse rotation | V5, helix |
 |---|---|---|---|---|---|
@@ -130,6 +130,6 @@ The corpus gives when each drum strikes, not how. Each jembe has its own microph
 - Leave-one-piece-out has only 3 pieces, so 3 training configurations; neither the graph model nor the transformers had a hyperparameter search.
 - Stroke-type labels come from the audio and agree with a player's ear at 75 % on 105 strokes; fast ornaments (strokes closer than one pulse) are not in the grid.
 - Audio renders use recorded CC0 samples ([credits](../assets/samples/CREDITS.md)). Generated audio is not published, nor are renders over the corpus' own microphones (local listening only).
-- Runs are not bit-exact: seed 0 on Savio and on the laptop differ by 0.02 per take on average (up to 0.12), and rerunning J3 on Colab gave V0 −0.736 instead of −0.709. Three seeds are enough to see that the V5 lead is larger than this noise, not to measure it precisely.
+- Runs are not bit-exact: seed 0 on the cluster and on the laptop differ by 0.02 per take on average (up to 0.12), and rerunning J3 on Colab gave V0 −0.736 instead of −0.709. Three seeds are enough to see that the V5 lead is larger than this noise, not to measure it precisely.
 
 Corpus erratum: one published OSF file holds the wrong take; I use the correct ones ([details](CORPUS_ERRATUM.md)).

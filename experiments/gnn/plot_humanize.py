@@ -1,7 +1,7 @@
 """Figure of the J3 results: negative log-likelihood per held-out take, network against references.
 
     python experiments/gnn/plot_humanize.py results/j3_humanize_seed0_cpu.json docs/figures/j3_humanize.png
-    python experiments/gnn/plot_humanize.py results/j3b_humanize_3seeds_savio.json docs/figures/j3b_humanize_3seeds_savio.png
+    python experiments/gnn/plot_humanize.py results/j3b_humanize_3seeds.json docs/figures/j3b_humanize_3seeds.png
 """
 import json
 import sys

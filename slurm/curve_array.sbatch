@@ -1,15 +1,15 @@
 #!/bin/bash
 # Data-efficiency curve (roadmap J4): every (test take, repetition, training size) as one task.
-# Submit from the repository root on Savio (see savio/README.md):
+# Submit from the repository root on the cluster (see slurm/README.md):
 #
-#   sbatch -A fc_YOURACCOUNT --array=0-179 savio/curve_array.sbatch     # 15 takes x 3 reps x sizes 2 4 8 13
+#   sbatch -A fc_YOURACCOUNT --array=0-179 slurm/curve_array.sbatch     # 15 takes x 3 reps x sizes 2 4 8 13
 #
 # Each task trains the variants below on n training takes and fits B1/B2 on the same takes.
 #SBATCH --job-name=djembe-j4
 #SBATCH --partition=savio2_htc
 #SBATCH --cpus-per-task=2
 #SBATCH --time=00:45:00
-#SBATCH --output=slurm/%x_%A_%a.out
+#SBATCH --output=slurm/logs/%x_%A_%a.out
 
 # No -u: the ml/pytorch module's activation script reads unset variables.
 set -eo pipefail

@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1200" height="500" viewBox="0 0 1200 500" font-family="Arial, Helvetica, sans-serif">
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+    <marker id="ahb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1F5FBF"/>
+    </marker>
+  </defs>
+  <rect x="0.75" y="0.75" width="1198.5" height="498.5" rx="16" fill="#FFFFFF" stroke="#D0D7DE" stroke-width="1.5"/>
+
+  <!-- zones -->
+  <rect x="24" y="32" width="304" height="444" rx="10" fill="none" stroke="#8A9AA8" stroke-width="1.2" stroke-dasharray="6 4"/>
+  <text x="40" y="56" font-size="15" fill="#5A6875" letter-spacing="1.5">DATA</text>
+  <rect x="352" y="32" width="512" height="444" rx="10" fill="none" stroke="#8A9AA8" stroke-width="1.2" stroke-dasharray="6 4"/>
+  <text x="368" y="56" font-size="15" fill="#5A6875" letter-spacing="1.5">MODEL, ONE SOLOIST PULSE AT A TIME</text>
+  <rect x="888" y="32" width="288" height="444" rx="10" fill="none" stroke="#8A9AA8" stroke-width="1.2" stroke-dasharray="6 4"/>
+  <text x="904" y="56" font-size="15" fill="#5A6875" letter-spacing="1.5">HELD-OUT TAKES, 3 SEEDS</text>
+
+  <!-- DATA -->
+  <rect x="44" y="76" width="264" height="96" rx="10" fill="#FBE5CF" stroke="#C97A2B" stroke-width="1.5"/>
+  <text x="60" y="108" font-size="24" fill="#15202A">IEMP jembe corpus</text>
+  <text x="60" y="134" font-size="16" fill="#5A6875">15 takes, 3 pieces, 51 min</text>
+  <text x="60" y="156" font-size="16" fill="#5A6875">41,072 strokes, 4 drums</text>
+  <rect x="44" y="200" width="264" height="152" rx="6" fill="#FFFFFF" stroke="#D0D7DE"/>
+  <image href="ov_timing.png" x="47" y="203" width="258" height="146"/>
+  <text x="44" y="384" font-size="16" fill="#15202A">Woloso: dundun offset from</text>
+  <text x="44" y="405" font-size="16" fill="#15202A">an even 12-pulse grid (ms)</text>
+  <text x="44" y="438" font-size="16" fill="#5A6875">The grid is not isochronous:</text>
+  <text x="44" y="459" font-size="16" fill="#5A6875">timing is part of the rhythm.</text>
+
+  <!-- DATA -> MODEL -->
+  <line x1="308" y1="124" x2="368" y2="124" stroke="#444" stroke-width="2" marker-end="url(#ah)"/>
+
+  <!-- MODEL: graph picture -->
+  <rect x="372" y="76" width="216" height="194" rx="6" fill="#FFFFFF" stroke="#D0D7DE"/>
+  <image href="ov_cycle.png" x="375" y="79" width="210" height="187"/>
+  <text x="372" y="292" font-size="16" fill="#15202A">one cycle as a graph:</text>
+  <text x="372" y="313" font-size="16" fill="#5A6875">12 pulses x 4 drums,</text>
+  <text x="372" y="334" font-size="16" fill="#5A6875">4 cycles = 192 nodes</text>
+
+  <line x1="588" y1="124" x2="616" y2="124" stroke="#444" stroke-width="2" marker-end="url(#ah)"/>
+
+  <!-- MODEL boxes -->
+  <rect x="620" y="84" width="212" height="80" rx="10" fill="#E2EBFA" stroke="#1F5FBF" stroke-width="2"/>
+  <text x="726" y="118" font-size="24" fill="#15202A" text-anchor="middle">Relational GNN</text>
+  <text x="726" y="144" font-size="16" fill="#5A6875" text-anchor="middle">3 layers, 56k params</text>
+
+  <line x1="726" y1="164" x2="726" y2="204" stroke="#444" stroke-width="2" marker-end="url(#ah)"/>
+
+  <rect x="620" y="208" width="212" height="96" rx="10" fill="#F1F4F6" stroke="#8A9AA8" stroke-width="1.5"/>
+  <text x="726" y="240" font-size="22" fill="#15202A" text-anchor="middle">Soloist, pulse <tspan font-family="Georgia, serif" font-style="italic">k</tspan></text>
+  <text x="726" y="266" font-size="17" fill="#5A6875" text-anchor="middle">strike: <tspan font-family="Georgia, serif" font-style="italic">p</tspan>(hit)</text>
+  <text x="726" y="289" font-size="17" fill="#5A6875" text-anchor="middle">offset, intensity: <tspan font-family="Georgia, serif" font-style="italic">μ, σ</tspan></text>
+
+  <!-- feedback loop -->
+  <path d="M620,290 L602,290 L602,150 L616,150" fill="none" stroke="#1F5FBF" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#ahb)"/>
+  <text x="620" y="334" font-size="16" fill="#1F5FBF">pulse <tspan font-family="Georgia, serif" font-style="italic">k</tspan> revealed, then <tspan font-family="Georgia, serif" font-style="italic">k</tspan>+1</text>
+
+  <!-- baselines note -->
+  <rect x="620" y="364" width="212" height="88" rx="10" fill="#FFFFFF" stroke="#8A9AA8" stroke-width="1.2" stroke-dasharray="6 4"/>
+  <text x="636" y="392" font-size="16" fill="#15202A">compared with</text>
+  <text x="636" y="414" font-size="16" fill="#5A6875">transformers (60k, 181k)</text>
+  <text x="636" y="436" font-size="16" fill="#5A6875">Markov, per position</text>
+
+  <!-- MODEL -> RESULT -->
+  <line x1="832" y1="256" x2="900" y2="256" stroke="#444" stroke-width="2" marker-end="url(#ah)"/>
+
+  <!-- RESULT -->
+  <rect x="904" y="76" width="256" height="232" rx="6" fill="#FFFFFF" stroke="#D0D7DE"/>
+  <image href="ov_offsets.png" x="907" y="79" width="250" height="226"/>
+  <rect x="906" y="324" width="14" height="14" fill="#2B6CBD"/>
+  <text x="926" y="337" font-size="15" fill="#15202A">graph network</text>
+  <rect x="1036" y="324" width="14" height="14" fill="#E07B39"/>
+  <text x="1056" y="337" font-size="15" fill="#15202A">transformer</text>
+  <text x="904" y="362" font-size="16" fill="#15202A">On the rhythm never heard:</text>
+  <text x="904" y="392" font-size="26" font-weight="bold" fill="#B8461F">−0.57 vs +0.41</text>
+  <text x="904" y="415" font-size="16" fill="#5A6875">offset NLL, nats (lower is better),</text>
+  <text x="904" y="435" font-size="16" fill="#5A6875">against a same-size transformer</text>
+  <text x="904" y="458" font-size="17" fill="#B8461F">better on 15 of 15 takes</text>
+</svg>
